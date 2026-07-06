@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Badly Drawn Bangers</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <script type="module" src="./src/main.ts"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="masthead">
+        <p class="kicker">Daily song puzzle</p>
+        <h1>Badly Drawn Bangers</h1>
+        <p class="intro">Guess today's song from the badly drawn chorus panels.</p>
+      </header>
+
+      <section class="game" aria-labelledby="puzzle-title">
+        <div class="game-header">
+          <div>
+            <p class="eyebrow" id="puzzle-date">Loading...</p>
+            <h2 id="puzzle-title">Today's Panels</h2>
+          </div>
+          <p class="attempts" id="attempts-count" aria-live="polite"></p>
+        </div>
+
+        <div class="panels" id="panels" aria-label="Storyboard clue panels"></div>
+
+        <form class="guess-form" id="guess-form">
+          <label for="guess-input">Song title</label>
+          <div class="guess-row">
+            <input
+              id="guess-input"
+              name="guess"
+              type="text"
+              autocomplete="off"
+              placeholder="Type your guess"
+              required
+            />
+            <button type="submit">Guess</button>
+          </div>
+        </form>
+
+        <p class="message" id="message" aria-live="polite"></p>
+        <ol class="guess-list" id="guess-list" aria-label="Previous guesses"></ol>
+      </section>
+    </main>
+  </body>
+</html>
