@@ -41,7 +41,7 @@ Panel image paths also live under `/content`, for example:
 
 ## Frontend Game Rules
 
-`web/src/game.ts` holds frontend TypeScript types, answer normalization, and accepted-answer matching for the browser game.
+`public/src/game.ts` holds frontend TypeScript types, answer normalization, and accepted-answer matching for the browser game.
 
 The future Python API should own its own server-side normalization and validation logic. If that behavior becomes more complex, keep frontend and backend behavior aligned through shared fixture cases rather than a root TypeScript package.
 
