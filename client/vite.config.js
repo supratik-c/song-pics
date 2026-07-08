@@ -3,8 +3,7 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 
 const projectRoot = import.meta.dirname;
-const repoRoot = resolve(projectRoot, '..');
-const contentDirectory = resolve(repoRoot, 'content');
+const contentDirectory = resolve(projectRoot, 'content');
 const outputDirectory = resolve(projectRoot, 'dist');
 
 function copyContent() {

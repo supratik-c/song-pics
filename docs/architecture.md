@@ -5,21 +5,20 @@ Badly Drawn Bangers is a local-first browser game. The current architecture is i
 ## Directory Structure
 
 ```text
-web/              Browser game frontend
+client/           Browser game frontend
 api/              Future backend boundary
-content/          Puzzle metadata and storyboard image assets
 infra/            Future AWS infrastructure definitions
 docs/             Project documentation
 ```
 
-The repo keeps `web/` and `api/` at the root instead of nesting them under `apps/`. That is enough structure for one frontend and one future backend without adding an extra directory level.
+The repo keeps `client/` and `api/` at the root instead of nesting them under `apps/`. That is enough structure for one frontend and one future backend without adding an extra directory level.
 
 ## Frontend
 
-`web/` contains the playable website and owns the TypeScript toolchain. The browser entrypoint is `web/src/main.ts`. Vite runs from `web/` and uses `web/index.html` as the app entrypoint. During development, run:
+`client/` contains the playable website and owns the TypeScript toolchain. The browser entrypoint is `client/src/main.ts`. Vite runs from `client/` and uses `client/index.html` as the app entrypoint. During development, run:
 
 ```bash
-cd web
+cd client
 npm run dev
 ```
 
@@ -37,15 +36,15 @@ Panel image paths also live under `/content`, for example:
 
 ## Content
 
-`content/` is the source of truth for daily puzzles and storyboard images. Keeping content outside `web/` makes it easier to add publishing tools, validation scripts, or a backend later without mixing game data into UI code.
+`client/content/` is the source of truth for daily puzzles and storyboard images while the game is frontend-only. If content later needs publishing tools or backend access, it can move back to a root-level content boundary.
 
 ## Frontend Game Rules
 
-`public/src/game.ts` holds frontend TypeScript types, answer normalization, and accepted-answer matching for the browser game.
+`client/src/game.ts` holds frontend answer normalization and accepted-answer matching for the browser game. `client/src/types.ts` holds frontend TypeScript types.
 
 The future Python API should own its own server-side normalization and validation logic. If that behavior becomes more complex, keep frontend and backend behavior aligned through shared fixture cases rather than a root TypeScript package.
 
-Run `npm run typecheck` from `web/` to check the TypeScript source without creating build output.
+Run `npm run typecheck` from `client/` to check the TypeScript source without creating build output.
 
 ## Backend Boundary
 
@@ -62,7 +61,7 @@ A likely first backend would be a small FastAPI service with routes such as `GET
 
 ## Build Output
 
-Vite builds the frontend into `web/dist/`. The project Vite config also copies `content/` into `web/dist/content` so production builds preserve the same `/content/...` URLs used in local development.
+Vite builds the frontend into `client/dist/`. The project Vite config also copies `client/content/` into `client/dist/content` so production builds preserve the same `/content/...` URLs used in local development.
 
 The npm dev and preview scripts bind Vite to `0.0.0.0`. This makes local development friendlier in WSL because the site can be reached from either the Linux environment or a Windows browser, depending on how WSL forwards localhost on the machine.
 

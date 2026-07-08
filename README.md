@@ -7,7 +7,7 @@ A game about guessing songs from badly drawn art in Paint.
 Install dependencies once:
 
 ```bash
-cd web
+cd client
 npm install
 ```
 
@@ -26,7 +26,7 @@ If you are opening the site from Windows while the server runs inside WSL, use e
 Check TypeScript types:
 
 ```bash
-cd web
+cd client
 npm run typecheck
 ```
 
