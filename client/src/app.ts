@@ -30,26 +30,41 @@ function handleGuess(
 
   const rawGuess = new FormData(elements.form).get('guess');
 
-  let guess: string;
+	let guess: string;
+	let artistRemoved = false;
 
-  try {
-    guess = normalizeAnswer(String(rawGuess ?? ''));
-  } catch (error) {
-    if (error instanceof RangeError) {
-      alert(
-        `Your answer is too long. Please use ${MAX_ANSWER_LENGTH} characters or fewer.`,
-      );
-      return;
-    }
+	try {
+	  const normalized = normalizeAnswer(
+		String(rawGuess ?? ''),
+		puzzle.artist,
+	  );
 
-    if (error instanceof Error && error.message === 'Answer is empty.') {
-      alert('Please enter an answer containing letters or numbers.');
-      return;
-    }
+	  guess = normalized.answer;
+	  artistRemoved = normalized.artistRemoved;
+	} catch (error) {
+	  if (error instanceof RangeError) {
+		alert(
+		  `Your answer is too long. Please use ${MAX_ANSWER_LENGTH} characters or fewer.`,
+		);
+		return;
+	  }
 
-    throw error;
-  }
+	  throw error;
+	}
 
+	if (artistRemoved) {
+	  showArtistHint(elements, puzzle.artist);
+	}
+
+	if (guess.length === 0) {
+	  if (artistRemoved) {
+		alert('Please enter the song title rather than only the artist.');
+	  } else {
+		alert('Please enter an answer containing letters or numbers.');
+	  }
+
+	  return;
+	}
   if (state.isSolved || state.guesses.length >= MAX_ATTEMPTS) {
     return;
   }
@@ -60,7 +75,7 @@ function handleGuess(
   }
 
   state.guesses.push(guess);
-  state.isSolved = isAcceptedAnswer(guess, puzzle.acceptedAnswers);
+  state.isSolved = isAcceptedAnswer(guess, puzzle.acceptedAnswers, puzzle.artist);
 
   saveState(puzzle.id, state);
 
@@ -68,4 +83,25 @@ function handleGuess(
   elements.guessInput.focus();
 
   renderState(elements, puzzle, state, MAX_ATTEMPTS);
+}
+
+function showArtistHint(
+  elements: GameElements,
+  artist: string,
+): void {
+  let artistHint =
+    document.querySelector<HTMLParagraphElement>('#artist-hint');
+
+  if (!artistHint) {
+    artistHint = document.createElement('p');
+    artistHint.id = 'artist-hint';
+    artistHint.className = 'artist-hint';
+
+    elements.message.insertAdjacentElement(
+      'afterend',
+      artistHint,
+    );
+  }
+
+  artistHint.textContent = `Artist: ${artist}`;
 }
