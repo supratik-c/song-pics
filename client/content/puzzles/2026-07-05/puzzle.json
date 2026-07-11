@@ -1,6 +1,5 @@
 {
   "id": "2026-07-05",
-  "displayDate": "5 July 2026",
   "title": "Do you know?",
   "songTitle": "Take Me Out",
   "artist": "Franz Ferdinand",
@@ -8,19 +7,5 @@
   "acceptedAnswers": [
     "Take Me Out",
     "Franz Ferdinand Take Me Out"
-  ],
-  "panels": [
-    {
-      "src": "/content/puzzles/2026-07-05/1.webp"
-    },
-    {
-      "src": "/content/puzzles/2026-07-05/2.webp"
-    },
-    {
-      "src": "/content/puzzles/2026-07-05/3.webp"
-    },
-    {
-      "src": "/content/puzzles/2026-07-05/4.webp"
-    }
   ]
 }

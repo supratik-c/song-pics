@@ -1,6 +1,5 @@
 export type PuzzlePanel = {
   src: string;
-  alt: string;
 };
 
 export type Puzzle = {
@@ -10,11 +9,15 @@ export type Puzzle = {
   songTitle: string;
   artist: string;
   acceptedAnswers: string[];
-  panels: {
-    src: string;
-  }[];
+  panels: PuzzlePanel[];
   YouTube?: string;
 };
+
+export type PuzzleJson = Omit<Puzzle, 'displayDate' | 'panels'> & {
+  panels?: PuzzlePanel[];
+};
+
+export type PuzzlePanelsManifest = Record<string, PuzzlePanel[]>;
 
 
 export type GameState = {

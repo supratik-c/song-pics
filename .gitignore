@@ -1,6 +1,7 @@
 node_modules/
 client/dist/
 client/content/puzzles/index.json
+client/content/puzzles/panels.json
 build/
 .venv/
 __pycache__/

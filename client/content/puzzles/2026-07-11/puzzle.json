@@ -1,6 +1,5 @@
 {
   "id": "2026-07-11",
-  "displayDate": "11 July 2026",
   "songTitle": "Baby One More Time",
   "artist": "Britney Spears",
   "title": "Punch children once clock?",
@@ -8,19 +7,5 @@
   "acceptedAnswers": [
     "Hit Me Baby One More Time",
     "Baby One More Time"
-  ],
-  "panels": [
-    {
-      "src": "/content/puzzles/2026-07-11/1.webp"
-    },
-    {
-      "src": "/content/puzzles/2026-07-11/2.webp"
-    },
-    {
-      "src": "/content/puzzles/2026-07-11/3.webp"
-    },
-    {
-      "src": "/content/puzzles/2026-07-11/4.webp"
-    }
   ]
 }

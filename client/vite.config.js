@@ -7,6 +7,7 @@ import {
 } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
+import { getPuzzleMetadata } from './scripts/puzzleMetadata.mjs';
 
 const projectRoot = import.meta.dirname;
 const contentDirectory = resolve(projectRoot, 'content');
@@ -22,7 +23,7 @@ function copyContent() {
         const contentOutputDirectory = resolve(outputDirectory, 'content');
 
         copyReleasedContent(contentDirectory, contentOutputDirectory);
-        writeReleasedPuzzleIndex(contentOutputDirectory);
+        writeReleasedPuzzleMetadata(contentOutputDirectory);
       }
     },
   };
@@ -62,7 +63,7 @@ function shouldCopyEntry(relativeDirectory, entry) {
   if (
     relativeDirectory === 'puzzles' &&
     entry.isFile() &&
-    entry.name === 'index.json'
+    (entry.name === 'index.json' || entry.name === 'panels.json')
   ) {
     return false;
   }
@@ -78,7 +79,7 @@ function shouldCopyEntry(relativeDirectory, entry) {
   return true;
 }
 
-function writeReleasedPuzzleIndex(contentOutputDirectory) {
+function writeReleasedPuzzleMetadata(contentOutputDirectory) {
   const puzzleDirectory = resolve(contentDirectory, 'puzzles');
   const puzzleOutputDirectory = resolve(contentOutputDirectory, 'puzzles');
 
@@ -86,21 +87,19 @@ function writeReleasedPuzzleIndex(contentOutputDirectory) {
     return;
   }
 
-  const puzzleFiles = readdirSync(puzzleDirectory, { withFileTypes: true })
-    .filter(
-      (entry) =>
-        entry.isDirectory() &&
-        datedDirectoryPattern.test(entry.name) &&
-        existsSync(resolve(puzzleDirectory, entry.name, 'puzzle.json')) &&
-        !isFutureDateDirectory(entry.name),
-    )
-    .map((entry) => entry.name)
-    .sort();
+  const { puzzleIds, puzzlePanels } = getPuzzleMetadata(
+    puzzleDirectory,
+    (puzzleId) => !isFutureDateDirectory(puzzleId),
+  );
 
   mkdirSync(puzzleOutputDirectory, { recursive: true });
   writeFileSync(
     resolve(puzzleOutputDirectory, 'index.json'),
-    `${JSON.stringify(puzzleFiles, null, 2)}\n`,
+    `${JSON.stringify(puzzleIds, null, 2)}\n`,
+  );
+  writeFileSync(
+    resolve(puzzleOutputDirectory, 'panels.json'),
+    `${JSON.stringify(puzzlePanels, null, 2)}\n`,
   );
 }
 
