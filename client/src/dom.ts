@@ -1,6 +1,7 @@
 import type { GameElements } from './types.ts';
 export function getGameElements(): GameElements {
   return {
+    artistHint: getElement<HTMLElement>('#artist-hint'),
     attemptsCount: getElement<HTMLElement>('#attempts-count'),
     date: getElement<HTMLElement>('#puzzle-date'),
     form: getElement<HTMLFormElement>('#guess-form'),
@@ -8,8 +9,10 @@ export function getGameElements(): GameElements {
     guessList: getElement<HTMLOListElement>('#guess-list'),
     message: getElement<HTMLElement>('#message'),
     panels: getElement<HTMLElement>('#panels'),
-    submitButton: getElement<HTMLButtonElement>('#guess-form button'),
+    revealArtistButton: getElement<HTMLButtonElement>('#reveal-artist-button'),
+    submitButton: getElement<HTMLButtonElement>('#guess-form button[type="submit"]'),
     title: getElement<HTMLElement>('#puzzle-title'),
+    validationMessage: getElement<HTMLElement>('#validation-message'),
   };
 }
 

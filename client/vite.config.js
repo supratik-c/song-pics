@@ -3,17 +3,23 @@ import {
   existsSync,
   mkdirSync,
   readdirSync,
-  writeFileSync,
 } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
+import {
+  CONTENT_DIRECTORY_NAME,
+  PUZZLES_DIRECTORY_NAME,
+  getPuzzleDirectory,
+  isFuturePuzzleDateId,
+  isPuzzleManifestFileName,
+  writePuzzleMetadataFiles,
+} from './scripts/puzzleConventions.mjs';
 import { getPuzzleMetadata } from './scripts/puzzleMetadata.mjs';
 
 const projectRoot = import.meta.dirname;
-const contentDirectory = resolve(projectRoot, 'content');
+const contentDirectory = resolve(projectRoot, CONTENT_DIRECTORY_NAME);
 const outputDirectory = resolve(projectRoot, 'dist');
 const basePath = process.env.VITE_BASE_PATH ?? '/';
-const datedDirectoryPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 function copyContent() {
   return {
@@ -61,17 +67,17 @@ function copyReleasedContent(sourceDirectory, targetDirectory, relativeDirectory
 
 function shouldCopyEntry(relativeDirectory, entry) {
   if (
-    relativeDirectory === 'puzzles' &&
+    relativeDirectory === PUZZLES_DIRECTORY_NAME &&
     entry.isFile() &&
-    (entry.name === 'index.json' || entry.name === 'panels.json')
+    isPuzzleManifestFileName(entry.name)
   ) {
     return false;
   }
 
   if (
-    relativeDirectory === 'puzzles' &&
+    relativeDirectory === PUZZLES_DIRECTORY_NAME &&
     entry.isDirectory() &&
-    isFutureDateDirectory(entry.name)
+    isFuturePuzzleDateId(entry.name)
   ) {
     return false;
   }
@@ -80,8 +86,11 @@ function shouldCopyEntry(relativeDirectory, entry) {
 }
 
 function writeReleasedPuzzleMetadata(contentOutputDirectory) {
-  const puzzleDirectory = resolve(contentDirectory, 'puzzles');
-  const puzzleOutputDirectory = resolve(contentOutputDirectory, 'puzzles');
+  const puzzleDirectory = getPuzzleDirectory(projectRoot);
+  const puzzleOutputDirectory = resolve(
+    contentOutputDirectory,
+    PUZZLES_DIRECTORY_NAME,
+  );
 
   if (!existsSync(puzzleDirectory)) {
     return;
@@ -89,44 +98,13 @@ function writeReleasedPuzzleMetadata(contentOutputDirectory) {
 
   const { puzzleIds, puzzlePanels } = getPuzzleMetadata(
     puzzleDirectory,
-    (puzzleId) => !isFutureDateDirectory(puzzleId),
+    (puzzleId) => !isFuturePuzzleDateId(puzzleId),
   );
 
-  mkdirSync(puzzleOutputDirectory, { recursive: true });
-  writeFileSync(
-    resolve(puzzleOutputDirectory, 'index.json'),
-    `${JSON.stringify(puzzleIds, null, 2)}\n`,
-  );
-  writeFileSync(
-    resolve(puzzleOutputDirectory, 'panels.json'),
-    `${JSON.stringify(puzzlePanels, null, 2)}\n`,
-  );
-}
-
-function isFutureDateDirectory(name) {
-  const match = datedDirectoryPattern.exec(name);
-
-  if (!match) {
-    return false;
-  }
-
-  const [, year, month, day] = match;
-
-  return dateKey(Number(year), Number(month), Number(day)) > todayKey();
-}
-
-function todayKey() {
-  const today = new Date();
-
-  return dateKey(
-    today.getFullYear(),
-    today.getMonth() + 1,
-    today.getDate(),
-  );
-}
-
-function dateKey(year, month, day) {
-  return year * 10000 + month * 100 + day;
+  writePuzzleMetadataFiles(puzzleOutputDirectory, {
+    puzzleIds,
+    puzzlePanels,
+  });
 }
 
 export default defineConfig({

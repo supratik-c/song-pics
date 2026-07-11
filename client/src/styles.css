@@ -221,6 +221,24 @@ input:disabled {
   opacity: 0.55;
 }
 
+.artist-reveal-button {
+  justify-self: start;
+  padding: 9px 13px;
+  color: #241f1c;
+  background: #ffd447;
+}
+
+.validation-message {
+  width: fit-content;
+  margin: 0;
+  padding: 9px 12px;
+  border: 2px solid #241f1c;
+  background: #ffe4dc;
+  font-family: Verdana, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
 .message {
   min-height: 1.5em;
   margin: 0;

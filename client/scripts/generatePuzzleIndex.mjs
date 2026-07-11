@@ -1,19 +1,13 @@
-import { writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import {
+  getPuzzleDirectory,
+  writePuzzleMetadataFiles,
+} from './puzzleConventions.mjs';
 import { getPuzzleMetadata } from './puzzleMetadata.mjs';
 
-const puzzleDirectory = resolve('content/puzzles');
+const puzzleDirectory = getPuzzleDirectory();
 const { puzzleIds, puzzlePanels } = getPuzzleMetadata(puzzleDirectory);
 
-await writeFile(
-  join(puzzleDirectory, 'index.json'),
-  `${JSON.stringify(puzzleIds, null, 2)}\n`,
-);
-
-await writeFile(
-  join(puzzleDirectory, 'panels.json'),
-  `${JSON.stringify(puzzlePanels, null, 2)}\n`,
-);
+writePuzzleMetadataFiles(puzzleDirectory, { puzzleIds, puzzlePanels });
 
 console.log(
   `Generated puzzle index and panel manifest with ${puzzleIds.length} puzzles.`,

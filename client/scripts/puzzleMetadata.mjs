@@ -3,9 +3,12 @@ import {
   readdirSync,
 } from 'node:fs';
 import { resolve } from 'node:path';
-
-const puzzleDateIdPattern = /^\d{4}-\d{2}-\d{2}$/;
-const panelImagePattern = /^(\d+)\.(?:avif|gif|jpe?g|png|webp)$/i;
+import {
+  getPanelImageNumber,
+  getPublicPuzzlePanelPath,
+  getPuzzleJsonPath,
+  isPuzzleDateId,
+} from './puzzleConventions.mjs';
 
 export function getPuzzleMetadata(
   puzzleDirectory,
@@ -17,7 +20,7 @@ export function getPuzzleMetadata(
   for (const entry of readdirSync(puzzleDirectory, { withFileTypes: true })) {
     if (
       !entry.isDirectory() ||
-      !puzzleDateIdPattern.test(entry.name) ||
+      !isPuzzleDateId(entry.name) ||
       !shouldIncludePuzzle(entry.name)
     ) {
       continue;
@@ -26,7 +29,7 @@ export function getPuzzleMetadata(
     const puzzlePath = resolve(puzzleDirectory, entry.name);
     const puzzleEntries = readdirSync(puzzlePath, { withFileTypes: true });
 
-    if (!existsSync(resolve(puzzlePath, 'puzzle.json'))) {
+    if (!existsSync(getPuzzleJsonPath(puzzleDirectory, entry.name))) {
       continue;
     }
 
@@ -46,15 +49,15 @@ function getPanelEntries(puzzleId, puzzleEntries) {
   return puzzleEntries
     .filter((puzzleEntry) => puzzleEntry.isFile())
     .map((puzzleEntry) => {
-      const match = panelImagePattern.exec(puzzleEntry.name);
+      const number = getPanelImageNumber(puzzleEntry.name);
 
-      if (!match) {
+      if (number === null) {
         return null;
       }
 
       return {
-        number: Number(match[1]),
-        src: `/content/puzzles/${puzzleId}/${puzzleEntry.name}`,
+        number,
+        src: getPublicPuzzlePanelPath(puzzleId, puzzleEntry.name),
       };
     })
     .filter((panel) => panel !== null)

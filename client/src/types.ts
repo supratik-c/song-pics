@@ -10,7 +10,7 @@ export type Puzzle = {
   artist: string;
   acceptedAnswers: string[];
   panels: PuzzlePanel[];
-  YouTube?: string;
+  youtubeURL?: string;
 };
 
 export type PuzzleJson = Omit<Puzzle, 'displayDate' | 'panels'> & {
@@ -19,6 +19,17 @@ export type PuzzleJson = Omit<Puzzle, 'displayDate' | 'panels'> & {
 
 export type PuzzlePanelsManifest = Record<string, PuzzlePanel[]>;
 
+export type PuzzleArchive = {
+  puzzleIds: string[];
+  latestPuzzleId: string;
+  selectedPuzzleId: string;
+};
+
+export type LoadedPuzzle = {
+  puzzle: Puzzle;
+  archive: PuzzleArchive;
+};
+
 
 export type GameState = {
   guesses: string[];
@@ -26,6 +37,7 @@ export type GameState = {
 };
 
 export type GameElements = {
+  artistHint: HTMLElement;
   attemptsCount: HTMLElement;
   date: HTMLElement;
   form: HTMLFormElement;
@@ -33,6 +45,8 @@ export type GameElements = {
   guessList: HTMLOListElement;
   message: HTMLElement;
   panels: HTMLElement;
+  revealArtistButton: HTMLButtonElement;
   submitButton: HTMLButtonElement;
   title: HTMLElement;
+  validationMessage: HTMLElement;
 };

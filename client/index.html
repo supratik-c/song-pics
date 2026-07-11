@@ -28,7 +28,7 @@
 
           <div class="panels" id="panels" aria-label="Storyboard clue panels"></div>
 
-          <form class="guess-form" id="guess-form">
+          <form class="guess-form" id="guess-form" novalidate>
             <label for="guess-input">Song title</label>
             <div class="guess-row">
               <input
@@ -41,9 +41,14 @@
               />
               <button type="submit">Guess</button>
             </div>
+            <button class="artist-reveal-button" id="reveal-artist-button" type="button">
+              Reveal Artist
+            </button>
             <p class="attempts" id="attempts-count" aria-live="polite"></p>
           </form>
 
+          <p class="artist-hint" id="artist-hint" aria-live="polite" hidden></p>
+          <p class="validation-message" id="validation-message" role="status" aria-live="polite" hidden></p>
           <p class="message" id="message" aria-live="polite"></p>
           <ol class="guess-list" id="guess-list" aria-label="Previous guesses"></ol>
         </section>

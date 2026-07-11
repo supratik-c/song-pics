@@ -2,25 +2,21 @@ import {
   type GameElements,
   type GameState,
   type Puzzle,
+  type PuzzleArchive,
 } from './types.ts';
 
-import {
-  PUZZLE_DIRECTORY,
-  TODAY_PUZZLE_ID,
-} from './constants.ts';
-
 import { resolvePublicPath } from './publicPath.ts';
-import { isFuturePuzzleDateId, isPuzzleDateId } from './puzzleDates.ts';
 
 const futurePuzzleMessage =
   'Still in development....';
 const futurePuzzleImagePath =
   '/content/misc/double-semiquaver-orange.svg';
 
-export async function renderPuzzle(
+export function renderPuzzle(
   elements: GameElements,
   puzzle: Puzzle,
-): Promise<void> {
+  archive: PuzzleArchive,
+): void {
   setPlayableView(elements);
 
   elements.date.textContent = puzzle.displayDate;
@@ -40,7 +36,7 @@ export async function renderPuzzle(
     }),
   );
 
-  await renderPuzzleDropdown(elements);
+  renderPuzzleDropdown(elements, archive);
 }
 
 export function renderFuturePuzzle(elements: GameElements): void {
@@ -53,15 +49,19 @@ export function renderFuturePuzzle(elements: GameElements): void {
 
   elements.date.hidden = true;
   elements.title.hidden = true;
+  elements.artistHint.hidden = true;
   elements.attemptsCount.hidden = true;
   elements.form.hidden = true;
   elements.message.hidden = true;
+  elements.validationMessage.hidden = true;
   elements.guessList.hidden = true;
 
   elements.date.textContent = '';
   elements.title.textContent = '';
+  elements.artistHint.textContent = '';
   elements.attemptsCount.textContent = '';
   elements.message.textContent = '';
+  elements.validationMessage.textContent = '';
   elements.guessList.replaceChildren();
 
   const image = document.createElement('img');
@@ -99,12 +99,17 @@ function setPlayableView(elements: GameElements): void {
 
   elements.date.hidden = false;
   elements.title.hidden = false;
+  elements.artistHint.hidden = true;
   elements.attemptsCount.hidden = false;
   elements.form.hidden = false;
   elements.message.hidden = false;
+  elements.validationMessage.hidden = true;
   elements.guessList.hidden = false;
 
+  elements.artistHint.textContent = '';
+  elements.validationMessage.textContent = '';
   elements.guessInput.disabled = false;
+  elements.revealArtistButton.disabled = false;
   elements.submitButton.disabled = false;
   elements.panels.setAttribute(
     'aria-label',
@@ -112,43 +117,10 @@ function setPlayableView(elements: GameElements): void {
   );
 }
 
-async function renderPuzzleDropdown(
+function renderPuzzleDropdown(
   elements: GameElements,
-): Promise<void> {
-  const indexPath = resolvePublicPath(
-    `${PUZZLE_DIRECTORY}/index.json`,
-  );
-
-  const response = await fetch(indexPath, {
-    cache: 'no-store',
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Could not load puzzle list: ${response.status} ${response.statusText}`,
-    );
-  }
-
-  const result: unknown = await response.json();
-
-  if (
-    !Array.isArray(result) ||
-    !result.every(
-      (puzzleId) =>
-        typeof puzzleId === 'string' && isPuzzleDateId(puzzleId),
-    )
-  ) {
-    throw new Error('Puzzle index contains invalid data.');
-  }
-
-  const puzzleIds = result
-    .filter((puzzleId) => !isFuturePuzzleDateId(puzzleId))
-    .sort()
-    .reverse();
-
-  const requestedPuzzle =
-    new URLSearchParams(window.location.search).get('puzzle');
-
+  archive: PuzzleArchive,
+): void {
   let select =
     document.querySelector<HTMLSelectElement>('#puzzle-select');
 
@@ -171,41 +143,32 @@ async function renderPuzzleDropdown(
   }
 
   select.replaceChildren(
-    ...puzzleIds.map((puzzleId) => {
+    ...archive.puzzleIds.map((puzzleId) => {
       const option = document.createElement('option');
 
       option.value = puzzleId;
 
       option.textContent =
-        puzzleId === TODAY_PUZZLE_ID
-          ? `${puzzleId} (TODAY)`
+        puzzleId === archive.latestPuzzleId
+          ? `${puzzleId} (LATEST)`
           : puzzleId;
 
       return option;
     }),
   );
 
-  if (
-    requestedPuzzle !== null &&
-    puzzleIds.includes(requestedPuzzle)
-  ) {
-    select.value = requestedPuzzle;
-  } else if (
-    puzzleIds.includes(TODAY_PUZZLE_ID)
-  ) {
-    select.value = TODAY_PUZZLE_ID;
-  }
+  select.value = archive.selectedPuzzleId;
 
   select.onchange = () => {
     const puzzleId = select.value;
 
-    if (!puzzleIds.includes(puzzleId)) {
+    if (!archive.puzzleIds.includes(puzzleId)) {
       return;
     }
 
     const url = new URL(window.location.href);
 
-    if (puzzleId === TODAY_PUZZLE_ID) {
+    if (puzzleId === archive.latestPuzzleId) {
       url.searchParams.delete('puzzle');
     } else {
       url.searchParams.set('puzzle', puzzleId);
@@ -239,19 +202,18 @@ export function renderState(
     }),
   );
 
-	if (state.isSolved) {
-	  setFinished(
-		elements,
-		`Correct: ${puzzle.songTitle} by ${puzzle.artist}`,
-	  );
-	console.log('YouTube value:', puzzle.YouTube);
+  if (state.isSolved) {
+    setFinished(
+      elements,
+      `Correct: ${puzzle.songTitle} by ${puzzle.artist}`,
+    );
 
-	  if (puzzle.YouTube) {
-		renderYouTubeVideo(elements, puzzle.YouTube);
-	  }
+    if (puzzle.youtubeURL) {
+      renderYouTubeVideo(elements, puzzle.youtubeURL);
+    }
 
-	  return;
-	}
+    return;
+  }
 
   if (state.guesses.length >= maxAttempts) {
     setFinished(
@@ -274,6 +236,7 @@ function setFinished(
 ): void {
   elements.message.textContent = message;
   elements.guessInput.disabled = true;
+  elements.revealArtistButton.disabled = true;
   elements.submitButton.disabled = true;
 }
 
