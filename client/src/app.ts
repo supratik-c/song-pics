@@ -1,3 +1,5 @@
+import { MAX_ATTEMPTS, MAX_ANSWER_LENGTH } from './constants';
+
 import { type GameElements } from './dom.ts';
 import { isAcceptedAnswer, normalizeAnswer } from './game.ts';
 import { loadPuzzle } from './puzzleLoader.ts';
@@ -5,7 +7,6 @@ import { renderPuzzle, renderState } from './render.ts';
 import { loadState, saveState } from './storage.ts';
 import { type GameState, type Puzzle } from './types.ts';
 
-const MAX_ATTEMPTS = 6;
 
 export async function initApp(elements: GameElements): Promise<void> {
   const puzzle = await loadPuzzle();
@@ -23,13 +24,21 @@ function handleGuess(event: Event, elements: GameElements, puzzle: Puzzle, state
   event.preventDefault();
 
 	const rawGuess = new FormData(elements.form).get('guess');
+
 	let guess: string;
 
 	try {
 	  guess = normalizeAnswer(String(rawGuess ?? ''));
 	} catch (error) {
 	  if (error instanceof RangeError) {
-		alert('Your answer is too long. Please use 128 characters or fewer.');
+		alert(
+		  `Your answer is too long. Please use ${MAX_ANSWER_LENGTH} characters or fewer.`,
+		);
+		return;
+	  }
+
+	  if (error instanceof Error && error.message === 'Answer is empty.') {
+		alert('Please enter an answer containing letters or numbers.');
 		return;
 	  }
 
