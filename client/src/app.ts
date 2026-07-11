@@ -12,7 +12,7 @@ export async function initApp(elements: GameElements): Promise<void> {
   const puzzle = await loadPuzzle();
   const state = loadState(puzzle.id);
 
-  renderPuzzle(elements, puzzle);
+  await renderPuzzle(elements, puzzle);
   renderState(elements, puzzle, state, MAX_ATTEMPTS);
 
   elements.form.addEventListener('submit', (event) => {

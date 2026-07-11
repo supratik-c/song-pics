@@ -3,7 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "generate:puzzle-index": "node scripts/generatePuzzleIndex.mjs",
+    "predev": "npm run generate:puzzle-index",
     "dev": "vite --host 0.0.0.0",
+    "prebuild": "npm run generate:puzzle-index",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit"

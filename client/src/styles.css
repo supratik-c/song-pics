@@ -22,7 +22,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -81,17 +82,33 @@ h2 {
 }
 
 .game-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  justify-content: space-between;
-  gap: 16px;
+  gap: 8px 16px;
 }
 
 .attempts {
-  min-width: max-content;
-  padding: 8px 10px;
+  grid-column: 2;
+  min-width: 200px;
+  padding: 8px 12px;
   border: 2px solid #241f1c;
   background: #ffd447;
+  text-align: center;
+}
+
+#puzzle-select {
+  grid-column: 2;
+  width: 190px;
+  justify-self: end;
+  padding: 6px 8px;
+  border: 2px solid #241f1c;
+  color: #241f1c;
+  background: #fffaf0;
+  font-family: Verdana, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .panels {
@@ -194,7 +211,11 @@ input:disabled {
     box-shadow: 5px 5px 0 #241f1c;
   }
 
-  .game-header,
+  .game-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
   .guess-row {
     align-items: stretch;
     flex-direction: column;
