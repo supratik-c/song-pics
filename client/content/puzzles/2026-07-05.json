@@ -10,16 +10,13 @@
   ],
   "panels": [
     {
-      "src": "/content/images/2026-07-05/panel-1.svg",
-      "alt": "A badly drawn person saying don't you know."
+      "src": "/content/images/2026-07-05/1.svg"
     },
     {
-      "src": "/content/images/2026-07-05/panel-2.svg",
-      "alt": "A second badly drawn person replying you don't know."
+      "src": "/content/images/2026-07-05/2.svg"
     },
     {
-      "src": "/content/images/2026-07-05/panel-3.svg",
-      "alt": "A blank speech bubble and a comic punchline showing someone being taken out."
+      "src": "/content/images/2026-07-05/3.svg"
     }
   ]
 }

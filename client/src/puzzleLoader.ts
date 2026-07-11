@@ -1,6 +1,6 @@
 import { type Puzzle } from './types.ts';
 
-const TODAY_PUZZLE_PATH = '/content/puzzles/2026-07-05.json';
+const TODAY_PUZZLE_PATH = '/content/puzzles/2026-07-04.json';
 
 export async function loadPuzzle(path = TODAY_PUZZLE_PATH): Promise<Puzzle> {
   const response = await fetch(path);

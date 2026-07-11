@@ -1,5 +1,4 @@
-import { type GameElements } from './dom.ts';
-import { type GameState, type Puzzle } from './types.ts';
+import { type GameState, type Puzzle, type GameElements } from './types.ts';
 
 export function renderPuzzle(elements: GameElements, puzzle: Puzzle): void {
   elements.date.textContent = puzzle.displayDate;
@@ -11,8 +10,6 @@ export function renderPuzzle(elements: GameElements, puzzle: Puzzle): void {
       const caption = document.createElement('figcaption');
 
       image.src = panel.src;
-      image.alt = panel.alt;
-      caption.textContent = `Panel ${index + 1}`;
       figure.append(image, caption);
 
       return figure;

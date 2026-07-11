@@ -1,15 +1,4 @@
-export type GameElements = {
-  attemptsCount: HTMLElement;
-  date: HTMLElement;
-  form: HTMLFormElement;
-  guessInput: HTMLInputElement;
-  guessList: HTMLOListElement;
-  message: HTMLElement;
-  panels: HTMLElement;
-  submitButton: HTMLButtonElement;
-  title: HTMLElement;
-};
-
+import type { GameElements } from './types.ts';
 export function getGameElements(): GameElements {
   return {
     attemptsCount: getElement<HTMLElement>('#attempts-count'),
