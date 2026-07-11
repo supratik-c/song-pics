@@ -76,6 +76,17 @@ h2 {
   font-size: 1.25rem;
 }
 
+.game-area {
+  display: grid;
+  gap: 8px;
+}
+
+.archive-control {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 12px;
+}
+
 .game {
   display: grid;
   gap: 24px;
@@ -87,14 +98,13 @@ h2 {
 
 .game-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  gap: 8px 16px;
+  gap: 8px;
 }
 
 .attempts {
-  grid-column: 2;
-  min-width: 200px;
+  width: fit-content;
+  min-width: min(100%, 200px);
   padding: 8px 12px;
   border: 2px solid #241f1c;
   background: #ffd447;
@@ -102,9 +112,7 @@ h2 {
 }
 
 #puzzle-select {
-  grid-column: 2;
   width: 190px;
-  justify-self: end;
   padding: 6px 8px;
   border: 2px solid #241f1c;
   color: #241f1c;
@@ -249,14 +257,17 @@ input:disabled {
     box-shadow: 5px 5px 0 #241f1c;
   }
 
-  .game-header {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
+  .archive-control {
+    padding-right: 6px;
   }
 
   .guess-row {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .attempts {
+    width: 100%;
   }
 }
 

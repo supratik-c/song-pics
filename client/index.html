@@ -15,35 +15,39 @@
         <p class="intro">Guess today's song from the badly drawn chorus panels.</p>
       </header>
 
-      <section class="game" aria-labelledby="puzzle-title">
-        <div class="game-header">
-          <div>
-            <p class="eyebrow" id="puzzle-date">Loading...</p>
-            <h2 id="puzzle-title"></h2>
+      <div class="game-area">
+        <div class="archive-control" id="archive-control"></div>
+
+        <section class="game" aria-labelledby="puzzle-title">
+          <div class="game-header">
+            <div>
+              <p class="eyebrow" id="puzzle-date">Loading...</p>
+              <h2 id="puzzle-title"></h2>
+            </div>
           </div>
-          <p class="attempts" id="attempts-count" aria-live="polite"></p>
-        </div>
 
-        <div class="panels" id="panels" aria-label="Storyboard clue panels"></div>
+          <div class="panels" id="panels" aria-label="Storyboard clue panels"></div>
 
-        <form class="guess-form" id="guess-form">
-          <label for="guess-input">Song title</label>
-          <div class="guess-row">
-            <input
-              id="guess-input"
-              name="guess"
-              type="text"
-              autocomplete="off"
-              placeholder="Type your guess"
-              required
-            />
-            <button type="submit">Guess</button>
-          </div>
-        </form>
+          <form class="guess-form" id="guess-form">
+            <label for="guess-input">Song title</label>
+            <div class="guess-row">
+              <input
+                id="guess-input"
+                name="guess"
+                type="text"
+                autocomplete="off"
+                placeholder="Type your guess"
+                required
+              />
+              <button type="submit">Guess</button>
+            </div>
+            <p class="attempts" id="attempts-count" aria-live="polite"></p>
+          </form>
 
-        <p class="message" id="message" aria-live="polite"></p>
-        <ol class="guess-list" id="guess-list" aria-label="Previous guesses"></ol>
-      </section>
+          <p class="message" id="message" aria-live="polite"></p>
+          <ol class="guess-list" id="guess-list" aria-label="Previous guesses"></ol>
+        </section>
+      </div>
     </main>
   </body>
 </html>

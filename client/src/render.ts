@@ -162,10 +162,17 @@ async function renderPuzzleDropdown(
     select.id = 'puzzle-select';
     select.setAttribute('aria-label', 'Select puzzle');
 
-    elements.attemptsCount.insertAdjacentElement(
-      'afterend',
-      select,
-    );
+    const archiveControl =
+      document.querySelector<HTMLElement>('#archive-control');
+
+    if (archiveControl) {
+      archiveControl.append(select);
+    } else {
+      elements.attemptsCount.insertAdjacentElement(
+        'afterend',
+        select,
+      );
+    }
   }
 
   select.replaceChildren(
