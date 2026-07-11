@@ -1,7 +1,11 @@
-const puzzleFilenamePattern = /^(\d{4})-(\d{2})-(\d{2})\.json$/;
+const puzzleDateIdPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-export function isFuturePuzzleFilename(filename: string): boolean {
-  const match = puzzleFilenamePattern.exec(filename);
+export function isPuzzleDateId(value: string): boolean {
+  return puzzleDateIdPattern.test(value);
+}
+
+export function isFuturePuzzleDateId(dateId: string): boolean {
+  const match = puzzleDateIdPattern.exec(dateId);
 
   if (!match) {
     return false;

@@ -13,7 +13,6 @@ const contentDirectory = resolve(projectRoot, 'content');
 const outputDirectory = resolve(projectRoot, 'dist');
 const basePath = process.env.VITE_BASE_PATH ?? '/';
 const datedDirectoryPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
-const puzzleFilenamePattern = /^(\d{4})-(\d{2})-(\d{2})\.json$/;
 
 function copyContent() {
   return {
@@ -63,13 +62,13 @@ function shouldCopyEntry(relativeDirectory, entry) {
   if (
     relativeDirectory === 'puzzles' &&
     entry.isFile() &&
-    (entry.name === 'index.json' || isFuturePuzzleFilename(entry.name))
+    entry.name === 'index.json'
   ) {
     return false;
   }
 
   if (
-    relativeDirectory === 'images' &&
+    relativeDirectory === 'puzzles' &&
     entry.isDirectory() &&
     isFutureDateDirectory(entry.name)
   ) {
@@ -90,9 +89,10 @@ function writeReleasedPuzzleIndex(contentOutputDirectory) {
   const puzzleFiles = readdirSync(puzzleDirectory, { withFileTypes: true })
     .filter(
       (entry) =>
-        entry.isFile() &&
-        puzzleFilenamePattern.test(entry.name) &&
-        !isFuturePuzzleFilename(entry.name),
+        entry.isDirectory() &&
+        datedDirectoryPattern.test(entry.name) &&
+        existsSync(resolve(puzzleDirectory, entry.name, 'puzzle.json')) &&
+        !isFutureDateDirectory(entry.name),
     )
     .map((entry) => entry.name)
     .sort();
@@ -102,18 +102,6 @@ function writeReleasedPuzzleIndex(contentOutputDirectory) {
     resolve(puzzleOutputDirectory, 'index.json'),
     `${JSON.stringify(puzzleFiles, null, 2)}\n`,
   );
-}
-
-function isFuturePuzzleFilename(filename) {
-  const match = puzzleFilenamePattern.exec(filename);
-
-  if (!match) {
-    return false;
-  }
-
-  const [, year, month, day] = match;
-
-  return dateKey(Number(year), Number(month), Number(day)) > todayKey();
 }
 
 function isFutureDateDirectory(name) {

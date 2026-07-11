@@ -25,13 +25,13 @@ npm run dev
 The current app loads today's puzzle from:
 
 ```text
-/content/puzzles/2026-07-05.json
+/content/puzzles/2026-07-05/puzzle.json
 ```
 
 Panel image paths also live under `/content`, for example:
 
 ```text
-/content/images/2026-07-05/panel-1.svg
+/content/puzzles/2026-07-05/1.webp
 ```
 
 ## Content
@@ -63,7 +63,9 @@ A likely first backend would be a small FastAPI service with routes such as `GET
 
 Vite builds the frontend into `client/dist/`. The project Vite config copies released content into `client/dist/content` so production builds preserve the same `/content/...` URLs used in local development.
 
-Development serves `client/content/` directly, including future puzzle JSON and image folders so new puzzles can be authored and checked locally. Production builds filter that content copy: only today-or-earlier `content/puzzles/YYYY-MM-DD.json` files are copied, `dist/content/puzzles/index.json` is generated from those released files, and future dated image folders are skipped. Shared non-dated assets, such as `content/images/misc/`, are still copied.
+Development serves `client/content/` directly, including future dated puzzle folders so new puzzles can be authored and checked locally. Each daily puzzle lives at `content/puzzles/YYYY-MM-DD/puzzle.json`, with that puzzle's `.webp` panel images in the same folder. The generated `content/puzzles/index.json` file contains date ids, such as `2026-07-05`, rather than JSON filenames.
+
+Production builds filter that content copy: only today-or-earlier `content/puzzles/YYYY-MM-DD/` directories are copied, `dist/content/puzzles/index.json` is generated from those released directories, and future dated puzzle directories are skipped entirely. Shared non-dated assets, such as `content/misc/`, are still copied.
 
 The browser also shows a simple future-puzzle page if someone manually requests a future dated puzzle URL. That is only a user-facing guard; excluding future JSON from production builds is what prevents static puzzle answers from shipping.
 

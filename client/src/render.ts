@@ -6,16 +6,16 @@ import {
 
 import {
   PUZZLE_DIRECTORY,
-  TODAY_PUZZLE_PATH,
+  TODAY_PUZZLE_ID,
 } from './constants.ts';
 
 import { resolvePublicPath } from './publicPath.ts';
-import { isFuturePuzzleFilename } from './puzzleDates.ts';
+import { isFuturePuzzleDateId, isPuzzleDateId } from './puzzleDates.ts';
 
 const futurePuzzleMessage =
   'Still in development....';
 const futurePuzzleImagePath =
-  '/content/images/misc/double-semiquaver-orange.svg';
+  '/content/misc/double-semiquaver-orange.svg';
 
 export async function renderPuzzle(
   elements: GameElements,
@@ -133,26 +133,21 @@ async function renderPuzzleDropdown(
 
   if (
     !Array.isArray(result) ||
-    !result.every((filename) => typeof filename === 'string')
+    !result.every(
+      (puzzleId) =>
+        typeof puzzleId === 'string' && isPuzzleDateId(puzzleId),
+    )
   ) {
     throw new Error('Puzzle index contains invalid data.');
   }
 
-  const puzzleFiles = result
-    .filter(
-      (filename) =>
-        filename.endsWith('.json') &&
-        filename !== 'index.json' &&
-        !isFuturePuzzleFilename(filename),
-    )
+  const puzzleIds = result
+    .filter((puzzleId) => !isFuturePuzzleDateId(puzzleId))
     .sort()
     .reverse();
 
   const requestedPuzzle =
     new URLSearchParams(window.location.search).get('puzzle');
-
-  const todayFilename =
-    TODAY_PUZZLE_PATH.split('/').at(-1);
 
   let select =
     document.querySelector<HTMLSelectElement>('#puzzle-select');
@@ -176,16 +171,15 @@ async function renderPuzzleDropdown(
   }
 
   select.replaceChildren(
-    ...puzzleFiles.map((filename) => {
+    ...puzzleIds.map((puzzleId) => {
       const option = document.createElement('option');
-      const displayName = filename.replace(/\.json$/i, '');
 
-      option.value = filename;
+      option.value = puzzleId;
 
       option.textContent =
-        filename === todayFilename
-          ? `${displayName} (TODAY)`
-          : displayName;
+        puzzleId === TODAY_PUZZLE_ID
+          ? `${puzzleId} (TODAY)`
+          : puzzleId;
 
       return option;
     }),
@@ -193,29 +187,28 @@ async function renderPuzzleDropdown(
 
   if (
     requestedPuzzle !== null &&
-    puzzleFiles.includes(requestedPuzzle)
+    puzzleIds.includes(requestedPuzzle)
   ) {
     select.value = requestedPuzzle;
   } else if (
-    todayFilename !== undefined &&
-    puzzleFiles.includes(todayFilename)
+    puzzleIds.includes(TODAY_PUZZLE_ID)
   ) {
-    select.value = todayFilename;
+    select.value = TODAY_PUZZLE_ID;
   }
 
   select.onchange = () => {
-    const filename = select.value;
+    const puzzleId = select.value;
 
-    if (!puzzleFiles.includes(filename)) {
+    if (!puzzleIds.includes(puzzleId)) {
       return;
     }
 
     const url = new URL(window.location.href);
 
-    if (filename === todayFilename) {
+    if (puzzleId === TODAY_PUZZLE_ID) {
       url.searchParams.delete('puzzle');
     } else {
-      url.searchParams.set('puzzle', filename);
+      url.searchParams.set('puzzle', puzzleId);
     }
 
     window.location.href = url.toString();

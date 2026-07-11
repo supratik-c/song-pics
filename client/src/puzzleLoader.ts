@@ -4,12 +4,12 @@ import {
 } from './constants.ts';
 
 import { resolvePublicPath } from './publicPath.ts';
-import { isFuturePuzzleFilename } from './puzzleDates.ts';
+import { isFuturePuzzleDateId, isPuzzleDateId } from './puzzleDates.ts';
 import { type Puzzle } from './types.ts';
 
 export class FuturePuzzleError extends Error {
-  constructor(public readonly filename: string) {
-    super(`Puzzle is not released yet: ${filename}`);
+  constructor(public readonly puzzleId: string) {
+    super(`Puzzle is not released yet: ${puzzleId}`);
     this.name = 'FuturePuzzleError';
   }
 }
@@ -18,19 +18,19 @@ export async function loadPuzzle(): Promise<Puzzle> {
   const requestedPuzzle =
     new URLSearchParams(window.location.search).get('puzzle');
 
-  const isValidFilename =
+  const isValidPuzzleId =
     requestedPuzzle !== null &&
-    /^[a-zA-Z0-9._-]+\.json$/.test(requestedPuzzle);
+    isPuzzleDateId(requestedPuzzle);
 
   if (
-    isValidFilename &&
-    isFuturePuzzleFilename(requestedPuzzle)
+    isValidPuzzleId &&
+    isFuturePuzzleDateId(requestedPuzzle)
   ) {
     throw new FuturePuzzleError(requestedPuzzle);
   }
 
-  const puzzlePath = isValidFilename
-    ? `${PUZZLE_DIRECTORY}/${requestedPuzzle}`
+  const puzzlePath = isValidPuzzleId
+    ? `${PUZZLE_DIRECTORY}/${requestedPuzzle}/puzzle.json`
     : TODAY_PUZZLE_PATH;
 
   const response = await fetch(resolvePublicPath(puzzlePath), {
