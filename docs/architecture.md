@@ -61,7 +61,11 @@ A likely first backend would be a small FastAPI service with routes such as `GET
 
 ## Build Output
 
-Vite builds the frontend into `client/dist/`. The project Vite config also copies `client/content/` into `client/dist/content` so production builds preserve the same `/content/...` URLs used in local development.
+Vite builds the frontend into `client/dist/`. The project Vite config copies released content into `client/dist/content` so production builds preserve the same `/content/...` URLs used in local development.
+
+Development serves `client/content/` directly, including future puzzle JSON and image folders so new puzzles can be authored and checked locally. Production builds filter that content copy: only today-or-earlier `content/puzzles/YYYY-MM-DD.json` files are copied, `dist/content/puzzles/index.json` is generated from those released files, and future dated image folders are skipped. Shared non-dated assets, such as `content/images/misc/`, are still copied.
+
+The browser also shows a simple future-puzzle page if someone manually requests a future dated puzzle URL. That is only a user-facing guard; excluding future JSON from production builds is what prevents static puzzle answers from shipping.
 
 The npm dev and preview scripts bind Vite to `0.0.0.0`. This makes local development friendlier in WSL because the site can be reached from either the Linux environment or a Windows browser, depending on how WSL forwards localhost on the machine.
 
