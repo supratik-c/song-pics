@@ -223,8 +223,7 @@ function renderYouTubeVideo(
   iframe.id = 'youtube-video';
   iframe.src = embedUrl;
   iframe.title = 'YouTube video';
-  iframe.allow =
-    'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+  iframe.allow = 'web-share';
   iframe.allowFullscreen = true;
 
   elements.message.insertAdjacentElement('afterend', iframe);
