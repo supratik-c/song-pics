@@ -10,11 +10,19 @@ import {
 } from './constants.ts';
 
 import { resolvePublicPath } from './publicPath.ts';
+import { isFuturePuzzleFilename } from './puzzleDates.ts';
+
+const futurePuzzleMessage =
+  'Still in development....';
+const futurePuzzleImagePath =
+  '/content/images/misc/double-semiquaver-orange.svg';
 
 export async function renderPuzzle(
   elements: GameElements,
   puzzle: Puzzle,
 ): Promise<void> {
+  setPlayableView(elements);
+
   elements.date.textContent = puzzle.displayDate;
   elements.title.textContent = puzzle.title;
 
@@ -33,6 +41,75 @@ export async function renderPuzzle(
   );
 
   await renderPuzzleDropdown(elements);
+}
+
+export function renderFuturePuzzle(elements: GameElements): void {
+  const game = elements.form.closest<HTMLElement>('.game');
+  const select =
+    document.querySelector<HTMLSelectElement>('#puzzle-select');
+
+  game?.classList.add('future-puzzle');
+  select?.remove();
+
+  elements.date.hidden = true;
+  elements.title.hidden = true;
+  elements.attemptsCount.hidden = true;
+  elements.form.hidden = true;
+  elements.message.hidden = true;
+  elements.guessList.hidden = true;
+
+  elements.date.textContent = '';
+  elements.title.textContent = '';
+  elements.attemptsCount.textContent = '';
+  elements.message.textContent = '';
+  elements.guessList.replaceChildren();
+
+  const image = document.createElement('img');
+  image.src = resolvePublicPath(futurePuzzleImagePath);
+  image.alt = '';
+  image.className = 'future-puzzle-image';
+
+  const message = document.createElement('p');
+  message.className = 'future-puzzle-message';
+  message.textContent = futurePuzzleMessage;
+
+  const homeButton = document.createElement('button');
+  homeButton.className = 'future-puzzle-home';
+  homeButton.type = 'button';
+  homeButton.textContent = 'Back to home';
+  homeButton.addEventListener('click', () => {
+    const url = new URL(window.location.href);
+
+    url.search = '';
+    url.hash = '';
+    window.location.href = url.toString();
+  });
+
+  elements.panels.setAttribute(
+    'aria-label',
+    'Future puzzle message',
+  );
+  elements.panels.replaceChildren(image, message, homeButton);
+}
+
+function setPlayableView(elements: GameElements): void {
+  const game = elements.form.closest<HTMLElement>('.game');
+
+  game?.classList.remove('future-puzzle');
+
+  elements.date.hidden = false;
+  elements.title.hidden = false;
+  elements.attemptsCount.hidden = false;
+  elements.form.hidden = false;
+  elements.message.hidden = false;
+  elements.guessList.hidden = false;
+
+  elements.guessInput.disabled = false;
+  elements.submitButton.disabled = false;
+  elements.panels.setAttribute(
+    'aria-label',
+    'Storyboard clue panels',
+  );
 }
 
 async function renderPuzzleDropdown(
@@ -65,7 +142,8 @@ async function renderPuzzleDropdown(
     .filter(
       (filename) =>
         filename.endsWith('.json') &&
-        filename !== 'index.json',
+        filename !== 'index.json' &&
+        !isFuturePuzzleFilename(filename),
     )
     .sort()
     .reverse();

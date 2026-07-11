@@ -2,14 +2,26 @@ import { MAX_ATTEMPTS, MAX_ANSWER_LENGTH } from './constants';
 
 import { type GameElements } from './types.ts';
 import { isAcceptedAnswer, normalizeAnswer } from './game.ts';
-import { loadPuzzle } from './puzzleLoader.ts';
-import { renderPuzzle, renderState } from './render.ts';
+import { FuturePuzzleError, loadPuzzle } from './puzzleLoader.ts';
+import { renderFuturePuzzle, renderPuzzle, renderState } from './render.ts';
 import { loadState, saveState } from './storage.ts';
 import { type GameState, type Puzzle } from './types.ts';
 
 
 export async function initApp(elements: GameElements): Promise<void> {
-  const puzzle = await loadPuzzle();
+  let puzzle: Puzzle;
+
+  try {
+    puzzle = await loadPuzzle();
+  } catch (error) {
+    if (error instanceof FuturePuzzleError) {
+      renderFuturePuzzle(elements);
+      return;
+    }
+
+    throw error;
+  }
+
   const state = loadState(puzzle.id);
 
   await renderPuzzle(elements, puzzle);
