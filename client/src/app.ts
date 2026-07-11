@@ -1,6 +1,6 @@
 import { MAX_ATTEMPTS, MAX_ANSWER_LENGTH } from './constants';
 
-import { type GameElements } from './dom.ts';
+import { type GameElements } from './types.ts';
 import { isAcceptedAnswer, normalizeAnswer } from './game.ts';
 import { loadPuzzle } from './puzzleLoader.ts';
 import { renderPuzzle, renderState } from './render.ts';
