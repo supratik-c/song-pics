@@ -42,6 +42,18 @@ Preview the production build locally:
 npm run preview
 ```
 
+## Deploy
+
+The public site deploys to GitHub Pages from `client/dist` using GitHub Actions.
+
+In GitHub, open the repository settings and set `Pages -> Build and deployment -> Source` to `GitHub Actions`. Push to `main`, then open:
+
+```text
+https://<your-github-user>.github.io/badly-drawn-bangers/
+```
+
+The workflow sets `VITE_BASE_PATH=/badly-drawn-bangers/` so Vite assets and copied puzzle content resolve correctly from the GitHub Pages project URL.
+
 ## Architecture
 
 See [docs/architecture.md](docs/architecture.md).
