@@ -1,4 +1,8 @@
 export function normalizeAnswer(answer: string): string {
+  if (answer.length > 128) {
+    throw new RangeError('Answer is too long.');
+  }
+
   return answer
     .toLowerCase()
     .normalize('NFKD')

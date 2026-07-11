@@ -22,8 +22,19 @@ export async function initApp(elements: GameElements): Promise<void> {
 function handleGuess(event: Event, elements: GameElements, puzzle: Puzzle, state: GameState): void {
   event.preventDefault();
 
-  const rawGuess = new FormData(elements.form).get('guess');
-  const guess = normalizeAnswer(String(rawGuess ?? ''));
+	const rawGuess = new FormData(elements.form).get('guess');
+	let guess: string;
+
+	try {
+	  guess = normalizeAnswer(String(rawGuess ?? ''));
+	} catch (error) {
+	  if (error instanceof RangeError) {
+		alert('Your answer is too long. Please use 128 characters or fewer.');
+		return;
+	  }
+
+	  throw error;
+	}
 
   if (!guess || state.isSolved || state.guesses.length >= MAX_ATTEMPTS) {
     return;
