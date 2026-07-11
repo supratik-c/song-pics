@@ -49,10 +49,10 @@ The public site deploys to GitHub Pages from `client/dist` using GitHub Actions.
 In GitHub, open the repository settings and set `Pages -> Build and deployment -> Source` to `GitHub Actions`. Push to `main`, then open:
 
 ```text
-https://<your-github-user>.github.io/badly-drawn-bangers/
+https://<your-github-user>.github.io/song-pics/
 ```
 
-The workflow sets `VITE_BASE_PATH=/badly-drawn-bangers/` so Vite assets and copied puzzle content resolve correctly from the GitHub Pages project URL.
+The workflow sets `VITE_BASE_PATH` from the GitHub repository name so Vite assets and copied puzzle content resolve correctly from the GitHub Pages project URL.
 
 ## Architecture
 
