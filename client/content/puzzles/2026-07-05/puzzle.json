@@ -11,13 +11,16 @@
   ],
   "panels": [
     {
-      "src": "/content/images/2026-07-05/1.svg"
+      "src": "/content/puzzles/2026-07-05/1.webp"
     },
     {
-      "src": "/content/images/2026-07-05/2.svg"
+      "src": "/content/puzzles/2026-07-05/2.webp"
     },
     {
-      "src": "/content/images/2026-07-05/3.svg"
+      "src": "/content/puzzles/2026-07-05/3.webp"
+    },
+    {
+      "src": "/content/puzzles/2026-07-05/4.webp"
     }
   ]
 }
