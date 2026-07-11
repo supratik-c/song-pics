@@ -5,6 +5,7 @@ import { defineConfig } from 'vite';
 const projectRoot = import.meta.dirname;
 const contentDirectory = resolve(projectRoot, 'content');
 const outputDirectory = resolve(projectRoot, 'dist');
+const basePath = process.env.VITE_BASE_PATH ?? '/';
 
 function copyContent() {
   return {
@@ -18,6 +19,7 @@ function copyContent() {
 }
 
 export default defineConfig({
+  base: basePath,
   root: projectRoot,
   build: {
     outDir: outputDirectory,
