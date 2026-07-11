@@ -161,14 +161,19 @@ export function renderState(
     }),
   );
 
-  if (state.isSolved) {
-    setFinished(
-      elements,
-      `Correct: ${puzzle.songTitle} by ${puzzle.artist}`,
-    );
+	if (state.isSolved) {
+	  setFinished(
+		elements,
+		`Correct: ${puzzle.songTitle} by ${puzzle.artist}`,
+	  );
+	console.log('YouTube value:', puzzle.YouTube);
 
-    return;
-  }
+	  if (puzzle.YouTube) {
+		renderYouTubeVideo(elements, puzzle.YouTube);
+	  }
+
+	  return;
+	}
 
   if (state.guesses.length >= maxAttempts) {
     setFinished(
@@ -192,4 +197,64 @@ function setFinished(
   elements.message.textContent = message;
   elements.guessInput.disabled = true;
   elements.submitButton.disabled = true;
+}
+
+function renderYouTubeVideo(
+  elements: GameElements,
+  youtubeUrl: string,
+): void {
+  const embedUrl = getYouTubeEmbedUrl(youtubeUrl);
+
+  if (!embedUrl) {
+    console.error(`Invalid YouTube URL: ${youtubeUrl}`);
+    return;
+  }
+
+  const existingVideo =
+    document.querySelector<HTMLIFrameElement>('#youtube-video');
+
+  if (existingVideo) {
+    existingVideo.src = embedUrl;
+    return;
+  }
+
+  const iframe = document.createElement('iframe');
+
+  iframe.id = 'youtube-video';
+  iframe.src = embedUrl;
+  iframe.title = 'YouTube video';
+  iframe.allow =
+    'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+  iframe.allowFullscreen = true;
+
+  elements.message.insertAdjacentElement('afterend', iframe);
+}
+
+function getYouTubeEmbedUrl(url: string): string | null {
+  try {
+    const parsedUrl = new URL(url);
+
+    let videoId: string | null = null;
+
+    if (parsedUrl.hostname === 'youtu.be') {
+      videoId = parsedUrl.pathname.slice(1);
+    } else if (
+      parsedUrl.hostname === 'youtube.com' ||
+      parsedUrl.hostname === 'www.youtube.com'
+    ) {
+      videoId = parsedUrl.searchParams.get('v');
+
+      if (!videoId && parsedUrl.pathname.startsWith('/embed/')) {
+        videoId = parsedUrl.pathname.split('/')[2] ?? null;
+      }
+    }
+
+    if (!videoId) {
+      return null;
+    }
+
+    return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
+  } catch {
+    return null;
+  }
 }

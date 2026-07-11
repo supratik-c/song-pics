@@ -10,7 +10,10 @@ export type Puzzle = {
   songTitle: string;
   artist: string;
   acceptedAnswers: string[];
-  panels: PuzzlePanel[];
+  panels: {
+    src: string;
+  }[];
+  YouTube?: string;
 };
 
 
