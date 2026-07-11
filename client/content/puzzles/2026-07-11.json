@@ -1,0 +1,24 @@
+{
+  "id": "2026-07-11",
+  "displayDate": "11 July 2026",
+  "songTitle": "Baby One More Time",
+  "artist": "Britney Spears",
+  "acceptedAnswers": [
+    "Hit Me Baby One More Time",
+    "Baby One More Time"
+  ],
+  "panels": [
+    {
+      "src": "/content/images/2026-07-04/1.webp"
+    },
+    {
+      "src": "/content/images/2026-07-04/2.webp"
+    },
+    {
+      "src": "/content/images/2026-07-04/3.webp"
+    },
+    {
+      "src": "/content/images/2026-07-04/4.webp"
+    }
+  ]
+}
