@@ -220,10 +220,6 @@ input:disabled {
     align-items: stretch;
     flex-direction: column;
   }
-
-  .panels {
-    grid-template-columns: 1fr;
-  }
 }
 
 #youtube-video {
