@@ -20,39 +20,52 @@ export async function initApp(elements: GameElements): Promise<void> {
   });
 }
 
-function handleGuess(event: Event, elements: GameElements, puzzle: Puzzle, state: GameState): void {
+function handleGuess(
+  event: Event,
+  elements: GameElements,
+  puzzle: Puzzle,
+  state: GameState,
+): void {
   event.preventDefault();
 
-	const rawGuess = new FormData(elements.form).get('guess');
+  const rawGuess = new FormData(elements.form).get('guess');
 
-	let guess: string;
+  let guess: string;
 
-	try {
-	  guess = normalizeAnswer(String(rawGuess ?? ''));
-	} catch (error) {
-	  if (error instanceof RangeError) {
-		alert(
-		  `Your answer is too long. Please use ${MAX_ANSWER_LENGTH} characters or fewer.`,
-		);
-		return;
-	  }
+  try {
+    guess = normalizeAnswer(String(rawGuess ?? ''));
+  } catch (error) {
+    if (error instanceof RangeError) {
+      alert(
+        `Your answer is too long. Please use ${MAX_ANSWER_LENGTH} characters or fewer.`,
+      );
+      return;
+    }
 
-	  if (error instanceof Error && error.message === 'Answer is empty.') {
-		alert('Please enter an answer containing letters or numbers.');
-		return;
-	  }
+    if (error instanceof Error && error.message === 'Answer is empty.') {
+      alert('Please enter an answer containing letters or numbers.');
+      return;
+    }
 
-	  throw error;
-	}
+    throw error;
+  }
 
-  if (!guess || state.isSolved || state.guesses.length >= MAX_ATTEMPTS) {
+  if (state.isSolved || state.guesses.length >= MAX_ATTEMPTS) {
+    return;
+  }
+
+  if (state.guesses.includes(guess)) {
+    alert('You have already submitted that answer.');
     return;
   }
 
   state.guesses.push(guess);
   state.isSolved = isAcceptedAnswer(guess, puzzle.acceptedAnswers);
+
   saveState(puzzle.id, state);
+
   elements.form.reset();
   elements.guessInput.focus();
+
   renderState(elements, puzzle, state, MAX_ATTEMPTS);
 }
