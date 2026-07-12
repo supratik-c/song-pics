@@ -3,7 +3,11 @@ name: Deploy Pages
 on:
   push:
     branches: [main]
+    paths:
+    - 'client/**'
+    - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
+
 
 permissions:
   contents: read
