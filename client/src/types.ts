@@ -13,7 +13,7 @@ export type Puzzle = {
   youtubeURL?: string;
 };
 
-export type PuzzleJson = Omit<Puzzle, 'displayDate' | 'panels'> & {
+export type PuzzleJson = Omit<Puzzle, 'id' | 'displayDate' | 'panels'> & {
   panels?: PuzzlePanel[];
 };
 

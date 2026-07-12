@@ -4,10 +4,8 @@
   "type": "module",
   "scripts": {
     "generate:puzzle-index": "node scripts/generatePuzzleIndex.mjs",
-    "predev": "npm run generate:puzzle-index",
-    "dev": "vite --host 0.0.0.0",
-    "prebuild": "npm run generate:puzzle-index",
-    "build": "vite build",
+    "dev": "npm run generate:puzzle-index && vite --host 0.0.0.0",
+    "build": "npm run generate:puzzle-index && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit"
   },

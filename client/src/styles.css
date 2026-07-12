@@ -1,7 +1,7 @@
 :root {
   color: #241f1c;
   background: #f7eddc;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'Comic Sans MS', 'Comic Sans', 'Comic Neue', cursive;
   font-synthesis: none;
   line-height: 1.5;
 }
@@ -47,7 +47,6 @@ select {
 .eyebrow,
 .attempts {
   margin: 0;
-  font-family: Verdana, sans-serif;
   font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -117,7 +116,6 @@ h2 {
   border: 2px solid #241f1c;
   color: #241f1c;
   background: #fffaf0;
-  font-family: Verdana, sans-serif;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
@@ -142,9 +140,13 @@ h2 {
 
 .future-puzzle .panels {
   display: grid;
-  max-width: 620px;
+  grid-template-columns: auto minmax(0, max-content);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 700px;
   justify-items: center;
-  gap: 18px;
+  gap: 28px;
 }
 
 .future-puzzle-image {
@@ -154,13 +156,11 @@ h2 {
 
 .future-puzzle-message {
   margin: 0;
+  max-width: 420px;
   font-size: clamp(1.5rem, 5vw, 3rem);
   font-weight: 700;
   line-height: 1.05;
-}
-
-.future-puzzle-home {
-  margin-top: 4px;
+  text-align: center;
 }
 
 figure {
@@ -179,7 +179,6 @@ figure img {
 }
 
 figcaption {
-  font-family: Verdana, sans-serif;
   font-size: 0.82rem;
   font-weight: 700;
 }
@@ -190,8 +189,16 @@ figcaption {
 }
 
 .guess-form label {
-  font-family: Verdana, sans-serif;
   font-weight: 700;
+}
+
+.hint-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: 44px;
 }
 
 .guess-row {
@@ -215,6 +222,10 @@ button {
   cursor: pointer;
 }
 
+.guess-row button[type='submit'] {
+  background: #2f9e44;
+}
+
 button:disabled,
 input:disabled {
   cursor: not-allowed;
@@ -234,7 +245,6 @@ input:disabled {
   padding: 9px 12px;
   border: 2px solid #241f1c;
   background: #ffe4dc;
-  font-family: Verdana, sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
 }
@@ -260,7 +270,6 @@ input:disabled {
   padding: 7px 10px;
   border: 2px solid #241f1c;
   background: #f2d1b3;
-  font-family: Verdana, sans-serif;
   font-size: 0.9rem;
 }
 
@@ -287,6 +296,11 @@ input:disabled {
   .attempts {
     width: 100%;
   }
+
+  .future-puzzle .panels {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
 }
 
 #youtube-video {
@@ -303,7 +317,6 @@ input:disabled {
   padding: 7px 10px;
   border: 2px solid #241f1c;
   background: #ffd447;
-  font-family: Verdana, sans-serif;
   font-size: 0.9rem;
   font-weight: 700;
 }

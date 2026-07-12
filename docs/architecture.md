@@ -46,6 +46,8 @@ The future Python API should own its own server-side normalization and validatio
 
 Run `npm run typecheck` from `client/` to check the TypeScript source without creating build output.
 
+The frontend package disables npm lifecycle scripts with `ignore-scripts=true` in `client/.npmrc`. App-owned puzzle index generation is therefore called explicitly from the `dev` and `build` scripts instead of relying on npm `predev` or `prebuild` hooks.
+
 ## Backend Boundary
 
 `api/` is deliberately a placeholder. Do not add a running backend until the game needs server-owned behavior, such as:
@@ -63,7 +65,7 @@ A likely first backend would be a small FastAPI service with routes such as `GET
 
 Vite builds the frontend into `client/dist/`. The project Vite config copies released content into `client/dist/content` so production builds preserve the same `/content/...` URLs used in local development.
 
-Development serves `client/content/` directly, including future dated puzzle folders so new puzzles can be authored and checked locally. Each daily puzzle lives at `content/puzzles/YYYY-MM-DD/puzzle.json`, with that puzzle's `.webp` panel images in the same folder. The generated `content/puzzles/index.json` file contains date ids, such as `2026-07-05`, rather than JSON filenames.
+Development serves `client/content/` directly, including future dated puzzle folders so new puzzles can be authored and checked locally. Each daily puzzle lives at `content/puzzles/YYYY-MM-DD/puzzle.json`, with that puzzle's `.webp` panel images in the same folder. The dated folder name is the puzzle id; `puzzle.json` should not include a duplicate `id` field. The generated `content/puzzles/index.json` file contains date ids, such as `2026-07-05`, rather than JSON filenames.
 
 Production builds filter that content copy: only today-or-earlier `content/puzzles/YYYY-MM-DD/` directories are copied, `dist/content/puzzles/index.json` is generated from those released directories, and future dated puzzle directories are skipped entirely. Shared non-dated assets, such as `content/misc/`, are still copied.
 

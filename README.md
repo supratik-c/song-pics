@@ -11,6 +11,12 @@ cd client
 npm install
 ```
 
+The frontend package sets `ignore-scripts=true` in `.npmrc`, so dependency
+install lifecycle scripts such as `preinstall`, `install`, `postinstall`, and
+`prepare` are disabled by default. If a future trusted dependency genuinely
+requires an install script, prefer a reviewed one-off exception instead of
+turning scripts back on globally.
+
 Start the local Vite dev server:
 
 ```bash

@@ -39,13 +39,13 @@ export function renderPuzzle(
   renderPuzzleDropdown(elements, archive);
 }
 
-export function renderFuturePuzzle(elements: GameElements): void {
+export function renderFuturePuzzle(
+  elements: GameElements,
+  archive: PuzzleArchive,
+): void {
   const game = elements.form.closest<HTMLElement>('.game');
-  const select =
-    document.querySelector<HTMLSelectElement>('#puzzle-select');
 
   game?.classList.add('future-puzzle');
-  select?.remove();
 
   elements.date.hidden = true;
   elements.title.hidden = true;
@@ -73,23 +73,12 @@ export function renderFuturePuzzle(elements: GameElements): void {
   message.className = 'future-puzzle-message';
   message.textContent = futurePuzzleMessage;
 
-  const homeButton = document.createElement('button');
-  homeButton.className = 'future-puzzle-home';
-  homeButton.type = 'button';
-  homeButton.textContent = 'Back to home';
-  homeButton.addEventListener('click', () => {
-    const url = new URL(window.location.href);
-
-    url.search = '';
-    url.hash = '';
-    window.location.href = url.toString();
-  });
-
   elements.panels.setAttribute(
     'aria-label',
     'Future puzzle message',
   );
-  elements.panels.replaceChildren(image, message, homeButton);
+  elements.panels.replaceChildren(image, message);
+  renderPuzzleDropdown(elements, archive);
 }
 
 function setPlayableView(elements: GameElements): void {
@@ -110,6 +99,7 @@ function setPlayableView(elements: GameElements): void {
   elements.validationMessage.textContent = '';
   elements.guessInput.disabled = false;
   elements.revealArtistButton.disabled = false;
+  elements.revealArtistButton.hidden = false;
   elements.submitButton.disabled = false;
   elements.panels.setAttribute(
     'aria-label',
@@ -226,7 +216,7 @@ export function renderState(
 
   elements.message.textContent =
     state.guesses.length === 0
-      ? 'Make your first guess.'
+      ? ''
       : 'Try again.';
 }
 
@@ -237,6 +227,7 @@ function setFinished(
   elements.message.textContent = message;
   elements.guessInput.disabled = true;
   elements.revealArtistButton.disabled = true;
+  elements.revealArtistButton.hidden = true;
   elements.submitButton.disabled = true;
 }
 

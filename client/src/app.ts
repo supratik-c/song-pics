@@ -19,7 +19,7 @@ export async function initApp(elements: GameElements): Promise<void> {
     ({ puzzle, archive } = await loadPuzzle());
   } catch (error) {
     if (error instanceof FuturePuzzleError) {
-      renderFuturePuzzle(elements);
+      renderFuturePuzzle(elements, error.archive);
       return;
     }
 
@@ -127,6 +127,7 @@ function showArtistHint(
 ): void {
   elements.artistHint.textContent = `Artist: ${artist}`;
   elements.artistHint.hidden = false;
+  elements.revealArtistButton.hidden = true;
 }
 
 function showValidationMessage(

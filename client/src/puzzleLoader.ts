@@ -14,12 +14,16 @@ import {
 import {
   type LoadedPuzzle,
   type Puzzle,
+  type PuzzleArchive,
   type PuzzleJson,
   type PuzzlePanelsManifest,
 } from './types.ts';
 
 export class FuturePuzzleError extends Error {
-  constructor(public readonly puzzleId: string) {
+  constructor(
+    public readonly puzzleId: string,
+    public readonly archive: PuzzleArchive,
+  ) {
     super(`Puzzle is not released yet: ${puzzleId}`);
     this.name = 'FuturePuzzleError';
   }
@@ -27,6 +31,7 @@ export class FuturePuzzleError extends Error {
 
 export async function loadPuzzle(): Promise<LoadedPuzzle> {
   const requestedPuzzle = getRequestedPuzzleId();
+  const puzzleIds = await loadReleasedPuzzleIds();
 
   const isValidPuzzleId =
     requestedPuzzle !== null &&
@@ -36,10 +41,13 @@ export async function loadPuzzle(): Promise<LoadedPuzzle> {
     isValidPuzzleId &&
     isFuturePuzzleDateId(requestedPuzzle)
   ) {
-    throw new FuturePuzzleError(requestedPuzzle);
+    throw new FuturePuzzleError(requestedPuzzle, {
+      puzzleIds,
+      latestPuzzleId: puzzleIds[0],
+      selectedPuzzleId: requestedPuzzle,
+    });
   }
 
-  const puzzleIds = await loadReleasedPuzzleIds();
   const selectedPuzzleId = resolveSelectedPuzzleId(
     requestedPuzzle,
     puzzleIds,
@@ -120,11 +128,12 @@ async function loadPuzzleJson(puzzleId: string): Promise<Puzzle> {
   }
 
   const puzzle = await response.json() as PuzzleJson;
-  const panels = puzzle.panels ?? await loadPuzzlePanels(puzzle.id);
+  const panels = puzzle.panels ?? await loadPuzzlePanels(puzzleId);
 
   return {
     ...puzzle,
-    displayDate: formatPuzzleDisplayDate(puzzle.id),
+    id: puzzleId,
+    displayDate: formatPuzzleDisplayDate(puzzleId),
     panels,
   };
 }

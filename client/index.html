@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Badly Drawn Bangers</title>
+    <title>Sketchy Songs</title>
     <link rel="stylesheet" href="./src/styles.css" />
     <script type="module" src="./src/main.ts"></script>
   </head>
@@ -11,8 +11,8 @@
     <main class="shell">
       <header class="masthead">
         <p class="kicker">Daily song puzzle</p>
-        <h1>Badly Drawn Bangers</h1>
-        <p class="intro">Guess today's song from the badly drawn chorus panels.</p>
+        <h1>Sketchy Songs</h1>
+        <p class="intro">Guess today's song from these highly professional drawings.</p>
       </header>
 
       <div class="game-area">
@@ -29,7 +29,13 @@
           <div class="panels" id="panels" aria-label="Storyboard clue panels"></div>
 
           <form class="guess-form" id="guess-form" novalidate>
-            <label for="guess-input">Song title</label>
+            <label for="guess-input">What's the song?</label>
+            <div class="hint-row">
+              <button class="artist-reveal-button" id="reveal-artist-button" type="button">
+                Reveal Artist
+              </button>
+              <p class="artist-hint" id="artist-hint" aria-live="polite" hidden></p>
+            </div>
             <div class="guess-row">
               <input
                 id="guess-input"
@@ -41,13 +47,9 @@
               />
               <button type="submit">Guess</button>
             </div>
-            <button class="artist-reveal-button" id="reveal-artist-button" type="button">
-              Reveal Artist
-            </button>
             <p class="attempts" id="attempts-count" aria-live="polite"></p>
           </form>
 
-          <p class="artist-hint" id="artist-hint" aria-live="polite" hidden></p>
           <p class="validation-message" id="validation-message" role="status" aria-live="polite" hidden></p>
           <p class="message" id="message" aria-live="polite"></p>
           <ol class="guess-list" id="guess-list" aria-label="Previous guesses"></ol>
