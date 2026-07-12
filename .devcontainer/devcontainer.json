@@ -1,0 +1,19 @@
+{
+  "name": "Badly Drawn Bangers Client",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "postCreateCommand": "cd client && npm ci",
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite client",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.cwd": "${workspaceFolder}/client"
+      }
+    }
+  }
+}

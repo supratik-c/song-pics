@@ -25,6 +25,10 @@ npm run dev
 
 Then open the local URL printed by Vite.
 
+You can also run the client in a VS Code Dev Container. Reopen this repository
+in the container, wait for dependencies to install, then run `npm run dev` from
+the default terminal. The Vite client port is forwarded automatically.
+
 If you are opening the site from Windows while the server runs inside WSL, use either the `localhost` URL printed by Vite or the WSL network URL. The dev script binds to `0.0.0.0` so both can work.
 
 ## Build
