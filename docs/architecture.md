@@ -38,6 +38,20 @@ Panel image paths also live under `/content`, for example:
 
 `client/content/` is the source of truth for daily puzzles and storyboard images while the game is frontend-only. If content later needs publishing tools or backend access, it can move back to a root-level content boundary.
 
+## UI Assets
+
+Interface artwork belongs in `client/src/assets/ui/`, separate from daily
+puzzle content. Locally hosted fonts and their licenses live in `fonts/`.
+Future reusable logo art, decorative drawings, and raster surfaces should use
+`branding/`, `doodles/`, and `textures/` respectively when those assets are
+introduced.
+
+Prefer SVG for scalable line art and compressed WebP for raster artwork.
+Reference UI assets with relative CSS URLs or TypeScript imports so Vite
+fingerprints them and rewrites their paths for the configured deployment base.
+Keep puzzle panels and other runtime-loaded content under `client/content/`,
+where the existing release-filtering and copy behavior applies.
+
 ## Frontend Game Rules
 
 `client/src/game.ts` holds frontend answer normalization and accepted-answer matching for the browser game. `client/src/types.ts` holds frontend TypeScript types.

@@ -30,12 +30,6 @@
 
           <form class="guess-form" id="guess-form" novalidate>
             <label for="guess-input">What's the song?</label>
-            <div class="hint-row">
-              <button class="artist-reveal-button" id="reveal-artist-button" type="button">
-                Reveal Artist
-              </button>
-              <p class="artist-hint" id="artist-hint" aria-live="polite" hidden></p>
-            </div>
             <div class="guess-row">
               <input
                 id="guess-input"
@@ -46,6 +40,12 @@
                 required
               />
               <button type="submit">Guess</button>
+            </div>
+            <div class="hint-row">
+              <button class="artist-reveal-button" id="reveal-artist-button" type="button">
+                Reveal Artist
+              </button>
+              <p class="artist-hint" id="artist-hint" aria-live="polite" hidden></p>
             </div>
             <p class="attempts" id="attempts-count" aria-live="polite"></p>
           </form>

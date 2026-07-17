@@ -11,26 +11,44 @@ const futurePuzzleMessage =
   'Still in development....';
 const futurePuzzleImagePath =
   '/content/misc/double-semiquaver-orange.svg';
+let closeExpandedPanel: (() => void) | null = null;
 
 export function renderPuzzle(
   elements: GameElements,
   puzzle: Puzzle,
   archive: PuzzleArchive,
 ): void {
+  closeExpandedPanel?.();
   setPlayableView(elements);
 
   elements.date.textContent = puzzle.displayDate;
   elements.title.textContent = puzzle.title;
 
   elements.panels.replaceChildren(
-    ...puzzle.panels.map((panel) => {
+    ...puzzle.panels.map((panel, index) => {
       const figure = document.createElement('figure');
+      const zoomButton = document.createElement('button');
       const image = document.createElement('img');
+      const panelNumber = index + 1;
 
+      figure.className = 'panel';
+      zoomButton.type = 'button';
+      zoomButton.className = 'panel-zoom-button';
+      zoomButton.setAttribute('aria-expanded', 'false');
+      zoomButton.setAttribute(
+        'aria-label',
+        `Enlarge clue panel ${panelNumber}`,
+      );
       image.src = resolvePublicPath(panel.src);
       image.alt = `Panel from ${puzzle.title}`;
 
-      figure.append(image);
+      zoomButton.append(image);
+      figure.append(zoomButton);
+      configurePanelZoom(
+        figure,
+        zoomButton,
+        panelNumber,
+      );
 
       return figure;
     }),
@@ -43,6 +61,7 @@ export function renderFuturePuzzle(
   elements: GameElements,
   archive: PuzzleArchive,
 ): void {
+  closeExpandedPanel?.();
   const game = elements.form.closest<HTMLElement>('.game');
 
   game?.classList.add('future-puzzle');
@@ -79,6 +98,59 @@ export function renderFuturePuzzle(
   );
   elements.panels.replaceChildren(image, message);
   renderPuzzleDropdown(elements, archive);
+}
+
+function configurePanelZoom(
+  figure: HTMLElement,
+  button: HTMLButtonElement,
+  panelNumber: number,
+): void {
+  const handleEscape = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape') {
+      return;
+    }
+
+    event.preventDefault();
+    close();
+    button.focus();
+  };
+
+  const close = (): void => {
+    figure.classList.remove('is-expanded');
+    button.setAttribute('aria-expanded', 'false');
+    button.setAttribute(
+      'aria-label',
+      `Enlarge clue panel ${panelNumber}`,
+    );
+    document.body.classList.remove('panel-zoom-open');
+    document.removeEventListener('keydown', handleEscape);
+
+    if (closeExpandedPanel === close) {
+      closeExpandedPanel = null;
+    }
+  };
+
+  const open = (): void => {
+    closeExpandedPanel?.();
+    figure.classList.add('is-expanded');
+    button.setAttribute('aria-expanded', 'true');
+    button.setAttribute(
+      'aria-label',
+      `Return clue panel ${panelNumber} to normal size`,
+    );
+    document.body.classList.add('panel-zoom-open');
+    document.addEventListener('keydown', handleEscape);
+    closeExpandedPanel = close;
+  };
+
+  button.addEventListener('click', () => {
+    if (figure.classList.contains('is-expanded')) {
+      close();
+      return;
+    }
+
+    open();
+  });
 }
 
 function setPlayableView(elements: GameElements): void {
