@@ -5,7 +5,7 @@ export type PuzzlePanel = {
 export type Puzzle = {
   id: string;
   displayDate: string;
-  title: string;
+  songClue: string;
   songTitle: string;
   artist: string;
   acceptedAnswers: string[];
@@ -47,6 +47,6 @@ export type GameElements = {
   panels: HTMLElement;
   revealArtistButton: HTMLButtonElement;
   submitButton: HTMLButtonElement;
-  title: HTMLElement;
+  songClue: HTMLElement;
   validationMessage: HTMLElement;
 };

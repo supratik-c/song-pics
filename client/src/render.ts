@@ -22,7 +22,7 @@ export function renderPuzzle(
   setPlayableView(elements);
 
   elements.date.textContent = puzzle.displayDate;
-  elements.title.textContent = puzzle.title;
+  elements.songClue.textContent = puzzle.songClue;
 
   elements.panels.replaceChildren(
     ...puzzle.panels.map((panel, index) => {
@@ -40,7 +40,7 @@ export function renderPuzzle(
         `Enlarge clue panel ${panelNumber}`,
       );
       image.src = resolvePublicPath(panel.src);
-      image.alt = `Panel from ${puzzle.title}`;
+      image.alt = `Panel from ${puzzle.songClue}`;
 
       zoomButton.append(image);
       figure.append(zoomButton);
@@ -67,7 +67,7 @@ export function renderFuturePuzzle(
   game?.classList.add('future-puzzle');
 
   elements.date.hidden = true;
-  elements.title.hidden = true;
+  elements.songClue.hidden = true;
   elements.artistHint.hidden = true;
   elements.attemptsCount.hidden = true;
   elements.form.hidden = true;
@@ -76,7 +76,7 @@ export function renderFuturePuzzle(
   elements.guessList.hidden = true;
 
   elements.date.textContent = '';
-  elements.title.textContent = '';
+  elements.songClue.textContent = '';
   elements.artistHint.textContent = '';
   elements.attemptsCount.textContent = '';
   elements.message.textContent = '';
@@ -159,7 +159,7 @@ function setPlayableView(elements: GameElements): void {
   game?.classList.remove('future-puzzle');
 
   elements.date.hidden = false;
-  elements.title.hidden = false;
+  elements.songClue.hidden = false;
   elements.artistHint.hidden = true;
   elements.attemptsCount.hidden = false;
   elements.form.hidden = false;

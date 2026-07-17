@@ -58,7 +58,7 @@ Panel filenames may have gaps and may use any integer name; numeric value contro
 
 ```json
 {
-  "title": "Playful non-spoiler clue heading",
+  "songClue": "Playful non-spoiler clue heading",
   "songTitle": "Canonical Song Title",
   "artist": "Artist Name",
   "youtubeURL": "https://www.youtube.com/watch?v=...",
@@ -69,7 +69,7 @@ Panel filenames may have gaps and may use any integer name; numeric value contro
 Rules for puzzle data:
 
 - Do not add an `id`; it is derived from the dated directory.
-- `title` should be short, funny, and useful without directly revealing the answer.
+- `songClue` should be short, funny, and useful without directly revealing the answer.
 - Include the canonical song title in `acceptedAnswers`, plus genuinely useful alternate titles or common spellings.
 - Do not add duplicates that differ only by case, punctuation, accents, spacing, or `&` versus `and`; answer normalization already handles those differences.
 - Guesses may include the artist name; normalization removes it before matching. Do not encode every `Song by Artist` permutation.

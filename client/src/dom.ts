@@ -11,7 +11,7 @@ export function getGameElements(): GameElements {
     panels: getElement<HTMLElement>('#panels'),
     revealArtistButton: getElement<HTMLButtonElement>('#reveal-artist-button'),
     submitButton: getElement<HTMLButtonElement>('#guess-form button[type="submit"]'),
-    title: getElement<HTMLElement>('#puzzle-title'),
+    songClue: getElement<HTMLElement>('#puzzle-song-clue'),
     validationMessage: getElement<HTMLElement>('#validation-message'),
   };
 }
