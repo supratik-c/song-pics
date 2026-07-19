@@ -15,6 +15,15 @@ export async function initApp(elements: GameElements): Promise<void> {
   let puzzle: Puzzle;
   let archive: PuzzleArchive;
 
+  elements.howToPlayButton.addEventListener(
+    'click',
+    handleHowToPlay,
+  );
+  elements.revealSongButton.addEventListener(
+    'click',
+    handleRevealSong,
+  );
+
   try {
     ({ puzzle, archive } = await loadPuzzle());
   } catch (error) {
@@ -38,6 +47,14 @@ export async function initApp(elements: GameElements): Promise<void> {
   elements.revealArtistButton.addEventListener('click', () => {
     showArtistHint(elements, puzzle.artist);
   });
+}
+
+function handleHowToPlay(): void {
+  // TODO: Open the How to Play experience when its content is designed.
+}
+
+function handleRevealSong(): void {
+  // TODO: Add the reveal-song game action when its rules are defined.
 }
 
 function handleGuess(

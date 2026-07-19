@@ -43,9 +43,12 @@ export type GameElements = {
   form: HTMLFormElement;
   guessInput: HTMLInputElement;
   guessList: HTMLOListElement;
+  howToPlayButton: HTMLButtonElement;
   message: HTMLElement;
   panels: HTMLElement;
+  puzzleSelect: HTMLSelectElement;
   revealArtistButton: HTMLButtonElement;
+  revealSongButton: HTMLButtonElement;
   submitButton: HTMLButtonElement;
   songClue: HTMLElement;
   validationMessage: HTMLElement;

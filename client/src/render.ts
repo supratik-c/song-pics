@@ -183,28 +183,16 @@ function renderPuzzleDropdown(
   elements: GameElements,
   archive: PuzzleArchive,
 ): void {
-  let select =
-    document.querySelector<HTMLSelectElement>('#puzzle-select');
+  const select = elements.puzzleSelect;
+  const prompt = document.createElement('option');
 
-  if (!select) {
-    select = document.createElement('select');
-    select.id = 'puzzle-select';
-    select.setAttribute('aria-label', 'Select puzzle');
-
-    const archiveControl =
-      document.querySelector<HTMLElement>('#archive-control');
-
-    if (archiveControl) {
-      archiveControl.append(select);
-    } else {
-      elements.attemptsCount.insertAdjacentElement(
-        'afterend',
-        select,
-      );
-    }
-  }
+  prompt.value = '';
+  prompt.textContent = 'Previous Issues (Archive)';
+  prompt.disabled = true;
+  prompt.selected = true;
 
   select.replaceChildren(
+    prompt,
     ...archive.puzzleIds.map((puzzleId) => {
       const option = document.createElement('option');
 
@@ -219,7 +207,8 @@ function renderPuzzleDropdown(
     }),
   );
 
-  select.value = archive.selectedPuzzleId;
+  select.disabled = false;
+  select.value = '';
 
   select.onchange = () => {
     const puzzleId = select.value;

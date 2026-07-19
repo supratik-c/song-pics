@@ -1,10 +1,9 @@
 {
   "songTitle": "Price Tag",
   "artist": "Jessie J",
-  "title": "Value Indicator?",
+  "songClue": "Value Indicator",
   "youtubeURL": "https://www.youtube.com/watch?v=qMxX-QOV9tI",
-  "acceptedAnswers":
-    "Price Tag",
-    "price tag"
+  "acceptedAnswers": [
+    "Price Tag"
   ]
 }
