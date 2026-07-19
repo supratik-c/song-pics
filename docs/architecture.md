@@ -38,9 +38,10 @@ Panel image paths also live under `/content`, for example:
 
 `client/content/` is the source of truth for daily puzzles and storyboard images while the game is frontend-only. If content later needs publishing tools or backend access, it can move back to a root-level content boundary.
 
-Puzzle panel rasters are kept at or below 800 × 600 pixels to limit the static
-download size. New source artwork should be resized and compressed before it is
-added to a dated puzzle directory.
+Puzzle panel rasters use an 800 × 600 pixel (4:3) canvas to limit the static
+download size and match the clue grid. `client/scripts/convert.sh` resizes PNG
+source artwork to those exact dimensions while converting it to WebP before it
+is added to a dated puzzle directory.
 
 ## UI Assets
 
