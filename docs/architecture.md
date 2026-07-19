@@ -64,7 +64,22 @@ owns its semantic structure: the title panel, the How to Play control, the
 archive select, the clue heading, the guess form, the four-cell action grid,
 and the feedback regions. `client/src/styles.css` turns those native controls
 and regions into straight clue panels and selectively diagonal action panels
-without replacing their keyboard-operable hit areas.
+without replacing their keyboard-operable hit areas. The guess entry and action
+grid form one continuous control panel with a shared paper background and no
+divider between them. The guess prompt and all four action-grid labels use a
+four-pixel type-size emphasis so those prompts remain visually prominent. The
+action-grid labels and the revealed artist value share the same enlarged
+responsive type scale. Revealed artist text can wrap at any character when
+necessary, and its auto-sized grid row grows to keep long names inside the cell.
+Interactive comic buttons share a reusable `tactile-button` press treatment:
+hover lifts the control and deepens its hard shadow, while press movement
+compresses that shadow against the control. Individual button styles supply
+only their resting shadow depth, including the shallower mobile action shadow.
+The How to Play and archive controls share the
+`--header-control-font-max` visual token, keeping their maximum text size aligned
+and adjustable in one place while allowing smaller archive text at narrow widths.
+Validation feedback appears as a peach, four-sided bordered box inset within the
+form rather than as a full-width divider between the guess entry and actions.
 
 `client/src/render.ts` populates the dated puzzle content and the options in the
 static archive select. Choosing an archive option preserves the existing URL

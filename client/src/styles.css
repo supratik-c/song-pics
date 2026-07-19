@@ -89,6 +89,7 @@
   --hard-shadow: 7px 8px 0 var(--ink);
   --small-shadow: 3px 4px 0 var(--ink);
   --focus-ring: var(--blue-dark);
+  --header-control-font-max: 1.7rem;
 }
 
 /* Foundations */
@@ -144,6 +145,44 @@ select:disabled {
   cursor: not-allowed;
   filter: grayscale(0.35);
   opacity: 0.58;
+}
+
+.tactile-button {
+  --tactile-shadow-x: 3px;
+  --tactile-shadow-y: 4px;
+  --tactile-pressed-shadow: 1px;
+
+  filter: drop-shadow(var(--tactile-shadow-x) var(--tactile-shadow-y) 0 var(--ink));
+  transition:
+    filter 100ms ease,
+    transform 100ms ease;
+}
+
+.tactile-button:hover:not(:disabled) {
+  filter:
+    drop-shadow(
+      calc(var(--tactile-shadow-x) + 1px)
+      calc(var(--tactile-shadow-y) + 1px)
+      0
+      var(--ink)
+    )
+    saturate(1.08);
+  transform: translate(-1px, -1px);
+}
+
+.tactile-button:active:not(:disabled) {
+  filter:
+    drop-shadow(
+      var(--tactile-pressed-shadow)
+      var(--tactile-pressed-shadow)
+      0
+      var(--ink)
+    );
+  transform:
+    translate(
+      calc(var(--tactile-shadow-x) - var(--tactile-pressed-shadow)),
+      calc(var(--tactile-shadow-y) - var(--tactile-pressed-shadow))
+    );
 }
 
 .visually-hidden {
@@ -263,11 +302,7 @@ h1 {
   position: relative;
   isolation: isolate;
   background: transparent;
-  filter: drop-shadow(3px 4px 0 var(--ink));
-  font-size: clamp(1.25rem, 2.5vw, 1.7rem);
-  transition:
-    filter 100ms ease,
-    transform 100ms ease;
+  font-size: clamp(1.25rem, 2.5vw, var(--header-control-font-max));
 }
 
 .archive-control {
@@ -311,10 +346,9 @@ h1 {
   z-index: 1;
   padding-right: 36px;
   background-color: transparent;
-  font-size: clamp(1rem, 2vw, 1.3rem);
+  font-size: clamp(1rem, 2vw, var(--header-control-font-max));
 }
 
-.masthead-action:hover:not(:disabled),
 .archive-control:hover {
   filter: drop-shadow(4px 5px 0 var(--ink)) saturate(1.08);
   transform: translate(-1px, -1px);
@@ -322,9 +356,6 @@ h1 {
 
 .masthead-action:active:not(:disabled) {
   --header-control-fill: #f4c62c;
-
-  filter: drop-shadow(1px 1px 0 var(--ink));
-  transform: translate(2px, 3px);
 }
 
 .archive-control:active {
@@ -475,6 +506,9 @@ figure img {
 
 .guess-form {
   display: grid;
+  background:
+    linear-gradient(102deg, transparent 60%, rgba(116, 192, 227, 0.12) 60.2%, transparent 60.5%),
+    var(--paper);
 }
 
 .guess-entry-panel {
@@ -483,12 +517,10 @@ figure img {
   align-items: center;
   gap: 16px;
   padding: 20px 28px;
-  border-bottom: var(--line-heavy) solid var(--ink);
-  background: var(--cream);
 }
 
 .guess-entry-panel label {
-  font-size: 1.14rem;
+  font-size: calc(1.14rem + 4px);
   font-weight: 700;
 }
 
@@ -515,9 +547,6 @@ input::placeholder {
   grid-auto-rows: minmax(78px, auto);
   gap: 16px 14px;
   padding: 20px 28px 28px;
-  background:
-    linear-gradient(102deg, transparent 60%, rgba(116, 192, 227, 0.12) 60.2%, transparent 60.5%),
-    var(--paper);
 }
 
 .comic-action,
@@ -534,19 +563,17 @@ input::placeholder {
 .comic-action {
   --action-fill: var(--tomato);
   --comic-shape: polygon(0 0, 100% 0, 100% calc(100% - 12px), 0 100%);
+  --tactile-shadow-x: 6px;
+  --tactile-shadow-y: 7px;
 
   width: 100%;
   padding: 16px 22px;
   color: var(--cream);
   background: transparent;
   box-shadow: none;
-  filter: drop-shadow(6px 7px 0 var(--ink));
-  font-size: clamp(1.02rem, 2.2vw, 1.3rem);
+  font-size: calc(clamp(1.02rem, 2.2vw, 1.6rem) + 4px);
   font-weight: 700;
   line-height: 1.12;
-  transition:
-    transform 100ms ease,
-    filter 100ms ease;
 }
 
 .comic-action::before,
@@ -579,16 +606,6 @@ input::placeholder {
 .comic-action span {
   position: relative;
   z-index: 1;
-}
-
-.comic-action:hover:not(:disabled) {
-  filter: drop-shadow(7px 8px 0 var(--ink)) saturate(1.08);
-  transform: translate(-1px, -1px);
-}
-
-.comic-action:active:not(:disabled) {
-  filter: drop-shadow(2px 2px 0 var(--ink));
-  transform: translate(4px, 5px);
 }
 
 .comic-action:focus-visible {
@@ -628,9 +645,10 @@ input::placeholder {
   margin: 0;
   padding: 15px 16px;
   color: var(--ink);
-  font-size: 0.98rem;
+  font-size: calc(clamp(1.02rem, 2.2vw, 1.6rem) + 4px);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
   text-align: center;
 }
 
@@ -646,7 +664,7 @@ input::placeholder {
   place-items: center;
   padding: 19px 16px 12px;
   color: var(--ink);
-  font-size: clamp(0.84rem, 1.8vw, 1rem);
+  font-size: calc(clamp(1.02rem, 2.2vw, 1.6rem) + 4px);
   line-height: 1.2;
   text-align: center;
 }
@@ -664,9 +682,9 @@ input::placeholder {
 }
 
 .validation-message {
-  margin: 0;
-  padding: 14px 28px 11px;
-  border-bottom: var(--line-heavy) solid var(--ink);
+  margin: 0 28px;
+  padding: 12px 16px 9px;
+  border: var(--line-heavy) solid var(--ink);
   background: var(--tomato-light);
   font-size: 1rem;
   font-weight: 700;
@@ -803,12 +821,12 @@ input::placeholder {
   }
 
   .masthead-action {
-    font-size: clamp(1.05rem, 5vw, 1.35rem);
+    font-size: clamp(1.05rem, 5vw, var(--header-control-font-max));
   }
 
   #puzzle-select {
     padding-right: 26px;
-    font-size: clamp(0.82rem, 3.6vw, 1.05rem);
+    font-size: clamp(0.82rem, 3.6vw, var(--header-control-font-max));
   }
 
   .game-header {
@@ -840,29 +858,33 @@ input::placeholder {
   }
 
   .comic-action {
+    --tactile-shadow-x: 4px;
+    --tactile-shadow-y: 5px;
+
     padding-right: 13px;
     padding-left: 13px;
-    font-size: clamp(0.9rem, 4vw, 1.08rem);
-    filter: drop-shadow(4px 5px 0 var(--ink));
-  }
-
-  .comic-action:hover:not(:disabled) {
-    filter: drop-shadow(5px 6px 0 var(--ink)) saturate(1.08);
+    font-size: calc(clamp(0.9rem, 4vw, 1.3rem) + 4px);
   }
 
   .artist-hint {
     padding-right: 9px;
     padding-left: 9px;
-    font-size: 0.86rem;
+    font-size: calc(clamp(0.9rem, 4vw, 1.3rem) + 4px);
   }
 
   .attempts {
     padding-right: 9px;
     padding-left: 9px;
-    font-size: clamp(0.72rem, 3.2vw, 0.9rem);
+    font-size: calc(clamp(0.9rem, 4vw, 1.3rem) + 4px);
   }
 
-  .validation-message,
+  .validation-message {
+    margin-right: 15px;
+    margin-left: 15px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
   .message {
     padding-right: 16px;
     padding-left: 16px;
@@ -913,7 +935,7 @@ input::placeholder {
 
   #puzzle-select {
     padding-right: 24px;
-    font-size: 0.78rem;
+    font-size: clamp(0.78rem, 3.6vw, var(--header-control-font-max));
   }
 
   .game-header {
@@ -937,6 +959,11 @@ input::placeholder {
     padding-left: 12px;
   }
 
+  .validation-message {
+    margin-right: 12px;
+    margin-left: 12px;
+  }
+
   .action-grid {
     grid-template-columns: minmax(0, 1.25fr) minmax(100px, 1fr);
     padding-right: 10px;
@@ -953,8 +980,7 @@ input::placeholder {
     transition-delay: 0ms !important;
   }
 
-  .comic-action:hover:not(:disabled),
-  .masthead-action:hover:not(:disabled),
+  .tactile-button:hover:not(:disabled),
   .archive-control:hover,
   figure:hover {
     transform: none;
