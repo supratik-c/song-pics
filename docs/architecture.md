@@ -38,6 +38,10 @@ Panel image paths also live under `/content`, for example:
 
 `client/content/` is the source of truth for daily puzzles and storyboard images while the game is frontend-only. If content later needs publishing tools or backend access, it can move back to a root-level content boundary.
 
+Puzzle panel rasters are kept at or below 800 × 600 pixels to limit the static
+download size. New source artwork should be resized and compressed before it is
+added to a dated puzzle directory.
+
 ## UI Assets
 
 Interface artwork belongs in `client/src/assets/ui/`, separate from daily
@@ -51,6 +55,26 @@ Reference UI assets with relative CSS URLs or TypeScript imports so Vite
 fingerprints them and rewrites their paths for the configured deployment base.
 Keep puzzle panels and other runtime-loaded content under `client/content/`,
 where the existing release-filtering and copy behavior applies.
+
+## UI Composition
+
+The browser shell is a single responsive comic-page frame. `client/index.html`
+owns its semantic structure: the title panel, the How to Play control, the
+archive select, the clue heading, the guess form, the four-cell action grid,
+and the feedback regions. `client/src/styles.css` turns those native controls
+and regions into straight clue panels and selectively diagonal action panels
+without replacing their keyboard-operable hit areas.
+
+`client/src/render.ts` populates the dated puzzle content and the options in the
+static archive select. Choosing an archive option preserves the existing URL
+contract: the latest puzzle has no `puzzle` query parameter and older puzzles
+use `?puzzle=YYYY-MM-DD`.
+
+How to Play and Reveal Song are intentionally presentational placeholders.
+They are enabled native buttons with registered no-op handlers, and they do not
+change game state, reveal content, show feedback, or navigate. Their eventual
+behavior should be implemented only after the corresponding content and game
+rules are defined.
 
 ## Frontend Game Rules
 
