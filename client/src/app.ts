@@ -7,28 +7,38 @@ import {
   type PuzzleArchive,
 } from './types.ts';
 import { isAcceptedAnswer, normalizeAnswer } from './game.ts';
+import { loadHowToPlayManifest } from './howToPlayLoader.ts';
+import {
+  createModalController,
+  type ModalController,
+} from './modal.ts';
 import { FuturePuzzleError, loadPuzzle } from './puzzleLoader.ts';
-import { renderFuturePuzzle, renderPuzzle, renderState } from './render.ts';
+import {
+  renderArchiveContent,
+  renderFuturePuzzle,
+  renderHowToPlayContent,
+  renderModalMessage,
+  renderPuzzle,
+  renderResultContent,
+  renderState,
+} from './render.ts';
 import { loadState, saveState } from './storage.ts';
 
 export async function initApp(elements: GameElements): Promise<void> {
   let puzzle: Puzzle;
   let archive: PuzzleArchive;
+  const modal = createModalController(elements.modal);
 
-  elements.howToPlayButton.addEventListener(
-    'click',
-    handleHowToPlay,
-  );
-  elements.revealSongButton.addEventListener(
-    'click',
-    handleRevealSong,
-  );
+  elements.howToPlayButton.addEventListener('click', () => {
+    void handleHowToPlay(elements, modal);
+  });
 
   try {
     ({ puzzle, archive } = await loadPuzzle());
   } catch (error) {
     if (error instanceof FuturePuzzleError) {
       renderFuturePuzzle(elements, error.archive);
+      bindArchiveButton(elements, error.archive, modal);
       return;
     }
 
@@ -39,22 +49,79 @@ export async function initApp(elements: GameElements): Promise<void> {
 
   renderPuzzle(elements, puzzle, archive);
   renderState(elements, puzzle, state, MAX_ATTEMPTS);
+  bindArchiveButton(elements, archive, modal);
 
   elements.form.addEventListener('submit', (event) => {
-    handleGuess(event, elements, puzzle, state);
+    handleGuess(event, elements, puzzle, state, modal);
   });
 
   elements.revealArtistButton.addEventListener('click', () => {
-    showArtistHint(elements, puzzle.artist);
+    if (state.status === 'playing') {
+      showArtistHint(elements, puzzle.artist);
+    }
+  });
+
+  elements.revealSongButton.addEventListener('click', () => {
+    handleRevealSong(elements, puzzle, state, modal);
   });
 }
 
-function handleHowToPlay(): void {
-  // TODO: Open the How to Play experience when its content is designed.
+async function handleHowToPlay(
+  elements: GameElements,
+  modal: ModalController,
+): Promise<void> {
+  const viewId = modal.open({
+    title: 'How to Play',
+    content: renderModalMessage('Sharpening the crayons...'),
+    returnFocus: elements.howToPlayButton,
+  });
+
+  try {
+    const manifest = await loadHowToPlayManifest();
+
+    modal.update(viewId, {
+      title: manifest.title,
+      content: renderHowToPlayContent(manifest),
+    });
+  } catch (error) {
+    console.error(error);
+    modal.update(viewId, {
+      content: renderModalMessage(
+        'The instructions have wandered off. Please close this box and try again.',
+        'error',
+      ),
+    });
+  }
 }
 
-function handleRevealSong(): void {
-  // TODO: Add the reveal-song game action when its rules are defined.
+function bindArchiveButton(
+  elements: GameElements,
+  archive: PuzzleArchive,
+  modal: ModalController,
+): void {
+  elements.previousIssuesButton.addEventListener('click', () => {
+    modal.open({
+      title: 'Previous Issues',
+      content: renderArchiveContent(archive),
+      returnFocus: elements.previousIssuesButton,
+    });
+  });
+}
+
+function handleRevealSong(
+  elements: GameElements,
+  puzzle: Puzzle,
+  state: GameState,
+  modal: ModalController,
+): void {
+  if (state.status === 'playing') {
+    state.status = 'revealed';
+    saveState(puzzle.id, state);
+    hideValidationMessage(elements);
+    renderState(elements, puzzle, state, MAX_ATTEMPTS);
+  }
+
+  openResultModal(elements, puzzle, state, modal);
 }
 
 function handleGuess(
@@ -62,9 +129,14 @@ function handleGuess(
   elements: GameElements,
   puzzle: Puzzle,
   state: GameState,
+  modal: ModalController,
 ): void {
   event.preventDefault();
   hideValidationMessage(elements);
+
+  if (state.status !== 'playing') {
+    return;
+  }
 
   const rawGuess = new FormData(elements.form).get('guess');
 
@@ -111,10 +183,6 @@ function handleGuess(
     return;
   }
 
-  if (state.isSolved || state.guesses.length >= MAX_ATTEMPTS) {
-    return;
-  }
-
   if (state.guesses.includes(guess)) {
     showValidationMessage(
       elements,
@@ -124,18 +192,50 @@ function handleGuess(
   }
 
   state.guesses.push(guess);
-  state.isSolved = isAcceptedAnswer(
-    guess,
-    puzzle.acceptedAnswers,
-    puzzle.artist,
-  );
+
+  if (
+    isAcceptedAnswer(
+      guess,
+      puzzle.acceptedAnswers,
+      puzzle.artist,
+    )
+  ) {
+    state.status = 'solved';
+  } else if (state.guesses.length >= MAX_ATTEMPTS) {
+    state.status = 'failed';
+  }
 
   saveState(puzzle.id, state);
 
   elements.form.reset();
-  elements.guessInput.focus();
-
   renderState(elements, puzzle, state, MAX_ATTEMPTS);
+
+  if (state.status === 'playing') {
+    elements.guessInput.focus();
+  } else {
+    openResultModal(elements, puzzle, state, modal);
+  }
+}
+
+function openResultModal(
+  elements: GameElements,
+  puzzle: Puzzle,
+  state: GameState,
+  modal: ModalController,
+): void {
+  if (state.status === 'playing') {
+    return;
+  }
+
+  const result = renderResultContent(puzzle, state.status);
+
+  modal.open({
+    title: result.title,
+    content: result.content,
+    returnFocus: elements.revealSongButton,
+    onClose: result.onClose,
+    tone: result.tone,
+  });
 }
 
 function showArtistHint(

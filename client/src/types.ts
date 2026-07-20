@@ -30,10 +30,54 @@ export type LoadedPuzzle = {
   archive: PuzzleArchive;
 };
 
+export type GameStatus =
+  | 'playing'
+  | 'solved'
+  | 'revealed'
+  | 'failed';
 
 export type GameState = {
   guesses: string[];
-  isSolved: boolean;
+  status: GameStatus;
+};
+
+export type HowToPlaySection = {
+  heading: string;
+  body: string;
+};
+
+export type HowToPlayPanel = {
+  src: string;
+  alt: string;
+};
+
+export type HowToPlayManifest = {
+  title: string;
+  introduction: string;
+  sections: HowToPlaySection[];
+  demo: {
+    clue: string;
+    panels: HowToPlayPanel[];
+    answer: string;
+    artist: string;
+  };
+};
+
+export type ModalElements = {
+  dialog: HTMLDialogElement;
+  title: HTMLElement;
+  body: HTMLElement;
+  closeButton: HTMLButtonElement;
+};
+
+export type ModalTone = 'default' | 'success';
+
+export type ModalView = {
+  title: string;
+  content: DocumentFragment;
+  returnFocus: HTMLElement;
+  onClose?: () => void;
+  tone?: ModalTone;
 };
 
 export type GameElements = {
@@ -45,8 +89,9 @@ export type GameElements = {
   guessList: HTMLOListElement;
   howToPlayButton: HTMLButtonElement;
   message: HTMLElement;
+  modal: ModalElements;
   panels: HTMLElement;
-  puzzleSelect: HTMLSelectElement;
+  previousIssuesButton: HTMLButtonElement;
   revealArtistButton: HTMLButtonElement;
   revealSongButton: HTMLButtonElement;
   submitButton: HTMLButtonElement;
