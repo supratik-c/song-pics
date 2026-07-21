@@ -71,11 +71,12 @@ the four-cell action grid, and the feedback regions. `client/src/styles.css` tur
 and regions into straight clue panels and selectively diagonal action panels
 without replacing their keyboard-operable hit areas. The guess entry and action
 grid form one continuous control panel with a shared paper background and no
-divider between them. The guess prompt and all four action-grid labels use a
-four-pixel type-size emphasis so those prompts remain visually prominent. The
-action-grid labels and the revealed artist value share the same enlarged
-responsive type scale. Revealed artist text can wrap at any character when
-necessary, and its auto-sized grid row grows to keep long names inside the cell.
+divider between them. The guess prompt and action-grid labels use an enlarged
+responsive type scale so those prompts remain visually prominent. The Guess
+label is approximately 47 percent larger than the other action-grid labels at
+both desktop and mobile sizes. The remaining action-grid labels and the revealed
+artist value share the same scale. Revealed artist text can wrap at any character
+when necessary, and its auto-sized grid row grows to keep long names inside the cell.
 Interactive comic buttons share a reusable `tactile-button` press treatment:
 hover lifts the control and deepens its hard shadow, while press movement
 compresses that shadow against the control. Individual button styles supply

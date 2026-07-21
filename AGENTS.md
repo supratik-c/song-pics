@@ -122,14 +122,12 @@ From `client/`:
 
 ```bash
 npm ci
-npm run dev
 npm run typecheck
 npm run build
-npm run preview
 ```
 
-Do read read or parse node_modules/ to keep input tokens to a minimum.
-
+Do not read or parse node_modules/ to keep input tokens to a minimum.
+Do not try to run the dev server locally. Instead, after npm run build, explore the files you need in the create dist/ folder and assess them directly.
 
 
 Notes:

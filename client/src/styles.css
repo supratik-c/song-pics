@@ -587,6 +587,7 @@ input::placeholder {
 .guess-button {
   --action-fill: var(--green-dark);
   --comic-shape: polygon(0 0, 100% 0, 100% calc(100% - 13px), 0 100%);
+  font-size: calc(clamp(1.496rem, 3.223vw, 2.343rem) + 5.863px);
 }
 
 .artist-action-cell {
@@ -1130,6 +1131,10 @@ input::placeholder {
     padding-right: 13px;
     padding-left: 13px;
     font-size: calc(clamp(0.9rem, 4vw, 1.3rem) + 4px);
+  }
+
+  .guess-button {
+    font-size: calc(clamp(1.32rem, 5.863vw, 1.903rem) + 5.863px);
   }
 
   .artist-hint {
