@@ -1,26 +1,18 @@
 {
   "title": "How to Play",
-  "introduction": "Work out the song from a sequence of gloriously questionable drawings.",
+  "introduction": "Figure out the song from our highly questionable scribbles.",
   "sections": [
     {
       "heading": "Study the scribbles",
-      "body": "Read the clue and look across every picture. Together they point towards a song title."
+      "body": "Guess the song of the day by deciphering the clue & some world-class hand drawings."
     },
     {
       "heading": "Take your best shot",
-      "body": "You get five different guesses. Capital letters, punctuation and accents will not trip you up."
-    },
-    {
-      "heading": "Hints and surrender",
-      "body": "Reveal Artist gives you a free hint. Reveal Song ends the round immediately, so use it only when the doodles have defeated you."
-    },
-    {
-      "heading": "Missed an issue?",
-      "body": "Previous Issues contains the released archive, newest first, so you can catch up whenever you like."
+      "body": "Five Guesses and a Reveal Artist button. Can you decipher the doodles?"
     }
   ],
   "demo": {
-    "clue": "Example: Don't punch children",
+    "clue": "Don't punch children",
     "panels": [
       {
         "src": "1.webp",

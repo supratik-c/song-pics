@@ -237,7 +237,7 @@ export function renderHowToPlayContent(
   );
 
   demo.className = 'how-to-demo';
-  demoHeading.textContent = 'A tiny example';
+  demoHeading.textContent = 'Clue:';
   demoClue.className = 'how-to-demo-clue';
   demoClue.textContent = manifest.demo.clue;
   panels.className = 'how-to-demo-panels';
