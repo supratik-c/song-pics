@@ -20,6 +20,20 @@ const projectRoot = import.meta.dirname;
 const contentDirectory = resolve(projectRoot, CONTENT_DIRECTORY_NAME);
 const outputDirectory = resolve(projectRoot, 'dist');
 const basePath = process.env.VITE_BASE_PATH ?? '/';
+const buildId = process.env.VITE_BUILD_ID?.trim() || 'local';
+
+function emitBuildVersion() {
+  return {
+    name: 'emit-build-version',
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'build-version.json',
+        source: `${JSON.stringify({ buildId }, null, 2)}\n`,
+      });
+    },
+  };
+}
 
 function copyContent() {
   return {
@@ -110,6 +124,9 @@ function writeReleasedPuzzleMetadata(contentOutputDirectory) {
 export default defineConfig({
   base: basePath,
   root: projectRoot,
+  define: {
+    'import.meta.env.VITE_BUILD_ID': JSON.stringify(buildId),
+  },
   build: {
     outDir: outputDirectory,
     rollupOptions: {
@@ -118,5 +135,5 @@ export default defineConfig({
       },
     },
   },
-  plugins: [copyContent()],
+  plugins: [copyContent(), emitBuildVersion()],
 });

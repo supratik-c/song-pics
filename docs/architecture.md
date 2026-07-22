@@ -143,6 +143,22 @@ A likely first backend would be a small FastAPI service with routes such as `GET
 
 Vite builds the frontend into `client/dist/`. The project Vite config copies released content into `client/dist/content` so production builds preserve the same `/content/...` URLs used in local development.
 
+Every build also emits `dist/build-version.json`. The GitHub Pages workflow sets
+`VITE_BUILD_ID` from the commit and workflow run; local builds use `local` as a
+safe fallback. Before initializing the game, the browser requests the version
+file with a unique, non-cached URL. If its build id differs from the id compiled
+into the current JavaScript, the browser reloads once with a temporary
+`_deployment` query parameter. Existing query parameters, including archive
+selection, are preserved, and the temporary parameter is removed after the new
+build loads. A failed or invalid version check does not prevent the game from
+starting.
+
+Runtime content URLs under the configured Vite base include the build id as a
+query parameter. This prevents GitHub Pages or the browser from reusing an old
+puzzle JSON file or image when a deployment replaces content without changing
+its filename. External URLs remain unchanged, while compiled JavaScript, CSS,
+and imported UI assets continue to use Vite's content-hashed filenames.
+
 Development serves `client/content/` directly, including future dated puzzle folders so new puzzles can be authored and checked locally. Each daily puzzle lives at `content/puzzles/YYYY-MM-DD/puzzle.json`, with that puzzle's `.webp` panel images in the same folder. The dated folder name is the puzzle id; `puzzle.json` should not include a duplicate `id` field. The generated `content/puzzles/index.json` file contains date ids, such as `2026-07-05`, rather than JSON filenames.
 
 Production builds filter that content copy: only today-or-earlier `content/puzzles/YYYY-MM-DD/` directories are copied, `dist/content/puzzles/index.json` is generated from those released directories, and future dated puzzle directories are skipped entirely. Shared non-dated assets, such as `content/misc/` and `content/how-to-play/`, are still copied.

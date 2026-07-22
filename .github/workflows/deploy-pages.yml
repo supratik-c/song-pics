@@ -44,6 +44,7 @@ jobs:
         working-directory: client
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_BUILD_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
         run: npm run build
 
       - name: Upload artifact
