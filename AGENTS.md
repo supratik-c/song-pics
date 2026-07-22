@@ -31,6 +31,8 @@ Repository documentation calls the product “Badly Drawn Bangers,” while the 
 
 Read the files relevant to a change before editing them. If implementation and documentation disagree, verify runtime/build behavior, fix stale documentation when it is in scope, and do not blindly preserve a contradiction.
 
+Always read the architecture doc to ensure your understanding is current, and also update that doc afterwards.
+
 ## Architectural guardrails
 
 - Keep this a dependency-light, framework-free client while its behavior remains simple. Do not introduce React, a state library, a CSS framework, or another build layer without a demonstrated product need.

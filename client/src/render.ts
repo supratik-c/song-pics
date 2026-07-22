@@ -1,11 +1,15 @@
 import {
   type GameElements,
   type GameState,
+  type GameStatus,
+  type HowToPlayManifest,
   type Puzzle,
   type PuzzleArchive,
 } from './types.ts';
 
+import { resolveHowToPlayImagePath } from './howToPlayLoader.ts';
 import { resolvePublicPath } from './publicPath.ts';
+import { formatPuzzleDisplayDate } from './puzzleDates.ts';
 
 const futurePuzzleMessage =
   'Still in development....';
@@ -54,7 +58,7 @@ export function renderPuzzle(
     }),
   );
 
-  renderPuzzleDropdown(elements, archive);
+  setArchiveAvailable(elements, archive);
 }
 
 export function renderFuturePuzzle(
@@ -97,7 +101,7 @@ export function renderFuturePuzzle(
     'Future puzzle message',
   );
   elements.panels.replaceChildren(image, message);
-  renderPuzzleDropdown(elements, archive);
+  setArchiveAvailable(elements, archive);
 }
 
 function configurePanelZoom(
@@ -179,65 +183,271 @@ function setPlayableView(elements: GameElements): void {
   );
 }
 
-function renderPuzzleDropdown(
+function setArchiveAvailable(
   elements: GameElements,
   archive: PuzzleArchive,
 ): void {
-  let select =
-    document.querySelector<HTMLSelectElement>('#puzzle-select');
+  elements.previousIssuesButton.disabled =
+    archive.puzzleIds.length === 0;
+}
 
-  if (!select) {
-    select = document.createElement('select');
-    select.id = 'puzzle-select';
-    select.setAttribute('aria-label', 'Select puzzle');
+export function renderModalMessage(
+  message: string,
+  kind: 'loading' | 'error' = 'loading',
+): DocumentFragment {
+  const content = document.createDocumentFragment();
+  const paragraph = document.createElement('p');
 
-    const archiveControl =
-      document.querySelector<HTMLElement>('#archive-control');
+  paragraph.className = `dialog-message dialog-message-${kind}`;
+  paragraph.textContent = message;
+  content.append(paragraph);
 
-    if (archiveControl) {
-      archiveControl.append(select);
-    } else {
-      elements.attemptsCount.insertAdjacentElement(
-        'afterend',
-        select,
-      );
-    }
-  }
+  return content;
+}
 
-  select.replaceChildren(
-    ...archive.puzzleIds.map((puzzleId) => {
-      const option = document.createElement('option');
+export function renderHowToPlayContent(
+  manifest: HowToPlayManifest,
+): DocumentFragment {
+  const content = document.createDocumentFragment();
+  const introduction = document.createElement('p');
+  const instructions = document.createElement('div');
+  const demo = document.createElement('section');
+  const demoHeading = document.createElement('h3');
+  const demoClue = document.createElement('p');
+  const panels = document.createElement('div');
+  const answer = document.createElement('p');
 
-      option.value = puzzleId;
+  introduction.className = 'how-to-introduction';
+  introduction.textContent = manifest.introduction;
 
-      option.textContent =
-        puzzleId === archive.latestPuzzleId
-          ? `${puzzleId} (LATEST)`
-          : puzzleId;
+  instructions.className = 'how-to-sections';
+  instructions.append(
+    ...manifest.sections.map((section, index) => {
+      const instruction = document.createElement('section');
+      const heading = document.createElement('h3');
+      const body = document.createElement('p');
 
-      return option;
+      instruction.className = 'how-to-section';
+      heading.textContent = `${index + 1}. ${section.heading}`;
+      body.textContent = section.body;
+      instruction.append(heading, body);
+
+      return instruction;
     }),
   );
 
-  select.value = archive.selectedPuzzleId;
+  demo.className = 'how-to-demo';
+  demoHeading.textContent = 'A tiny example';
+  demoClue.className = 'how-to-demo-clue';
+  demoClue.textContent = manifest.demo.clue;
+  panels.className = 'how-to-demo-panels';
+  panels.append(
+    ...manifest.demo.panels.map((panel) => {
+      const image = document.createElement('img');
 
-  select.onchange = () => {
-    const puzzleId = select.value;
+      image.src = resolveHowToPlayImagePath(panel.src);
+      image.alt = panel.alt;
+      image.width = 800;
+      image.height = 600;
 
-    if (!archive.puzzleIds.includes(puzzleId)) {
+      return image;
+    }),
+  );
+  answer.className = 'how-to-demo-answer';
+  answer.textContent =
+    `Answer: ${manifest.demo.answer} by ${manifest.demo.artist}`;
+  demo.append(demoHeading, demoClue, panels, answer);
+
+  content.append(introduction, instructions, demo);
+  return content;
+}
+
+export function renderArchiveContent(
+  archive: PuzzleArchive,
+): DocumentFragment {
+  const pageSize = 5;
+  const content = document.createDocumentFragment();
+  const archiveView = document.createElement('div');
+  const list = document.createElement('ol');
+  const pagination = document.createElement('nav');
+  const previousButton = document.createElement('button');
+  const pageStatus = document.createElement('p');
+  const nextButton = document.createElement('button');
+  const selectedIndex = Math.max(
+    archive.puzzleIds.indexOf(archive.selectedPuzzleId),
+    0,
+  );
+  const pageCount = Math.max(
+    Math.ceil(archive.puzzleIds.length / pageSize),
+    1,
+  );
+  let currentPage = Math.floor(selectedIndex / pageSize);
+
+  archiveView.className = 'archive-view';
+  list.className = 'archive-list';
+  pagination.className = 'archive-pagination';
+  pagination.setAttribute('aria-label', 'Archive pages');
+
+  previousButton.type = 'button';
+  previousButton.className =
+    'dialog-action-button tactile-button';
+  previousButton.textContent = 'Previous';
+
+  pageStatus.className = 'archive-page-status';
+  pageStatus.setAttribute('aria-live', 'polite');
+
+  nextButton.type = 'button';
+  nextButton.className =
+    'dialog-action-button tactile-button';
+  nextButton.textContent = 'Next';
+
+  const renderPage = (): void => {
+    const startIndex = currentPage * pageSize;
+    const pagePuzzleIds = archive.puzzleIds.slice(
+      startIndex,
+      startIndex + pageSize,
+    );
+
+    list.replaceChildren(
+      ...pagePuzzleIds.map((puzzleId) => {
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        const date = document.createElement('span');
+        const badges = document.createElement('span');
+
+        item.className = 'archive-list-item';
+        link.className = 'archive-link';
+        link.href = getPuzzleUrl(
+          puzzleId,
+          archive.latestPuzzleId,
+        );
+        date.textContent = formatPuzzleDisplayDate(puzzleId);
+        badges.className = 'archive-badges';
+
+        if (puzzleId === archive.selectedPuzzleId) {
+          const currentBadge = document.createElement('span');
+
+          currentBadge.textContent = 'Current';
+          currentBadge.className = 'archive-badge';
+          badges.append(currentBadge);
+          link.setAttribute('aria-current', 'page');
+        }
+
+        if (puzzleId === archive.latestPuzzleId) {
+          const latestBadge = document.createElement('span');
+
+          latestBadge.textContent = 'Latest';
+          latestBadge.className =
+            'archive-badge archive-badge-latest';
+          badges.append(latestBadge);
+        }
+
+        link.append(date, badges);
+        item.append(link);
+        return item;
+      }),
+    );
+
+    pageStatus.textContent =
+      `Page ${currentPage + 1} of ${pageCount}`;
+    previousButton.disabled = currentPage === 0;
+    nextButton.disabled = currentPage === pageCount - 1;
+    list.scrollTop = 0;
+  };
+
+  previousButton.addEventListener('click', () => {
+    if (currentPage === 0) {
       return;
     }
 
-    const url = new URL(window.location.href);
-
-    if (puzzleId === archive.latestPuzzleId) {
-      url.searchParams.delete('puzzle');
-    } else {
-      url.searchParams.set('puzzle', puzzleId);
+    currentPage -= 1;
+    renderPage();
+  });
+  nextButton.addEventListener('click', () => {
+    if (currentPage === pageCount - 1) {
+      return;
     }
 
-    window.location.href = url.toString();
-  };
+    currentPage += 1;
+    renderPage();
+  });
+
+  pagination.append(previousButton, pageStatus, nextButton);
+  archiveView.append(list, pagination);
+  content.append(archiveView);
+  renderPage();
+
+  return content;
+}
+
+type RenderedResult = {
+  title: string;
+  content: DocumentFragment;
+  onClose?: () => void;
+  tone: 'default' | 'success';
+};
+
+export function renderResultContent(
+  puzzle: Puzzle,
+  status: Exclude<GameStatus, 'playing'>,
+): RenderedResult {
+  const content = document.createDocumentFragment();
+  const message = document.createElement('p');
+  const answer = document.createElement('p');
+  let title: string;
+  const tone = status === 'solved' ? 'success' : 'default';
+
+  message.className = 'result-message';
+  answer.className = 'result-answer';
+  answer.textContent = `${puzzle.songTitle} by ${puzzle.artist}`;
+
+  if (status === 'solved') {
+    title = 'Correct!';
+    message.textContent = 'You decoded the doodles.';
+  } else if (status === 'revealed') {
+    title = 'Song Revealed';
+    message.textContent =
+      'The scribbles win this round. The song was:';
+  } else {
+    title = 'Out of Guesses';
+    message.textContent =
+      'That was your last guess. The song was:';
+  }
+
+  content.append(message, answer);
+
+  if (status !== 'failed' && puzzle.youtubeURL) {
+    const video = createYouTubeVideo(puzzle.youtubeURL);
+
+    if (video) {
+      content.append(video);
+      return {
+        title,
+        content,
+        tone,
+        onClose: () => {
+          video.src = 'about:blank';
+        },
+      };
+    }
+  }
+
+  return { title, content, tone };
+}
+
+function getPuzzleUrl(
+  puzzleId: string,
+  latestPuzzleId: string,
+): string {
+  const url = new URL(window.location.href);
+
+  if (puzzleId === latestPuzzleId) {
+    url.searchParams.delete('puzzle');
+  } else {
+    url.searchParams.set('puzzle', puzzleId);
+  }
+
+  return url.toString();
 }
 
 export function renderState(
@@ -264,73 +474,74 @@ export function renderState(
     }),
   );
 
-  if (state.isSolved) {
-    setFinished(
-      elements,
-      `Correct: ${puzzle.songTitle} by ${puzzle.artist}`,
-    );
-
-    if (puzzle.youtubeURL) {
-      renderYouTubeVideo(elements, puzzle.youtubeURL);
-    }
-
+  if (state.status !== 'playing') {
+    setFinished(elements, state.status);
     return;
   }
 
-  if (state.guesses.length >= maxAttempts) {
-    setFinished(
-      elements,
-      `Out of guesses. It was ${puzzle.songTitle} by ${puzzle.artist}.`,
-    );
-
-    return;
-  }
-
+  setRevealSongButtonLabel(elements, 'Reveal Song');
   elements.message.textContent =
     state.guesses.length === 0
       ? ''
       : 'Try again.';
 }
 
+function setRevealSongButtonLabel(
+  elements: GameElements,
+  label: string,
+): void {
+  const labelElement =
+    elements.revealSongButton.querySelector('span');
+
+  if (labelElement) {
+    labelElement.textContent = label;
+  } else {
+    elements.revealSongButton.textContent = label;
+  }
+}
+
 function setFinished(
   elements: GameElements,
-  message: string,
+  status: Exclude<GameStatus, 'playing'>,
 ): void {
-  elements.message.textContent = message;
+  elements.message.textContent = '';
   elements.guessInput.disabled = true;
   elements.revealArtistButton.disabled = true;
   elements.revealArtistButton.hidden = true;
   elements.submitButton.disabled = true;
+  elements.revealSongButton.disabled = false;
+  setRevealSongButtonLabel(elements, 'View Result');
+
+  if (status === 'solved') {
+    elements.attemptsCount.textContent = 'Solved!';
+  } else if (status === 'revealed') {
+    elements.attemptsCount.textContent = 'Song revealed';
+  } else {
+    elements.attemptsCount.textContent = 'Out of guesses';
+  }
 }
 
-function renderYouTubeVideo(
-  elements: GameElements,
+function createYouTubeVideo(
   youtubeUrl: string,
-): void {
+): HTMLIFrameElement | null {
   const embedUrl = getYouTubeEmbedUrl(youtubeUrl);
 
   if (!embedUrl) {
     console.error(`Invalid YouTube URL: ${youtubeUrl}`);
-    return;
-  }
-
-  const existingVideo =
-    document.querySelector<HTMLIFrameElement>('#youtube-video');
-
-  if (existingVideo) {
-    existingVideo.src = embedUrl;
-    return;
+    return null;
   }
 
   const iframe = document.createElement('iframe');
 
-  iframe.id = 'youtube-video';
+  iframe.className = 'result-video';
   iframe.src = embedUrl;
-  iframe.title = 'YouTube video';
-  iframe.allow = 'web-share';
+  iframe.title = 'Song video';
+  iframe.allow =
+    'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
   iframe.allowFullscreen = true;
+  iframe.loading = 'lazy';
 
-  elements.message.insertAdjacentElement('afterend', iframe);
+  return iframe;
 }
 
 function getYouTubeEmbedUrl(url: string): string | null {

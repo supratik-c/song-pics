@@ -1,0 +1,45 @@
+{
+  "title": "How to Play",
+  "introduction": "Work out the song from a sequence of gloriously questionable drawings.",
+  "sections": [
+    {
+      "heading": "Study the scribbles",
+      "body": "Read the clue and look across every picture. Together they point towards a song title."
+    },
+    {
+      "heading": "Take your best shot",
+      "body": "You get five different guesses. Capital letters, punctuation and accents will not trip you up."
+    },
+    {
+      "heading": "Hints and surrender",
+      "body": "Reveal Artist gives you a free hint. Reveal Song ends the round immediately, so use it only when the doodles have defeated you."
+    },
+    {
+      "heading": "Missed an issue?",
+      "body": "Previous Issues contains the released archive, newest first, so you can catch up whenever you like."
+    }
+  ],
+  "demo": {
+    "clue": "Example: Don't punch children",
+    "panels": [
+      {
+        "src": "1.webp",
+        "alt": "A rough drawing of a person being hit in the face."
+      },
+      {
+        "src": "2.webp",
+        "alt": "A rough drawing of a baby with a dummy."
+      },
+      {
+        "src": "3.webp",
+        "alt": "A rough drawing of the number one."
+      },
+      {
+        "src": "4.webp",
+        "alt": "A rough drawing of a clock."
+      }
+    ],
+    "answer": "Baby One More Time",
+    "artist": "Britney Spears"
+  }
+}

@@ -72,6 +72,7 @@ for puzzle_directory in "${puzzle_directories[@]}"; do
       -preset drawing \
       -m 6 \
       -q 82 \
+      -resize 800 600 \
       "$png_file" \
       -o "$temporary_file"; then
       rm -f -- "$temporary_file"

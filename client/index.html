@@ -3,33 +3,49 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sketchy Songs</title>
+    <title>Scribble Bops</title>
     <link rel="stylesheet" href="./src/styles.css" />
     <script type="module" src="./src/main.ts"></script>
   </head>
   <body>
     <main class="shell">
-      <header class="masthead">
-        <h1>Scribble Bops</h1>
-        <p class="intro">Guess today's song from some highly professional drawings.</p>
-      </header>
+      <div class="comic-page">
+        <header class="masthead">
+          <div class="title-panel">
+            <h1>Scribble Bops</h1>
+            <p class="intro">Guess today's song from these highly professional drawings.</p>
+          </div>
 
-      <div class="game-area">
-        <div class="archive-control" id="archive-control"></div>
+          <div class="masthead-actions" aria-label="Game information and archive">
+            <button
+              class="masthead-action tactile-button how-to-play-button"
+              id="how-to-play-button"
+              type="button"
+            >
+              How to Play
+            </button>
+            <button
+              class="masthead-action tactile-button previous-issues-button"
+              id="previous-issues-button"
+              type="button"
+              disabled
+            >
+              Previous Issues
+            </button>
+          </div>
+        </header>
 
         <section class="game" aria-labelledby="puzzle-song-clue">
           <div class="game-header">
-            <div>
-              <p class="eyebrow" id="puzzle-date">Loading...</p>
-              <h2 id="puzzle-song-clue"></h2>
-            </div>
+            <p class="eyebrow" id="puzzle-date">Loading...</p>
+            <h2 id="puzzle-song-clue"></h2>
           </div>
 
           <div class="panels" id="panels" aria-label="Storyboard clue panels"></div>
 
           <form class="guess-form" id="guess-form" novalidate>
-            <label for="guess-input">What's the song?</label>
-            <div class="guess-row">
+            <div class="guess-entry-panel">
+              <label for="guess-input">What's the song?</label>
               <input
                 id="guess-input"
                 name="guess"
@@ -38,22 +54,67 @@
                 placeholder="Type your guess"
                 required
               />
-              <button type="submit">Guess</button>
             </div>
-            <div class="hint-row">
-              <button class="artist-reveal-button" id="reveal-artist-button" type="button">
-                Reveal Artist
+
+            <p
+              class="validation-message"
+              id="validation-message"
+              role="status"
+              aria-live="polite"
+              hidden
+            ></p>
+
+            <div class="action-grid">
+              <button class="comic-action tactile-button guess-button" type="submit">
+                <span>Guess</span>
               </button>
-              <p class="artist-hint" id="artist-hint" aria-live="polite" hidden></p>
+
+              <div class="artist-action-cell">
+                <button
+                  class="comic-action tactile-button artist-reveal-button"
+                  id="reveal-artist-button"
+                  type="button"
+                >
+                  <span>Reveal Artist</span>
+                </button>
+                <p class="artist-hint" id="artist-hint" aria-live="polite" hidden></p>
+              </div>
+
+              <p class="attempts" id="attempts-count" aria-live="polite"></p>
+
+              <button
+                class="comic-action tactile-button reveal-song-button"
+                id="reveal-song-button"
+                type="button"
+              >
+                <span>Reveal Song</span>
+              </button>
             </div>
-            <p class="attempts" id="attempts-count" aria-live="polite"></p>
           </form>
 
-          <p class="validation-message" id="validation-message" role="status" aria-live="polite" hidden></p>
           <p class="message" id="message" aria-live="polite"></p>
           <ol class="guess-list" id="guess-list" aria-label="Previous guesses"></ol>
         </section>
       </div>
     </main>
+
+    <dialog
+      class="comic-dialog"
+      id="game-dialog"
+      aria-labelledby="game-dialog-title"
+    >
+      <header class="comic-dialog-header">
+        <h2 id="game-dialog-title"></h2>
+        <button
+          class="comic-dialog-close tactile-button"
+          id="game-dialog-close"
+          type="button"
+          aria-label="Close popup"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+      </header>
+      <div class="comic-dialog-body" id="game-dialog-body"></div>
+    </dialog>
   </body>
 </html>
