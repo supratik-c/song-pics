@@ -2,15 +2,15 @@
 
 ## Product intent
 
-Badly Drawn Bangers is a playful daily browser game: players identify a song
+Scribble Bops is a playful daily browser game: players identify a song
 from deliberately rough hand-drawn clues. Keep the drawings gloriously bad,
 the copy warm, concise, and inclusive, and the experience polished and
 understandable. Humor must not punch down or obscure instructions.
 
-The repository calls the product “Badly Drawn Bangers,” while the browser UI
-currently says “Scribble Bops.” Treat this as an unresolved naming decision: do
-not rename one surface piecemeal or invent another name. Flag a product-wide
-rename for an explicit decision.
+The canonical user-facing product name is “Scribble Bops.” Use `scribble-bops`
+for machine-readable product identifiers. The GitHub repository and Pages base
+path remain `song-pics`; do not conflate those deployment identifiers with the
+product name.
 
 ## Required documentation
 
@@ -118,7 +118,7 @@ Verify in proportion to the change and report commands that could not run:
 - HTML, CSS, or rendering: run tests, typecheck, and build; inspect keyboard
   behavior, narrow/wide layouts, and affected states.
 - Build, path, or date behavior: build with the default base and with
-  `VITE_BASE_PATH=/badly-drawn-bangers/`; inspect `dist/content` for correct
+  `VITE_BASE_PATH=/song-pics/`; inspect `dist/content` for correct
   released and shared content.
 - Dependencies or workflows: start with a clean `npm ci` and match
   `.github/workflows/deploy-pages.yml`.

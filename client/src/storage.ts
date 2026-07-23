@@ -74,7 +74,7 @@ export function createLocalGameStateStore({
 }
 
 export function storageKey(puzzleId: string): string {
-  return `badly-drawn-bangers:${puzzleId}`;
+  return `scribble-bops:${puzzleId}`;
 }
 
 function resolveStoredStatus(

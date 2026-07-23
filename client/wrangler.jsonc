@@ -1,0 +1,18 @@
+{
+  // This is also used in the public *.workers.dev preview address.
+  "name": "scribble-bops",
+  "compatibility_date": "2026-07-23",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./dist",
+    // Game navigation uses ?puzzle=YYYY-MM-DD, not client-side path routes.
+    "not_found_handling": "404-page"
+  },
+
+  // After buying the final domain and adding it to Cloudflare, add the
+  // canonical hostname here. Configure the other hostname (normally www) as a
+  // redirect in Cloudflare rather than serving two canonical addresses.
+  // "routes": [
+  //   { "pattern": "example.com", "custom_domain": true }
+  // ]
+}

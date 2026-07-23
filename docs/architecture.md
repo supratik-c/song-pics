@@ -1,6 +1,6 @@
 # Architecture
 
-Badly Drawn Bangers is a frontend-only daily browser game. The browser loads
+Scribble Bops is a frontend-only daily browser game. The browser loads
 dated puzzle JSON and clue images from static files, evaluates guesses locally,
 and persists per-puzzle progress in production. Vite builds the only running
 application and GitHub Pages serves the resulting static artifact.

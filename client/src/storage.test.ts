@@ -25,6 +25,10 @@ function createMemoryStorage(initial: Record<string, string> = {}) {
 }
 
 describe('local game-state storage', () => {
+  it('namespaces progress under the canonical product slug', () => {
+    expect(storageKey('2026-07-23')).toBe('scribble-bops:2026-07-23');
+  });
+
   it('round-trips current game state by puzzle ID', () => {
     const storage = createMemoryStorage();
     const store = createLocalGameStateStore({

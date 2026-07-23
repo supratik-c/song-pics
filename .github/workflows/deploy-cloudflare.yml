@@ -1,0 +1,71 @@
+name: Deploy Cloudflare (manual only)
+
+# This workflow is intentionally manual-only while GitHub Pages remains the
+# production host. To enable automatic production deployments later, add a
+# push trigger for main and update the job condition to also allow push events.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_deploy:
+        description: Deploy the current commit to the Scribble Bops Cloudflare Worker
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ inputs.confirm_deploy }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Preserve the current GitHub Actions release-date boundary explicitly.
+      TZ: UTC
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: client
+        run: npm run typecheck
+
+      - name: Test
+        working-directory: client
+        run: npm test
+
+      - name: Build for a domain-root deployment
+        working-directory: client
+        env:
+          VITE_BASE_PATH: /
+          VITE_BUILD_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: npm run build
+
+      # Before running this workflow, create these GitHub Actions secrets:
+      # - CLOUDFLARE_API_TOKEN: a narrowly scoped "Edit Cloudflare Workers" token.
+      # - CLOUDFLARE_ACCOUNT_ID: the account ID shown in the Cloudflare dashboard.
+      # The canonical Worker name is configured in client/wrangler.jsonc.
+      - name: Deploy static assets to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: client
+          wranglerVersion: "4.81.0"
+          command: deploy

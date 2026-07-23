@@ -120,6 +120,22 @@ Vite builds to `client/dist/`. The GitHub Actions workflow installs with
 `npm ci`, runs tests, typechecks, builds with a repository base path, and
 deploys that directory to GitHub Pages.
 
+A second workflow scaffolds a future deployment of the same artifact to
+Cloudflare Workers Static Assets. It is deliberately manual-only and skips its
+job unless the dispatcher explicitly confirms deployment. It builds with `/`
+as the Vite base, fixes the release-filter timezone to UTC to match the current
+GitHub Actions environment, and deploys only the static `dist` directory; it
+does not introduce a Worker script, function, backend, or runtime binding.
+
+The Cloudflare workflow requires `CLOUDFLARE_API_TOKEN` and
+`CLOUDFLARE_ACCOUNT_ID` GitHub Actions secrets. The Worker uses the canonical
+`scribble-bops` product slug in `client/wrangler.jsonc`. The token must use the
+narrowly scoped Workers edit permission for the target account. Custom-domain
+DNS, the canonical-host redirect, and Web Analytics remain later Cloudflare
+dashboard configuration rather than repository secrets. GitHub Pages remains
+the production host until the Workers preview, root asset paths,
+released-content filtering, and final-domain redirects have all been verified.
+
 Each build emits `build-version.json`. CI derives `VITE_BUILD_ID` from the
 commit and workflow run; local builds use `local`. Before starting the game, a
 production client requests the version file with a unique non-cached URL. A

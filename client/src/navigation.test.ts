@@ -28,13 +28,13 @@ describe('puzzle navigation', () => {
 
   it('sets an archive puzzle while preserving base path and unrelated state', () => {
     const url = buildPuzzleUrl(
-      'https://example.test/badly-drawn-bangers/?campaign=doodles&_deployment=abc#archive',
+      'https://example.test/song-pics/?campaign=doodles&_deployment=abc#archive',
       '2026-07-20',
       '2026-07-23',
     );
 
     expect(url).toBe(
-      'https://example.test/badly-drawn-bangers/?campaign=doodles&_deployment=abc&puzzle=2026-07-20#archive',
+      'https://example.test/song-pics/?campaign=doodles&_deployment=abc&puzzle=2026-07-20#archive',
     );
   });
 });
