@@ -1,4 +1,4 @@
-# Architecture
+# Architecture 
 
 Badly Drawn Bangers is a local-first browser game. The current architecture is intentionally small: the frontend loads puzzle data and panel images from local files, checks guesses in the browser, and stores daily progress in `localStorage` for production builds.
 
