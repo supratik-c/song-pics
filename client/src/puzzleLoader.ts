@@ -15,6 +15,8 @@ import {
   type LoadedPuzzle,
   type Puzzle,
   type PuzzleArchive,
+  type PuzzleArchiveEntry,
+  type PuzzleIndexEntry,
   type PuzzleJson,
   type PuzzlePanelsManifest,
 } from './types.ts';
@@ -31,7 +33,8 @@ export class FuturePuzzleError extends Error {
 
 export async function loadPuzzle(): Promise<LoadedPuzzle> {
   const requestedPuzzle = getRequestedPuzzleId();
-  const puzzleIds = await loadReleasedPuzzleIds();
+  const archiveEntries = await loadReleasedArchiveEntries();
+  const latestPuzzleId = archiveEntries[0].id;
 
   const isValidPuzzleId =
     requestedPuzzle !== null &&
@@ -42,29 +45,40 @@ export async function loadPuzzle(): Promise<LoadedPuzzle> {
     isFuturePuzzleDateId(requestedPuzzle)
   ) {
     throw new FuturePuzzleError(requestedPuzzle, {
-      puzzleIds,
-      latestPuzzleId: puzzleIds[0],
+      entries: archiveEntries,
+      latestPuzzleId,
       selectedPuzzleId: requestedPuzzle,
     });
   }
 
   const selectedPuzzleId = resolveSelectedPuzzleId(
     requestedPuzzle,
-    puzzleIds,
+    archiveEntries,
   );
-  const puzzle = await loadPuzzleJson(selectedPuzzleId);
+  const selectedEntry = archiveEntries.find(
+    (entry) => entry.id === selectedPuzzleId,
+  );
+
+  if (!selectedEntry) {
+    throw new Error(`Puzzle is missing from archive: ${selectedPuzzleId}`);
+  }
+
+  const puzzle = await loadPuzzleJson(
+    selectedPuzzleId,
+    selectedEntry.issueNumber,
+  );
 
   return {
     puzzle,
     archive: {
-      puzzleIds,
-      latestPuzzleId: puzzleIds[0],
+      entries: archiveEntries,
+      latestPuzzleId,
       selectedPuzzleId,
     },
   };
 }
 
-async function loadReleasedPuzzleIds(): Promise<string[]> {
+async function loadReleasedArchiveEntries(): Promise<PuzzleArchiveEntry[]> {
   const response = await fetch(resolvePublicPath(PUZZLE_INDEX_PATH), {
     cache: 'no-store',
   });
@@ -79,42 +93,59 @@ async function loadReleasedPuzzleIds(): Promise<string[]> {
 
   if (
     !Array.isArray(result) ||
-    !result.every(
-      (puzzleId) =>
-        typeof puzzleId === 'string' && isPuzzleDateId(puzzleId),
-    )
+    !result.every(isPuzzleIndexEntry)
   ) {
     throw new Error('Puzzle index contains invalid data.');
   }
 
-  const puzzleIds = result
-    .filter((puzzleId) => !isFuturePuzzleDateId(puzzleId))
-    .sort()
+  const entries = result
+    .filter((entry) => !isFuturePuzzleDateId(entry.id))
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .map((entry, index) => ({
+      ...entry,
+      issueNumber: index + 1,
+    }))
     .reverse();
 
-  if (puzzleIds.length === 0) {
+  if (entries.length === 0) {
     throw new Error('Puzzle index contains no released puzzles.');
   }
 
-  return puzzleIds;
+  return entries;
+}
+
+function isPuzzleIndexEntry(value: unknown): value is PuzzleIndexEntry {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const entry = value as Record<string, unknown>;
+
+  return typeof entry.id === 'string' &&
+    isPuzzleDateId(entry.id) &&
+    typeof entry.songClue === 'string' &&
+    entry.songClue.trim().length > 0;
 }
 
 function resolveSelectedPuzzleId(
   requestedPuzzle: string | null,
-  puzzleIds: string[],
+  archiveEntries: PuzzleArchiveEntry[],
 ): string {
   if (
     requestedPuzzle !== null &&
     isPuzzleDateId(requestedPuzzle) &&
-    puzzleIds.includes(requestedPuzzle)
+    archiveEntries.some((entry) => entry.id === requestedPuzzle)
   ) {
     return requestedPuzzle;
   }
 
-  return puzzleIds[0];
+  return archiveEntries[0].id;
 }
 
-async function loadPuzzleJson(puzzleId: string): Promise<Puzzle> {
+async function loadPuzzleJson(
+  puzzleId: string,
+  issueNumber: number,
+): Promise<Puzzle> {
   const puzzlePath = `${PUZZLE_DIRECTORY}/${puzzleId}/${PUZZLE_FILE_NAME}`;
 
   const response = await fetch(resolvePublicPath(puzzlePath), {
@@ -134,6 +165,7 @@ async function loadPuzzleJson(puzzleId: string): Promise<Puzzle> {
     ...puzzle,
     id: puzzleId,
     displayDate: formatPuzzleDisplayDate(puzzleId),
+    issueNumber,
     panels,
   };
 }

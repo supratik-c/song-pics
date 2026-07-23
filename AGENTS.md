@@ -80,7 +80,7 @@ Rules for puzzle data:
 - Puzzle panels are normally inferred from numeric image filenames. Use an explicit `panels` array only when inference cannot represent the intended content, and ensure its paths still resolve under the deployment base.
 - Treat song/artist data as a spoiler: do not expose it in pre-solve headings, captions, image filenames, alt text, logs, or share copy.
 
-`client/content/puzzles/index.json` and `panels.json` are generated, gitignored files. Never hand-edit or treat them as source. Run `npm run generate:puzzle-index` (or `dev`/`build`, which runs it automatically) after content changes. Production regenerates a released-only version inside `dist`.
+`client/content/puzzles/index.json` and `panels.json` are generated, gitignored files. Never hand-edit or treat them as source. The index contains ascending date IDs and non-spoiler song clues; the client derives issue numbers from that order. Run `npm run generate:puzzle-index` (or `dev`/`build`, which runs it automatically) after content changes. Production regenerates a released-only version inside `dist`.
 
 Release filtering uses the build machine's local calendar date. Be especially careful with date-boundary behavior and CI's timezone when publishing around midnight.
 
@@ -93,6 +93,7 @@ Release filtering uses the build machine's local calendar date. Be especially ca
 - Exhausting guesses reveals the answer without embedding the video.
 - State is keyed by puzzle ID. Vite development does not persist progress; production does.
 - Archive entries are sorted newest first and future dates are not playable.
+- Issue numbers are chronological and contiguous across available puzzles: the earliest puzzle is Issue #1. The main puzzle date uses `Issue #N - display date`, its clue remains unprefixed, and archive links use `Issue #N - song clue`.
 
 If these rules change, update implementation, types/constants, user-facing text, and architecture documentation together. Add focused automated coverage for normalization/date logic when introducing a test runner or when a regression makes that investment worthwhile.
 

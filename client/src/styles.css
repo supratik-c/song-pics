@@ -910,12 +910,9 @@ input::placeholder {
   gap: 9px;
   max-height: min(52vh, 470px);
   margin: 0;
-  padding: 4px 7px 5px 34px;
+  padding: 4px 7px 5px;
+  list-style: none;
   overflow-y: auto;
-}
-
-.archive-list-item::marker {
-  font-weight: 700;
 }
 
 .archive-link {
@@ -941,6 +938,11 @@ input::placeholder {
   background: var(--yellow);
 }
 
+.archive-issue-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .archive-badges {
   display: flex;
   flex-wrap: wrap;
@@ -959,6 +961,10 @@ input::placeholder {
 
 .archive-badge-latest {
   background: #cde7b8;
+}
+
+.archive-badge-completed {
+  background: var(--green);
 }
 
 .archive-pagination {

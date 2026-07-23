@@ -1,6 +1,10 @@
 import { MAX_ATTEMPTS, MAX_ANSWER_LENGTH } from './constants';
 
 import {
+  loadCompletedPuzzleIds,
+  type LoadCompletedPuzzleIds,
+} from './completion.ts';
+import {
   type GameElements,
   type GameState,
   type Puzzle,
@@ -98,12 +102,31 @@ function bindArchiveButton(
   elements: GameElements,
   archive: PuzzleArchive,
   modal: ModalController,
+  loadCompletion: LoadCompletedPuzzleIds = loadCompletedPuzzleIds,
 ): void {
   elements.previousIssuesButton.addEventListener('click', () => {
-    modal.open({
+    const viewId = modal.open({
       title: 'Previous Issues',
-      content: renderArchiveContent(archive),
+      content: renderModalMessage(
+        'Checking your back catalogue...',
+      ),
       returnFocus: elements.previousIssuesButton,
+    });
+
+    void loadCompletion(
+      archive.entries.map((entry) => entry.id),
+    ).then((completedPuzzleIds) => {
+      modal.update(viewId, {
+        content: renderArchiveContent(
+          archive,
+          completedPuzzleIds,
+        ),
+      });
+    }).catch((error) => {
+      console.error(error);
+      modal.update(viewId, {
+        content: renderArchiveContent(archive, new Set()),
+      });
     });
   });
 }

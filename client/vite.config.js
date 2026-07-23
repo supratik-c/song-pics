@@ -110,13 +110,13 @@ function writeReleasedPuzzleMetadata(contentOutputDirectory) {
     return;
   }
 
-  const { puzzleIds, puzzlePanels } = getPuzzleMetadata(
+  const { puzzleIndex, puzzlePanels } = getPuzzleMetadata(
     puzzleDirectory,
     (puzzleId) => !isFuturePuzzleDateId(puzzleId),
   );
 
   writePuzzleMetadataFiles(puzzleOutputDirectory, {
-    puzzleIds,
+    puzzleIndex,
     puzzlePanels,
   });
 }

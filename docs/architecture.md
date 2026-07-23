@@ -99,10 +99,18 @@ without changing other popup headers. Closing a dialog removes its content,
 which also stops an embedded video.
 
 How to Play loads and validates its manifest lazily. Previous Issues renders
-released puzzle IDs newest-first in pages of five and opens on the page
-containing the selected puzzle. Archive links preserve the URL contract: the
-latest puzzle has no `puzzle` query parameter and older puzzles use
-`?puzzle=YYYY-MM-DD`.
+released puzzles newest-first in pages of five and opens on the page containing
+the selected puzzle. Each archive link uses the comic-style label
+`Issue #N - song clue`. In the main game, the date eyebrow uses
+`Issue #N - display date`, while the heading below it remains the unprefixed
+song clue. Completed archive entries receive a user-specific marker resolved
+through an asynchronous completion lookup. The current implementation derives
+completion from terminal `localStorage` game states, while the lookup boundary
+can later call an account-backed API without changing archive rendering. It is
+refreshed whenever Previous Issues opens so a newly finished puzzle is reflected
+without a page reload; lookup failures leave archive navigation available without
+completion markers. Archive links preserve the URL contract: the latest puzzle
+has no `puzzle` query parameter and older puzzles use `?puzzle=YYYY-MM-DD`.
 
 ## Frontend Game Rules
 
@@ -159,7 +167,7 @@ puzzle JSON file or image when a deployment replaces content without changing
 its filename. External URLs remain unchanged, while compiled JavaScript, CSS,
 and imported UI assets continue to use Vite's content-hashed filenames.
 
-Development serves `client/content/` directly, including future dated puzzle folders so new puzzles can be authored and checked locally. Each daily puzzle lives at `content/puzzles/YYYY-MM-DD/puzzle.json`, with that puzzle's `.webp` panel images in the same folder. The dated folder name is the puzzle id; `puzzle.json` should not include a duplicate `id` field. The generated `content/puzzles/index.json` file contains date ids, such as `2026-07-05`, rather than JSON filenames.
+Development serves `client/content/` directly, including future dated puzzle folders so new puzzles can be authored and checked locally. Each daily puzzle lives at `content/puzzles/YYYY-MM-DD/puzzle.json`, with that puzzle's `.webp` panel images in the same folder. The dated folder name is the puzzle id; `puzzle.json` should not include a duplicate `id` field. The generated `content/puzzles/index.json` file contains ascending metadata entries with each puzzle's date id and non-spoiler `songClue`. The client derives issue numbers from that chronological order, so the earliest available puzzle is Issue #1 and missing calendar dates do not create numbering gaps. Source puzzle JSON remains free of manually maintained issue numbers.
 
 Production builds filter that content copy: only today-or-earlier `content/puzzles/YYYY-MM-DD/` directories are copied, `dist/content/puzzles/index.json` is generated from those released directories, and future dated puzzle directories are skipped entirely. Shared non-dated assets, such as `content/misc/` and `content/how-to-play/`, are still copied.
 

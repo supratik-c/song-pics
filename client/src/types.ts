@@ -5,6 +5,7 @@ export type PuzzlePanel = {
 export type Puzzle = {
   id: string;
   displayDate: string;
+  issueNumber: number;
   songClue: string;
   songTitle: string;
   artist: string;
@@ -13,14 +14,26 @@ export type Puzzle = {
   youtubeURL?: string;
 };
 
-export type PuzzleJson = Omit<Puzzle, 'id' | 'displayDate' | 'panels'> & {
+export type PuzzleJson = Omit<
+  Puzzle,
+  'id' | 'displayDate' | 'issueNumber' | 'panels'
+> & {
   panels?: PuzzlePanel[];
 };
 
 export type PuzzlePanelsManifest = Record<string, PuzzlePanel[]>;
 
+export type PuzzleIndexEntry = {
+  id: string;
+  songClue: string;
+};
+
+export type PuzzleArchiveEntry = PuzzleIndexEntry & {
+  issueNumber: number;
+};
+
 export type PuzzleArchive = {
-  puzzleIds: string[];
+  entries: PuzzleArchiveEntry[];
   latestPuzzleId: string;
   selectedPuzzleId: string;
 };

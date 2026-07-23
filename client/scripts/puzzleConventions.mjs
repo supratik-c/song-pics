@@ -63,12 +63,12 @@ export function getPublicPuzzlePanelPath(puzzleId, fileName) {
 
 export function writePuzzleMetadataFiles(
   puzzleDirectory,
-  { puzzleIds, puzzlePanels },
+  { puzzleIndex, puzzlePanels },
 ) {
   mkdirSync(puzzleDirectory, { recursive: true });
   writeFileSync(
     getPuzzleIndexPath(puzzleDirectory),
-    `${JSON.stringify(puzzleIds, null, 2)}\n`,
+    `${JSON.stringify(puzzleIndex, null, 2)}\n`,
   );
   writeFileSync(
     getPuzzlePanelsPath(puzzleDirectory),

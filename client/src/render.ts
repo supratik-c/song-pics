@@ -9,7 +9,6 @@ import {
 
 import { resolveHowToPlayImagePath } from './howToPlayLoader.ts';
 import { resolvePublicPath } from './publicPath.ts';
-import { formatPuzzleDisplayDate } from './puzzleDates.ts';
 
 const futurePuzzleMessage =
   'Still in development....';
@@ -25,7 +24,10 @@ export function renderPuzzle(
   closeExpandedPanel?.();
   setPlayableView(elements);
 
-  elements.date.textContent = puzzle.displayDate;
+  elements.date.textContent = formatIssueDate(
+    puzzle.issueNumber,
+    puzzle.displayDate,
+  );
   elements.songClue.textContent = puzzle.songClue;
 
   elements.panels.replaceChildren(
@@ -188,7 +190,7 @@ function setArchiveAvailable(
   archive: PuzzleArchive,
 ): void {
   elements.previousIssuesButton.disabled =
-    archive.puzzleIds.length === 0;
+    archive.entries.length === 0;
 }
 
 export function renderModalMessage(
@@ -264,21 +266,24 @@ export function renderHowToPlayContent(
 
 export function renderArchiveContent(
   archive: PuzzleArchive,
+  completedPuzzleIds: ReadonlySet<string>,
 ): DocumentFragment {
   const pageSize = 5;
   const content = document.createDocumentFragment();
   const archiveView = document.createElement('div');
-  const list = document.createElement('ol');
+  const list = document.createElement('ul');
   const pagination = document.createElement('nav');
   const previousButton = document.createElement('button');
   const pageStatus = document.createElement('p');
   const nextButton = document.createElement('button');
   const selectedIndex = Math.max(
-    archive.puzzleIds.indexOf(archive.selectedPuzzleId),
+    archive.entries.findIndex(
+      (entry) => entry.id === archive.selectedPuzzleId,
+    ),
     0,
   );
   const pageCount = Math.max(
-    Math.ceil(archive.puzzleIds.length / pageSize),
+    Math.ceil(archive.entries.length / pageSize),
     1,
   );
   let currentPage = Math.floor(selectedIndex / pageSize);
@@ -303,28 +308,32 @@ export function renderArchiveContent(
 
   const renderPage = (): void => {
     const startIndex = currentPage * pageSize;
-    const pagePuzzleIds = archive.puzzleIds.slice(
+    const pageEntries = archive.entries.slice(
       startIndex,
       startIndex + pageSize,
     );
 
     list.replaceChildren(
-      ...pagePuzzleIds.map((puzzleId) => {
+      ...pageEntries.map((entry) => {
         const item = document.createElement('li');
         const link = document.createElement('a');
-        const date = document.createElement('span');
+        const issueTitle = document.createElement('span');
         const badges = document.createElement('span');
 
         item.className = 'archive-list-item';
         link.className = 'archive-link';
         link.href = getPuzzleUrl(
-          puzzleId,
+          entry.id,
           archive.latestPuzzleId,
         );
-        date.textContent = formatPuzzleDisplayDate(puzzleId);
+        issueTitle.className = 'archive-issue-title';
+        issueTitle.textContent = formatIssueHeading(
+          entry.issueNumber,
+          entry.songClue,
+        );
         badges.className = 'archive-badges';
 
-        if (puzzleId === archive.selectedPuzzleId) {
+        if (entry.id === archive.selectedPuzzleId) {
           const currentBadge = document.createElement('span');
 
           currentBadge.textContent = 'Current';
@@ -333,7 +342,7 @@ export function renderArchiveContent(
           link.setAttribute('aria-current', 'page');
         }
 
-        if (puzzleId === archive.latestPuzzleId) {
+        if (entry.id === archive.latestPuzzleId) {
           const latestBadge = document.createElement('span');
 
           latestBadge.textContent = 'Latest';
@@ -342,7 +351,16 @@ export function renderArchiveContent(
           badges.append(latestBadge);
         }
 
-        link.append(date, badges);
+        if (completedPuzzleIds.has(entry.id)) {
+          const completedBadge = document.createElement('span');
+
+          completedBadge.textContent = 'Completed';
+          completedBadge.className =
+            'archive-badge archive-badge-completed';
+          badges.append(completedBadge);
+        }
+
+        link.append(issueTitle, badges);
         item.append(link);
         return item;
       }),
@@ -378,6 +396,20 @@ export function renderArchiveContent(
   renderPage();
 
   return content;
+}
+
+function formatIssueHeading(
+  issueNumber: number,
+  songClue: string,
+): string {
+  return `Issue #${issueNumber} - ${songClue}`;
+}
+
+function formatIssueDate(
+  issueNumber: number,
+  displayDate: string,
+): string {
+  return `Issue #${issueNumber} - ${displayDate}`;
 }
 
 type RenderedResult = {

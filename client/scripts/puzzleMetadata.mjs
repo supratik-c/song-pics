@@ -1,5 +1,6 @@
 import {
   existsSync,
+  readFileSync,
   readdirSync,
 } from 'node:fs';
 import { resolve } from 'node:path';
@@ -14,7 +15,7 @@ export function getPuzzleMetadata(
   puzzleDirectory,
   shouldIncludePuzzle = () => true,
 ) {
-  const puzzleIds = [];
+  const puzzleIndex = [];
   const puzzlePanels = {};
 
   for (const entry of readdirSync(puzzleDirectory, { withFileTypes: true })) {
@@ -33,15 +34,34 @@ export function getPuzzleMetadata(
       continue;
     }
 
-    puzzleIds.push(entry.name);
+    puzzleIndex.push(getPuzzleIndexEntry(puzzleDirectory, entry.name));
     puzzlePanels[entry.name] = getPanelEntries(entry.name, puzzleEntries);
   }
 
-  puzzleIds.sort();
+  puzzleIndex.sort((left, right) => left.id.localeCompare(right.id));
 
   return {
-    puzzleIds,
+    puzzleIndex,
     puzzlePanels: sortObjectByKeys(puzzlePanels),
+  };
+}
+
+function getPuzzleIndexEntry(puzzleDirectory, puzzleId) {
+  const puzzleJsonPath = getPuzzleJsonPath(puzzleDirectory, puzzleId);
+  const puzzleJson = JSON.parse(readFileSync(puzzleJsonPath, 'utf8'));
+
+  if (
+    typeof puzzleJson !== 'object' ||
+    puzzleJson === null ||
+    typeof puzzleJson.songClue !== 'string' ||
+    puzzleJson.songClue.trim().length === 0
+  ) {
+    throw new Error(`Puzzle has an invalid songClue: ${puzzleJsonPath}`);
+  }
+
+  return {
+    id: puzzleId,
+    songClue: puzzleJson.songClue,
   };
 }
 

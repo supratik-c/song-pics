@@ -5,10 +5,10 @@ import {
 import { getPuzzleMetadata } from './puzzleMetadata.mjs';
 
 const puzzleDirectory = getPuzzleDirectory();
-const { puzzleIds, puzzlePanels } = getPuzzleMetadata(puzzleDirectory);
+const { puzzleIndex, puzzlePanels } = getPuzzleMetadata(puzzleDirectory);
 
-writePuzzleMetadataFiles(puzzleDirectory, { puzzleIds, puzzlePanels });
+writePuzzleMetadataFiles(puzzleDirectory, { puzzleIndex, puzzlePanels });
 
 console.log(
-  `Generated puzzle index and panel manifest with ${puzzleIds.length} puzzles.`,
+  `Generated puzzle index and panel manifest with ${puzzleIndex.length} puzzles.`,
 );
