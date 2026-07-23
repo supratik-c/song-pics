@@ -40,8 +40,8 @@ Panel image paths also live under `/content`, for example:
 
 Puzzle panel rasters use an 800 × 600 pixel (4:3) canvas to limit the static
 download size and match the clue grid. `client/scripts/convert.sh` resizes PNG
-source artwork to those exact dimensions while converting it to WebP before it
-is added to a dated puzzle directory.
+and JPEG source artwork to those exact dimensions while converting it to WebP
+before it is added to a dated puzzle directory.
 
 Reusable How to Play content lives in `client/content/how-to-play/`. Its
 validated `manifest.json` defines the introduction, instruction sections, and
@@ -99,8 +99,10 @@ without changing other popup headers. Closing a dialog removes its content,
 which also stops an embedded video.
 
 How to Play loads and validates its manifest lazily. Previous Issues renders
-released puzzles newest-first in pages of five and opens on the page containing
-the selected puzzle. Each archive link uses the comic-style label
+released puzzles newest-first in pages of 50 and opens on the page containing
+the selected puzzle. The height-constrained issue list scrolls vertically when
+a page exceeds the available modal space. Each archive link uses the comic-style
+label
 `Issue #N - song clue`. In the main game, the date eyebrow uses
 `Issue #N - display date`, while the heading below it remains the unprefixed
 song clue. Completed archive entries receive a user-specific marker resolved

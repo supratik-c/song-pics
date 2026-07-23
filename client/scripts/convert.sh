@@ -53,10 +53,14 @@ fi
 converted_count=0
 
 for puzzle_directory in "${puzzle_directories[@]}"; do
-  png_files=("$puzzle_directory"/*.png)
+  source_files=(
+    "$puzzle_directory"/*.png
+    "$puzzle_directory"/*.jpg
+    "$puzzle_directory"/*.jpeg
+  )
 
-  for png_file in "${png_files[@]}"; do
-    webp_file="${png_file%.png}.webp"
+  for source_file in "${source_files[@]}"; do
+    webp_file="${source_file%.*}.webp"
     temporary_file="$webp_file.tmp"
 
     if [[ -e "$webp_file" ]]; then
@@ -64,7 +68,7 @@ for puzzle_directory in "${puzzle_directories[@]}"; do
       exit 1
     fi
 
-    echo "Converting ${png_file#"$puzzles_directory/"}..."
+    echo "Converting ${source_file#"$puzzles_directory/"}..."
 
     if ! cwebp \
       -quiet \
@@ -73,10 +77,10 @@ for puzzle_directory in "${puzzle_directories[@]}"; do
       -m 6 \
       -q 82 \
       -resize 800 600 \
-      "$png_file" \
+      "$source_file" \
       -o "$temporary_file"; then
       rm -f -- "$temporary_file"
-      echo "Error: conversion failed; original PNG was kept." >&2
+      echo "Error: conversion failed; original source image was kept." >&2
       exit 1
     fi
 
@@ -87,14 +91,14 @@ for puzzle_directory in "${puzzle_directories[@]}"; do
     fi
 
     mv -- "$temporary_file" "$webp_file"
-    rm -- "$png_file"
+    rm -- "$source_file"
     ((converted_count += 1))
-    echo "Created $(basename -- "$webp_file") and deleted $(basename -- "$png_file")."
+    echo "Created $(basename -- "$webp_file") and deleted $(basename -- "$source_file")."
   done
 done
 
 if (( converted_count == 0 )); then
-  echo "No PNG files found."
+  echo "No PNG or JPEG files found."
 else
-  echo "Converted $converted_count PNG file(s)."
+  echo "Converted $converted_count source image file(s)."
 fi

@@ -268,7 +268,7 @@ export function renderArchiveContent(
   archive: PuzzleArchive,
   completedPuzzleIds: ReadonlySet<string>,
 ): DocumentFragment {
-  const pageSize = 5;
+  const pageSize = 50;
   const content = document.createDocumentFragment();
   const archiveView = document.createElement('div');
   const list = document.createElement('ul');
