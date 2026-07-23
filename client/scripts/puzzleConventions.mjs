@@ -36,19 +36,31 @@ export function isPuzzleManifestFileName(fileName) {
 }
 
 export function isPuzzleDateId(value) {
-  return puzzleDateIdPattern.test(value);
-}
+  const parts = getPuzzleDateParts(value);
 
-export function isFuturePuzzleDateId(value) {
-  const match = puzzleDateIdPattern.exec(value);
-
-  if (!match) {
+  if (!parts) {
     return false;
   }
 
-  const [, year, month, day] = match;
+  const { year, month, day } = parts;
 
-  return dateKey(Number(year), Number(month), Number(day)) > todayKey();
+  return year >= 1 &&
+    month >= 1 &&
+    month <= 12 &&
+    day >= 1 &&
+    day <= getDaysInMonth(year, month);
+}
+
+export function isFuturePuzzleDateId(value, today = new Date()) {
+  const parts = getPuzzleDateParts(value);
+
+  if (!parts || !isPuzzleDateId(value)) {
+    return false;
+  }
+
+  const { year, month, day } = parts;
+
+  return dateKey(year, month, day) > todayKey(today);
 }
 
 export function getPanelImageNumber(fileName) {
@@ -76,9 +88,7 @@ export function writePuzzleMetadataFiles(
   );
 }
 
-function todayKey() {
-  const today = new Date();
-
+function todayKey(today) {
   return dateKey(
     today.getFullYear(),
     today.getMonth() + 1,
@@ -88,4 +98,31 @@ function todayKey() {
 
 function dateKey(year, month, day) {
   return year * 10000 + month * 100 + day;
+}
+
+function getPuzzleDateParts(value) {
+  const match = puzzleDateIdPattern.exec(value);
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    year: Number(match[1]),
+    month: Number(match[2]),
+    day: Number(match[3]),
+  };
+}
+
+function getDaysInMonth(year, month) {
+  if (month === 2) {
+    return isLeapYear(year) ? 29 : 28;
+  }
+
+  return [4, 6, 9, 11].includes(month) ? 30 : 31;
+}
+
+function isLeapYear(year) {
+  return year % 4 === 0 &&
+    (year % 100 !== 0 || year % 400 === 0);
 }

@@ -13,27 +13,42 @@ discoverable by a determined player.
 
 ## Runtime flow
 
-`client/src/main.ts` checks whether the loaded JavaScript matches the latest
-deployment, collects the page elements, and starts the application. `app.ts`
-then loads the selected puzzle and archive, restores its state, renders the UI,
-and coordinates user events. Guess rules are pure functions in `game.ts`;
-content selection and validation live in loaders; DOM construction lives in
-`render.ts`; and per-puzzle persistence lives in `storage.ts`.
+`client/src/main.ts` is the concrete composition root. It checks whether the
+loaded JavaScript matches the latest deployment, parses the requested puzzle,
+collects the page elements, constructs the browser adapters, and passes an
+`AppDependencies` object to `initApp`. Those dependencies provide puzzle and
+How to Play loading, state persistence, archive completion, and archive URL
+construction. `app.ts` coordinates those capabilities and user events without
+constructing concrete infrastructure.
 
-With no `puzzle` query parameter, the loader selects the latest released
-puzzle. `?puzzle=YYYY-MM-DD` selects a released archive entry. Runtime content
-paths pass through `resolvePublicPath` so the same code works at `/` and beneath
-a GitHub Pages repository base path.
+Game rules and immutable state transitions live in `game.ts`, with durable
+policy in `gameConfig.ts`. Loaders fetch static content through a shared JSON
+boundary that checks status, disables caching, and validates data before it
+enters the application. Focused modules under `views/` own DOM output. Browser
+persistence is an adapter in `storage.ts`; the independently replaceable
+completion read model lives in `completion.ts`.
+
+Pure functions in `navigation.ts` own puzzle-query parsing and archive URL
+construction. With no `puzzle` query parameter, the latest released puzzle is
+selected. `?puzzle=YYYY-MM-DD` selects a released archive entry. Runtime
+content paths pass through `resolvePublicPath` so the same code works at `/`
+and beneath a GitHub Pages repository base path.
 
 ## Build flow
 
 `client/content/` is source content. Before development or production builds,
-the puzzle metadata script derives the archive index and panel manifest from
-the dated content tree. Development can serve future puzzle directories for
-authoring. Production copies only released dated puzzles to `client/dist/`,
-regenerates released-only metadata there, and retains shared non-dated content.
-The UI's future-puzzle screen is a friendly guard; excluding the files from the
-production artifact is the security boundary.
+the puzzle metadata scripts validate dated puzzle directories and derive the
+archive index and panel manifest. Development can serve future puzzle
+directories for authoring. A dedicated, testable release-copy module copies
+only released puzzles to `client/dist/`, regenerates released-only metadata,
+and retains shared non-dated content. The UI's future-puzzle screen is a
+friendly guard; excluding the files from the production artifact is the
+security boundary.
+
+Shared JSON fixtures exercise normalization and date behavior in both browser
+TypeScript and build scripts. This keeps independently implemented boundaries
+aligned and gives a future backend portable cases for the same behavior without
+creating a shared runtime package prematurely.
 
 Vite also emits a build-version manifest. Production clients compare it with
 the build identifier compiled into the JavaScript and perform at most one
@@ -42,17 +57,22 @@ carry the same build identifier; compiled assets use Vite's content hashes.
 
 ## Responsibility map
 
-- `client/index.html` and `client/src/styles.css`: semantic shell and visual
-  system.
-- `client/src/app.ts`: loading, event handling, state transitions, and rendering
-  coordination.
-- `client/src/game.ts`, `storage.ts`, and `completion.ts`: game rules and local
-  progress.
-- `client/src/puzzleLoader.ts` and other loaders: external data selection and
-  validation.
-- `client/src/render.ts` and `modal.ts`: DOM output and reusable dialog behavior.
-- `client/scripts/` and `client/vite.config.js`: generated puzzle metadata,
-  release filtering, and build output.
+- `client/index.html` and `client/src/dom.ts`: static semantic shell and typed
+  element references.
+- `client/src/main.ts`: deployment check and concrete dependency composition.
+- `client/src/app.ts`: application orchestration and browser event handling.
+- `client/src/game.ts` and `gameConfig.ts`: pure game rules, immutable
+  transitions, and gameplay policy.
+- `client/src/navigation.ts`: pure query parsing and archive URL behavior.
+- `client/src/types.ts` and `validation.ts`: domain/content contracts and
+  reusable runtime validation primitives.
+- Loaders: static content selection, fetching, and complete boundary validation.
+- `client/src/storage.ts` and `completion.ts`: replaceable state-store and
+  completion-read-model boundaries with local implementations.
+- `client/src/views/`, `modal.ts`, and `styles/`: focused DOM output, dialog
+  lifecycle, and the visual system.
+- `client/scripts/` and `client/vite.config.js`: authoring validation, generated
+  metadata, release filtering/copying, and build integration.
 
 ## Documentation map
 

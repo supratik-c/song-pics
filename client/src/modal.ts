@@ -1,8 +1,19 @@
-import {
-  type ModalElements,
-  type ModalTone,
-  type ModalView,
-} from './types.ts';
+export type ModalElements = {
+  dialog: HTMLDialogElement;
+  title: HTMLElement;
+  body: HTMLElement;
+  closeButton: HTMLButtonElement;
+};
+
+export type ModalTone = 'default' | 'success';
+
+export type ModalView = {
+  title: string;
+  content: DocumentFragment;
+  returnFocus: HTMLElement;
+  onClose?: () => void;
+  tone?: ModalTone;
+};
 
 type ModalUpdate = {
   title?: string;
@@ -16,6 +27,20 @@ export type ModalController = {
   update: (viewId: number, update: ModalUpdate) => boolean;
   close: () => void;
 };
+
+export function renderModalMessage(
+  message: string,
+  kind: 'loading' | 'error' = 'loading',
+): DocumentFragment {
+  const content = document.createDocumentFragment();
+  const paragraph = document.createElement('p');
+
+  paragraph.className = `dialog-message dialog-message-${kind}`;
+  paragraph.textContent = message;
+  content.append(paragraph);
+
+  return content;
+}
 
 export function createModalController(
   elements: ModalElements,

@@ -1,41 +1,113 @@
-import { MAX_ANSWER_LENGTH } from './constants.ts';
+import type { GameRules } from './gameConfig.ts';
+import type {
+  GameState,
+  PuzzleSolution,
+} from './types.ts';
 
 export type NormalizedAnswer = {
   answer: string;
   artistRemoved: boolean;
 };
 
+export type InvalidGuessReason =
+  | 'too-long'
+  | 'empty'
+  | 'artist-only'
+  | 'duplicate'
+  | 'not-playing';
+
+export type GuessSubmission =
+  | {
+    kind: 'recorded';
+    state: GameState;
+    artistRemoved: boolean;
+  }
+  | {
+    kind: 'invalid';
+    reason: InvalidGuessReason;
+    artistRemoved: boolean;
+  };
+
+export function createInitialGameState(): GameState {
+  return {
+    guesses: [],
+    status: 'playing',
+  };
+}
+
+export function submitGuess(
+  state: Readonly<GameState>,
+  rawGuess: string,
+  solution: Pick<PuzzleSolution, 'acceptedAnswers' | 'artist'>,
+  rules: GameRules,
+): GuessSubmission {
+  if (state.status !== 'playing') {
+    return invalid('not-playing');
+  }
+
+  if (rawGuess.length > rules.maxAnswerLength) {
+    return invalid('too-long');
+  }
+
+  const normalized = normalizeAnswer(rawGuess, solution.artist);
+
+  if (normalized.answer.length === 0) {
+    return invalid(
+      normalized.artistRemoved ? 'artist-only' : 'empty',
+      normalized.artistRemoved,
+    );
+  }
+
+  if (state.guesses.includes(normalized.answer)) {
+    return invalid('duplicate', normalized.artistRemoved);
+  }
+
+  const guesses = [...state.guesses, normalized.answer];
+  const status = isAcceptedAnswer(
+    normalized.answer,
+    solution.acceptedAnswers,
+    solution.artist,
+  )
+    ? 'solved'
+    : guesses.length >= rules.maxAttempts
+      ? 'failed'
+      : 'playing';
+
+  return {
+    kind: 'recorded',
+    state: { guesses, status },
+    artistRemoved: normalized.artistRemoved,
+  };
+}
+
+export function revealSong(state: GameState): GameState {
+  if (state.status !== 'playing') {
+    return state;
+  }
+
+  return {
+    guesses: [...state.guesses],
+    status: 'revealed',
+  };
+}
+
 export function normalizeAnswer(
   answer: string,
   artist: string,
 ): NormalizedAnswer {
-  if (answer.length > MAX_ANSWER_LENGTH) {
-    throw new RangeError('Answer is too long.');
-  }
-
   const normalizedInput = normalizeText(answer);
   const normalizedArtist = normalizeText(artist);
 
-  const answerWords =
-    normalizedInput.length > 0
-      ? normalizedInput.split(' ')
-      : [];
-
-  const artistWords =
-    normalizedArtist.length > 0
-      ? normalizedArtist.split(' ')
-      : [];
+  const answerWords = normalizedInput.length > 0
+    ? normalizedInput.split(' ')
+    : [];
+  const artistWords = normalizedArtist.length > 0
+    ? normalizedArtist.split(' ')
+    : [];
 
   let artistRemoved = false;
 
-  /*
-   * Try longer artist subsets before shorter ones.
-   *
-   * For "Franz Ferdinand", this checks:
-   *   "franz ferdinand"
-   *   "franz"
-   *   "ferdinand"
-   */
+  /* Try longer artist subsets before shorter ones. */
   for (
     let subsetLength = artistWords.length;
     subsetLength >= 1;
@@ -53,12 +125,9 @@ export function normalizeAnswer(
 
       let answerStart = 0;
 
-      while (
-        answerStart <= answerWords.length - artistSubset.length
-      ) {
+      while (answerStart <= answerWords.length - artistSubset.length) {
         const matches = artistSubset.every(
-          (word, index) =>
-            answerWords[answerStart + index] === word,
+          (word, index) => answerWords[answerStart + index] === word,
         );
 
         if (!matches) {
@@ -69,11 +138,7 @@ export function normalizeAnswer(
         answerWords.splice(answerStart, artistSubset.length);
         artistRemoved = true;
 
-        // Remove "by" immediately before the artist.
-        if (
-          answerStart > 0 &&
-          answerWords[answerStart - 1] === 'by'
-        ) {
+        if (answerStart > 0 && answerWords[answerStart - 1] === 'by') {
           answerWords.splice(answerStart - 1, 1);
           answerStart -= 1;
         }
@@ -87,7 +152,7 @@ export function normalizeAnswer(
   };
 }
 
-function normalizeText(value: string): string {
+export function normalizeText(value: string): string {
   return value
     .toLowerCase()
     .normalize('NFKD')
@@ -97,13 +162,21 @@ function normalizeText(value: string): string {
     .trim()
     .replace(/\s+/g, ' ');
 }
+
 export function isAcceptedAnswer(
   guess: string,
-  acceptedAnswers: string[],
+  acceptedAnswers: readonly string[],
   artist: string,
 ): boolean {
   return acceptedAnswers.some(
     (acceptedAnswer) =>
       normalizeAnswer(acceptedAnswer, artist).answer === guess,
   );
+}
+
+function invalid(
+  reason: InvalidGuessReason,
+  artistRemoved = false,
+): GuessSubmission {
+  return { kind: 'invalid', reason, artistRemoved };
 }

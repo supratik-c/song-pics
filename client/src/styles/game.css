@@ -1,0 +1,402 @@
+
+/* Puzzle heading and panels */
+
+.game {
+  display: grid;
+  background: var(--cream);
+}
+
+.game-header {
+  display: grid;
+  gap: 7px;
+  padding: 23px 28px 12px;
+  background: var(--white);
+}
+
+.eyebrow,
+.attempts {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  width: fit-content;
+  color: var(--blue-dark);
+  font-size: 0.82rem;
+  text-decoration: underline;
+  text-decoration-color: var(--yellow);
+  text-decoration-thickness: 5px;
+  text-underline-offset: 2px;
+}
+
+h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 400;
+  letter-spacing: 0.025em;
+  line-height: 1;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding: 12px 28px 28px;
+  border-bottom: var(--line-heavy) solid var(--ink);
+  background: var(--white);
+}
+
+figure {
+  position: relative;
+  display: grid;
+  margin: 0;
+  transition: transform 140ms ease;
+}
+
+figure:hover {
+  z-index: 2;
+  transform: translateY(-2px);
+}
+
+body.panel-zoom-open {
+  overflow: hidden;
+}
+
+.panel-zoom-button {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+  cursor: zoom-in;
+}
+
+button.panel-zoom-button:hover:not(:disabled),
+button.panel-zoom-button:active:not(:disabled) {
+  filter: none;
+  box-shadow: none;
+  transform: none;
+}
+
+figure img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border: var(--line-medium) solid var(--ink);
+  border-radius: 0;
+  background: var(--white);
+  box-shadow: var(--small-shadow);
+}
+
+.panel.is-expanded {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: clamp(16px, 4vw, 48px);
+  background: rgba(36, 31, 28, 0.9);
+  transform: none;
+}
+
+.panel.is-expanded:hover {
+  transform: none;
+}
+
+.panel.is-expanded .panel-zoom-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 1120px);
+  max-height: 100%;
+  cursor: zoom-out;
+}
+
+.panel.is-expanded img {
+  width: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 32px);
+  aspect-ratio: auto;
+  object-fit: contain;
+  box-shadow:
+    5px 6px 0 var(--ink),
+    9px 11px 0 var(--tomato);
+}
+
+/* Guess entry and comic actions */
+
+.guess-form {
+  display: grid;
+  background:
+    linear-gradient(102deg, transparent 60%, rgba(116, 192, 227, 0.12) 60.2%, transparent 60.5%),
+    var(--paper);
+}
+
+.guess-entry-panel {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.32fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 20px 28px;
+}
+
+.guess-entry-panel label {
+  font-size: calc(1.14rem + 4px);
+  font-weight: 700;
+}
+
+input {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 15px 9px;
+  border: var(--line-medium) solid var(--ink);
+  border-radius: 0;
+  color: var(--ink);
+  background: var(--white);
+  box-shadow: inset 2px 2px 0 rgba(36, 31, 28, 0.12);
+  font-size: 1.05rem;
+}
+
+input::placeholder {
+  color: #71655e;
+  opacity: 1;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(112px, 0.9fr);
+  grid-auto-rows: minmax(78px, auto);
+  gap: 16px 14px;
+  padding: 20px 28px 28px;
+}
+
+.comic-action,
+.artist-hint,
+.attempts {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  min-height: 78px;
+  border: 0;
+  border-radius: 0;
+}
+
+.comic-action {
+  --action-fill: var(--tomato);
+  --comic-shape: polygon(0 0, 100% 0, 100% calc(100% - 12px), 0 100%);
+  --tactile-shadow-x: 6px;
+  --tactile-shadow-y: 7px;
+
+  width: 100%;
+  padding: 16px 22px;
+  color: var(--cream);
+  background: transparent;
+  box-shadow: none;
+  font-size: calc(clamp(1.02rem, 2.2vw, 1.6rem) + 4px);
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+.comic-action::before,
+.comic-action::after,
+.artist-hint::before,
+.artist-hint::after,
+.attempts::before,
+.attempts::after {
+  position: absolute;
+  content: '';
+  clip-path: var(--comic-shape);
+}
+
+.comic-action::before,
+.artist-hint::before,
+.attempts::before {
+  z-index: -2;
+  inset: 0;
+  background: var(--ink);
+}
+
+.comic-action::after,
+.artist-hint::after,
+.attempts::after {
+  z-index: -1;
+  inset: var(--line-heavy);
+  background: var(--action-fill);
+}
+
+.comic-action span {
+  position: relative;
+  z-index: 1;
+}
+
+.comic-action:focus-visible {
+  outline-offset: 5px;
+}
+
+.guess-button {
+  --action-fill: var(--green-dark);
+  --comic-shape: polygon(0 0, 100% 0, 100% calc(100% - 13px), 0 100%);
+  font-size: calc(clamp(1.496rem, 3.223vw, 2.343rem) + 5.863px);
+}
+
+.artist-action-cell {
+  display: grid;
+  min-width: 0;
+}
+
+.artist-action-cell > * {
+  grid-area: 1 / 1;
+}
+
+.artist-reveal-button,
+.artist-hint {
+  --comic-shape: polygon(0 0, 100% 0, 100% calc(100% - 7px), 0 100%);
+}
+
+.artist-reveal-button {
+  --action-fill: var(--yellow);
+  color: var(--ink);
+}
+
+.artist-hint {
+  --action-fill: var(--yellow);
+
+  display: grid;
+  place-items: center;
+  width: 100%;
+  margin: 0;
+  padding: 15px 16px;
+  color: var(--ink);
+  font-size: calc(clamp(1.02rem, 2.2vw, 1.6rem) + 4px);
+  font-weight: 700;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.attempts,
+.reveal-song-button {
+  --comic-shape: polygon(0 12px, 100% 0, 100% 100%, 0 100%);
+}
+
+.attempts {
+  --action-fill: var(--peach);
+
+  display: grid;
+  place-items: center;
+  padding: 19px 16px 12px;
+  color: var(--ink);
+  font-size: calc(clamp(1.02rem, 2.2vw, 1.6rem) + 4px);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.reveal-song-button {
+  --action-fill: var(--tomato);
+  padding-top: 22px;
+}
+
+/* Feedback and game states */
+
+.message,
+.guess-list {
+  border-top: var(--line-heavy) solid var(--ink);
+}
+
+.validation-message {
+  margin: 0 28px;
+  padding: 12px 16px 9px;
+  border: var(--line-heavy) solid var(--ink);
+  background: var(--tomato-light);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.message {
+  margin: 0;
+  padding: 17px 28px 13px;
+  background: var(--yellow);
+  font-size: 1.18rem;
+  font-weight: 700;
+}
+
+.message:empty {
+  display: none;
+}
+
+.guess-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 17px 28px 20px;
+  background: var(--white);
+  list-style: none;
+}
+
+.guess-list:empty {
+  display: none;
+}
+
+.guess-list li {
+  padding: 7px 12px 4px;
+  border: var(--line-light) solid var(--ink);
+  border-radius: 0;
+  background: var(--peach);
+  font-size: 0.96rem;
+  font-weight: 700;
+}
+
+.guess-list li:nth-child(even) {
+  background: #cde7b8;
+}
+
+.future-puzzle {
+  min-height: 420px;
+  place-items: center;
+  text-align: center;
+}
+
+.future-puzzle .game-header {
+  display: none;
+}
+
+.future-puzzle .panels {
+  display: grid;
+  grid-template-columns: auto minmax(0, max-content);
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
+  width: 100%;
+  max-width: none;
+  min-height: 420px;
+  gap: 28px;
+  border-bottom: 0;
+}
+
+.future-puzzle-image {
+  width: min(220px, 58vw);
+  height: auto;
+  filter: drop-shadow(4px 5px 0 var(--ink));
+  transform: rotate(-3deg);
+}
+
+.future-puzzle-message {
+  max-width: 420px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.3rem, 5vw, 4rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-align: center;
+  transform: rotate(1deg);
+}

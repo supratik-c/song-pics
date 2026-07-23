@@ -1,0 +1,70 @@
+{
+  "validityCases": [
+    {
+      "name": "ordinary date",
+      "puzzleId": "2026-07-23",
+      "valid": true
+    },
+    {
+      "name": "leap day",
+      "puzzleId": "2024-02-29",
+      "valid": true
+    },
+    {
+      "name": "non-leap day",
+      "puzzleId": "2025-02-29",
+      "valid": false
+    },
+    {
+      "name": "century non-leap day",
+      "puzzleId": "1900-02-29",
+      "valid": false
+    },
+    {
+      "name": "four-hundred-year leap day",
+      "puzzleId": "2000-02-29",
+      "valid": true
+    },
+    {
+      "name": "impossible day",
+      "puzzleId": "2026-04-31",
+      "valid": false
+    },
+    {
+      "name": "impossible month",
+      "puzzleId": "2026-13-01",
+      "valid": false
+    },
+    {
+      "name": "non-padded date",
+      "puzzleId": "2026-7-23",
+      "valid": false
+    }
+  ],
+  "releaseCases": [
+    {
+      "name": "date before the local release day",
+      "puzzleId": "2026-07-22",
+      "today": "2026-07-23",
+      "future": false
+    },
+    {
+      "name": "date on the local release day",
+      "puzzleId": "2026-07-23",
+      "today": "2026-07-23",
+      "future": false
+    },
+    {
+      "name": "date after the local release day",
+      "puzzleId": "2026-07-24",
+      "today": "2026-07-23",
+      "future": true
+    },
+    {
+      "name": "invalid date is not treated as future",
+      "puzzleId": "2026-02-30",
+      "today": "2026-02-01",
+      "future": false
+    }
+  ]
+}

@@ -1,9 +1,31 @@
 import { resolvePublicPath } from './publicPath.ts';
 import {
-  type HowToPlayManifest,
-  type HowToPlayPanel,
-  type HowToPlaySection,
-} from './types.ts';
+  fetchStaticJson,
+  isNonEmptyString,
+  isRecord,
+} from './validation.ts';
+
+export type HowToPlaySection = {
+  heading: string;
+  body: string;
+};
+
+export type HowToPlayPanel = {
+  src: string;
+  alt: string;
+};
+
+export type HowToPlayManifest = {
+  title: string;
+  introduction: string;
+  sections: HowToPlaySection[];
+  demo: {
+    clue: string;
+    panels: HowToPlayPanel[];
+    answer: string;
+    artist: string;
+  };
+};
 
 const HOW_TO_PLAY_DIRECTORY = '/content/how-to-play';
 const HOW_TO_PLAY_MANIFEST_PATH =
@@ -18,7 +40,11 @@ export function loadHowToPlayManifest(): Promise<HowToPlayManifest> {
     return manifestPromise;
   }
 
-  manifestPromise = fetchManifest().catch((error: unknown) => {
+  manifestPromise = fetchStaticJson(
+    resolvePublicPath(HOW_TO_PLAY_MANIFEST_PATH),
+    'How to Play content',
+    isHowToPlayManifest,
+  ).catch((error: unknown) => {
     manifestPromise = null;
     throw error;
   });
@@ -34,28 +60,7 @@ export function resolveHowToPlayImagePath(
   );
 }
 
-async function fetchManifest(): Promise<HowToPlayManifest> {
-  const response = await fetch(
-    resolvePublicPath(HOW_TO_PLAY_MANIFEST_PATH),
-    { cache: 'no-store' },
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `Could not load How to Play content: ${response.status} ${response.statusText}`,
-    );
-  }
-
-  const value: unknown = await response.json();
-
-  if (!isHowToPlayManifest(value)) {
-    throw new Error('How to Play manifest contains invalid data.');
-  }
-
-  return value;
-}
-
-function isHowToPlayManifest(
+export function isHowToPlayManifest(
   value: unknown,
 ): value is HowToPlayManifest {
   if (!isRecord(value)) {
@@ -96,22 +101,5 @@ function isHowToPlayPanel(
     typeof value.src === 'string' &&
     imageFileNamePattern.test(value.src) &&
     isNonEmptyString(value.alt)
-  );
-}
-
-function isRecord(
-  value: unknown,
-): value is Record<string, unknown> {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    !Array.isArray(value)
-  );
-}
-
-function isNonEmptyString(value: unknown): value is string {
-  return (
-    typeof value === 'string' &&
-    value.trim().length > 0
   );
 }

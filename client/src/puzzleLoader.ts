@@ -1,10 +1,3 @@
-import {
-  PUZZLE_DIRECTORY,
-  PUZZLE_FILE_NAME,
-  PUZZLE_INDEX_PATH,
-  PUZZLE_PANELS_PATH,
-} from './constants.ts';
-
 import { resolvePublicPath } from './publicPath.ts';
 import {
   formatPuzzleDisplayDate,
@@ -12,47 +5,48 @@ import {
   isPuzzleDateId,
 } from './puzzleDates.ts';
 import {
+  FuturePuzzleError,
   type LoadedPuzzle,
   type Puzzle,
-  type PuzzleArchive,
   type PuzzleArchiveEntry,
   type PuzzleIndexEntry,
   type PuzzleJson,
+  type PuzzlePanel,
   type PuzzlePanelsManifest,
 } from './types.ts';
+import {
+  fetchStaticJson,
+  isNonEmptyString,
+  isOptionalNonEmptyString,
+  isRecord,
+} from './validation.ts';
 
-export class FuturePuzzleError extends Error {
-  constructor(
-    public readonly puzzleId: string,
-    public readonly archive: PuzzleArchive,
-  ) {
-    super(`Puzzle is not released yet: ${puzzleId}`);
-    this.name = 'FuturePuzzleError';
-  }
-}
+const PUZZLE_DIRECTORY = '/content/puzzles';
+const PUZZLE_FILE_NAME = 'puzzle.json';
+const PUZZLE_INDEX_PATH = `${PUZZLE_DIRECTORY}/index.json`;
+const PUZZLE_PANELS_PATH = `${PUZZLE_DIRECTORY}/panels.json`;
 
-export async function loadPuzzle(): Promise<LoadedPuzzle> {
-  const requestedPuzzle = getRequestedPuzzleId();
+export async function loadPuzzle(
+  requestedPuzzleId: string | null,
+): Promise<LoadedPuzzle> {
   const archiveEntries = await loadReleasedArchiveEntries();
   const latestPuzzleId = archiveEntries[0].id;
-
-  const isValidPuzzleId =
-    requestedPuzzle !== null &&
-    isPuzzleDateId(requestedPuzzle);
+  const requestedPuzzleIsValid =
+    requestedPuzzleId !== null && isPuzzleDateId(requestedPuzzleId);
 
   if (
-    isValidPuzzleId &&
-    isFuturePuzzleDateId(requestedPuzzle)
+    requestedPuzzleIsValid &&
+    isFuturePuzzleDateId(requestedPuzzleId)
   ) {
-    throw new FuturePuzzleError(requestedPuzzle, {
+    throw new FuturePuzzleError(requestedPuzzleId, {
       entries: archiveEntries,
       latestPuzzleId,
-      selectedPuzzleId: requestedPuzzle,
+      selectedPuzzleId: requestedPuzzleId,
     });
   }
 
   const selectedPuzzleId = resolveSelectedPuzzleId(
-    requestedPuzzle,
+    requestedPuzzleId,
     archiveEntries,
   );
   const selectedEntry = archiveEntries.find(
@@ -78,26 +72,57 @@ export async function loadPuzzle(): Promise<LoadedPuzzle> {
   };
 }
 
+export function isPuzzleJson(value: unknown): value is PuzzleJson {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isNonEmptyString(value.songClue) &&
+    isNonEmptyString(value.songTitle) &&
+    isNonEmptyString(value.artist) &&
+    Array.isArray(value.acceptedAnswers) &&
+    value.acceptedAnswers.length > 0 &&
+    value.acceptedAnswers.every(isNonEmptyString) &&
+    isOptionalNonEmptyString(value.youtubeURL) &&
+    (
+      value.panels === undefined ||
+      (
+        Array.isArray(value.panels) &&
+        value.panels.length > 0 &&
+        value.panels.every(isPuzzlePanel)
+      )
+    )
+  );
+}
+
+export function isPuzzlePanelsManifest(
+  value: unknown,
+): value is PuzzlePanelsManifest {
+  return (
+    isRecord(value) &&
+    Object.entries(value).every(
+      ([puzzleId, panels]) =>
+        isPuzzleDateId(puzzleId) &&
+        Array.isArray(panels) &&
+        panels.length > 0 &&
+        panels.every(isPuzzlePanel),
+    )
+  );
+}
+
+export function isPuzzleIndex(
+  value: unknown,
+): value is PuzzleIndexEntry[] {
+  return Array.isArray(value) && value.every(isPuzzleIndexEntry);
+}
+
 async function loadReleasedArchiveEntries(): Promise<PuzzleArchiveEntry[]> {
-  const response = await fetch(resolvePublicPath(PUZZLE_INDEX_PATH), {
-    cache: 'no-store',
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Could not load puzzle list: ${response.status} ${response.statusText}`,
-    );
-  }
-
-  const result: unknown = await response.json();
-
-  if (
-    !Array.isArray(result) ||
-    !result.every(isPuzzleIndexEntry)
-  ) {
-    throw new Error('Puzzle index contains invalid data.');
-  }
-
+  const result = await fetchStaticJson(
+    resolvePublicPath(PUZZLE_INDEX_PATH),
+    'puzzle list',
+    isPuzzleIndex,
+  );
   const entries = result
     .filter((entry) => !isFuturePuzzleDateId(entry.id))
     .sort((left, right) => left.id.localeCompare(right.id))
@@ -115,28 +140,28 @@ async function loadReleasedArchiveEntries(): Promise<PuzzleArchiveEntry[]> {
 }
 
 function isPuzzleIndexEntry(value: unknown): value is PuzzleIndexEntry {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
+  return (
+    isRecord(value) &&
+    isNonEmptyString(value.id) &&
+    isPuzzleDateId(value.id) &&
+    isNonEmptyString(value.songClue)
+  );
+}
 
-  const entry = value as Record<string, unknown>;
-
-  return typeof entry.id === 'string' &&
-    isPuzzleDateId(entry.id) &&
-    typeof entry.songClue === 'string' &&
-    entry.songClue.trim().length > 0;
+function isPuzzlePanel(value: unknown): value is PuzzlePanel {
+  return isRecord(value) && isNonEmptyString(value.src);
 }
 
 function resolveSelectedPuzzleId(
-  requestedPuzzle: string | null,
+  requestedPuzzleId: string | null,
   archiveEntries: PuzzleArchiveEntry[],
 ): string {
   if (
-    requestedPuzzle !== null &&
-    isPuzzleDateId(requestedPuzzle) &&
-    archiveEntries.some((entry) => entry.id === requestedPuzzle)
+    requestedPuzzleId !== null &&
+    isPuzzleDateId(requestedPuzzleId) &&
+    archiveEntries.some((entry) => entry.id === requestedPuzzleId)
   ) {
-    return requestedPuzzle;
+    return requestedPuzzleId;
   }
 
   return archiveEntries[0].id;
@@ -146,23 +171,18 @@ async function loadPuzzleJson(
   puzzleId: string,
   issueNumber: number,
 ): Promise<Puzzle> {
-  const puzzlePath = `${PUZZLE_DIRECTORY}/${puzzleId}/${PUZZLE_FILE_NAME}`;
-
-  const response = await fetch(resolvePublicPath(puzzlePath), {
-    cache: 'no-store',
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Could not load puzzle: ${response.status} ${response.statusText}`,
-    );
-  }
-
-  const puzzle = await response.json() as PuzzleJson;
-  const panels = puzzle.panels ?? await loadPuzzlePanels(puzzleId);
+  const puzzlePath =
+    `${PUZZLE_DIRECTORY}/${puzzleId}/${PUZZLE_FILE_NAME}`;
+  const puzzleJson = await fetchStaticJson(
+    resolvePublicPath(puzzlePath),
+    'puzzle',
+    isPuzzleJson,
+  );
+  const panels = puzzleJson.panels ?? await loadPuzzlePanels(puzzleId);
+  const { panels: _explicitPanels, ...puzzleContent } = puzzleJson;
 
   return {
-    ...puzzle,
+    ...puzzleContent,
     id: puzzleId,
     displayDate: formatPuzzleDisplayDate(puzzleId),
     issueNumber,
@@ -170,25 +190,15 @@ async function loadPuzzleJson(
   };
 }
 
-function getRequestedPuzzleId(): string | null {
-  return new URLSearchParams(window.location.search).get('puzzle');
-}
-
-async function loadPuzzlePanels(puzzleId: string): Promise<Puzzle['panels']> {
-  const response = await fetch(resolvePublicPath(PUZZLE_PANELS_PATH), {
-    cache: 'no-store',
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Could not load puzzle panels: ${response.status} ${response.statusText}`,
-    );
-  }
-
-  const manifest = await response.json() as PuzzlePanelsManifest;
+async function loadPuzzlePanels(puzzleId: string): Promise<PuzzlePanel[]> {
+  const manifest = await fetchStaticJson(
+    resolvePublicPath(PUZZLE_PANELS_PATH),
+    'puzzle panels',
+    isPuzzlePanelsManifest,
+  );
   const panels = manifest[puzzleId];
 
-  if (!panels || panels.length === 0) {
+  if (!panels) {
     throw new Error(`Puzzle has no generated panels: ${puzzleId}`);
   }
 

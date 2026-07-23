@@ -1,58 +1,76 @@
-import { MAX_ATTEMPTS } from './constants.ts';
-import {
-  type GameState,
-  type GameStatus,
-} from './types.ts';
+import { createInitialGameState } from './game.ts';
+import { GAME_RULES, type GameRules } from './gameConfig.ts';
+import type { GameState, GameStatus } from './types.ts';
+import { isRecord } from './validation.ts';
 
-const SHOULD_PERSIST_STATE = !import.meta.env.DEV;
+type StorageAdapter = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
-export function loadState(puzzleId: string): GameState {
-  const fallback: GameState = {
-    guesses: [],
-    status: 'playing',
+export type GameStateStore = {
+  load: (puzzleId: string) => GameState;
+  save: (puzzleId: string, state: GameState) => void;
+};
+
+export type LocalGameStateStoreOptions = {
+  shouldPersist: boolean;
+  getStorage?: () => StorageAdapter;
+  rules?: GameRules;
+};
+
+export function createLocalGameStateStore({
+  shouldPersist,
+  getStorage = () => localStorage,
+  rules = GAME_RULES,
+}: LocalGameStateStoreOptions): GameStateStore {
+  return {
+    load: (puzzleId) => {
+      const fallback = createInitialGameState();
+      const key = storageKey(puzzleId);
+
+      if (!shouldPersist) {
+        tryStorage(getStorage, (storage) => storage.removeItem(key));
+        return fallback;
+      }
+
+      const stored = tryStorage(
+        getStorage,
+        (storage) => storage.getItem(key),
+      );
+
+      if (!stored) {
+        return fallback;
+      }
+
+      try {
+        const parsed: unknown = JSON.parse(stored);
+
+        if (!isRecord(parsed)) {
+          return fallback;
+        }
+
+        const guesses = Array.isArray(parsed.guesses)
+          ? parsed.guesses.filter(
+            (guess): guess is string => typeof guess === 'string',
+          )
+          : [];
+
+        return {
+          guesses,
+          status: resolveStoredStatus(parsed, guesses.length, rules),
+        };
+      } catch {
+        return fallback;
+      }
+    },
+    save: (puzzleId, state) => {
+      if (!shouldPersist) {
+        return;
+      }
+
+      tryStorage(getStorage, (storage) => {
+        storage.setItem(storageKey(puzzleId), JSON.stringify(state));
+      });
+    },
   };
-  const key = storageKey(puzzleId);
-
-  if (!SHOULD_PERSIST_STATE) {
-    localStorage.removeItem(key);
-    return fallback;
-  }
-
-  const stored = localStorage.getItem(key);
-
-  if (!stored) {
-    return fallback;
-  }
-
-  try {
-    const parsed: unknown = JSON.parse(stored);
-
-    if (!isRecord(parsed)) {
-      return fallback;
-    }
-
-    const guesses = Array.isArray(parsed.guesses)
-      ? parsed.guesses.filter(
-        (guess): guess is string =>
-          typeof guess === 'string',
-      )
-      : [];
-
-    return {
-      guesses,
-      status: resolveStoredStatus(parsed, guesses.length),
-    };
-  } catch {
-    return fallback;
-  }
-}
-
-export function saveState(puzzleId: string, state: GameState): void {
-  if (!SHOULD_PERSIST_STATE) {
-    return;
-  }
-
-  localStorage.setItem(storageKey(puzzleId), JSON.stringify(state));
 }
 
 export function storageKey(puzzleId: string): string {
@@ -62,11 +80,12 @@ export function storageKey(puzzleId: string): string {
 function resolveStoredStatus(
   value: Record<string, unknown>,
   guessCount: number,
+  rules: GameRules,
 ): GameStatus {
   if (isGameStatus(value.status)) {
     if (
       value.status === 'playing' &&
-      guessCount >= MAX_ATTEMPTS
+      guessCount >= rules.maxAttempts
     ) {
       return 'failed';
     }
@@ -78,7 +97,7 @@ function resolveStoredStatus(
     return 'solved';
   }
 
-  if (guessCount >= MAX_ATTEMPTS) {
+  if (guessCount >= rules.maxAttempts) {
     return 'failed';
   }
 
@@ -94,12 +113,13 @@ function isGameStatus(value: unknown): value is GameStatus {
   );
 }
 
-function isRecord(
-  value: unknown,
-): value is Record<string, unknown> {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    !Array.isArray(value)
-  );
+function tryStorage<Result>(
+  getStorage: () => StorageAdapter,
+  operation: (storage: StorageAdapter) => Result,
+): Result | undefined {
+  try {
+    return operation(getStorage());
+  } catch {
+    return undefined;
+  }
 }

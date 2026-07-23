@@ -1,0 +1,287 @@
+
+/* Responsive adjustments */
+
+@media (max-width: 760px) {
+  .shell {
+    width: min(100% - 18px, 640px);
+    padding: 18px 0 38px;
+  }
+
+  .comic-page {
+    box-shadow:
+      5px 6px 0 var(--ink),
+      8px 10px 0 rgba(200, 59, 41, 0.42);
+  }
+
+  .title-panel {
+    gap: 11px;
+    padding: 22px 18px 28px;
+  }
+
+  h1 {
+    font-size: clamp(3.2rem, 15vw, 5.8rem);
+    -webkit-text-stroke-width: 1.5px;
+    text-shadow:
+      2px 2px 0 var(--cream),
+      5px 5px 0 var(--ink),
+      8px 8px 0 var(--tomato);
+  }
+
+  .masthead-actions {
+    grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+    gap: 10px;
+    padding: 13px 12px 17px;
+  }
+
+  .masthead-action {
+    min-height: 74px;
+    padding: 14px 12px 10px;
+  }
+
+  .masthead-action {
+    font-size: clamp(1.05rem, 5vw, var(--header-control-font-max));
+  }
+
+  .game-header {
+    padding: 19px 16px 10px;
+  }
+
+  .panels {
+    gap: 11px;
+    padding: 10px 15px 20px;
+  }
+
+  .guess-entry-panel {
+    grid-template-columns: 1fr;
+    gap: 9px;
+    padding: 16px 15px 18px;
+  }
+
+  .action-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(104px, 1fr);
+    grid-auto-rows: minmax(72px, auto);
+    gap: 12px 10px;
+    padding: 16px 14px 22px;
+  }
+
+  .comic-action,
+  .artist-hint,
+  .attempts {
+    min-height: 72px;
+  }
+
+  .comic-action {
+    --tactile-shadow-x: 4px;
+    --tactile-shadow-y: 5px;
+
+    padding-right: 13px;
+    padding-left: 13px;
+    font-size: calc(clamp(0.9rem, 4vw, 1.3rem) + 4px);
+  }
+
+  .guess-button {
+    font-size: calc(clamp(1.32rem, 5.863vw, 1.903rem) + 5.863px);
+  }
+
+  .artist-hint {
+    padding-right: 9px;
+    padding-left: 9px;
+    font-size: calc(clamp(0.9rem, 4vw, 1.3rem) + 4px);
+  }
+
+  .attempts {
+    padding-right: 9px;
+    padding-left: 9px;
+    font-size: calc(clamp(0.9rem, 4vw, 1.3rem) + 4px);
+  }
+
+  .validation-message {
+    margin-right: 15px;
+    margin-left: 15px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .message {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .guess-list {
+    padding: 15px 16px 18px;
+  }
+
+  .comic-dialog {
+    width: calc(100% - 18px);
+    max-height: calc(100dvh - 18px);
+    box-shadow:
+      5px 6px 0 var(--ink),
+      8px 10px 0 rgba(200, 59, 41, 0.48);
+  }
+
+  .comic-dialog-header {
+    --dialog-close-size: 48px;
+
+    min-height: 70px;
+    padding: 10px 12px 9px 16px;
+  }
+
+  .comic-dialog-close {
+    width: var(--dialog-close-size);
+    min-width: var(--dialog-close-size);
+    height: var(--dialog-close-size);
+    min-height: var(--dialog-close-size);
+  }
+
+  .comic-dialog-body {
+    max-height: calc(100dvh - 110px);
+    padding: 17px 15px 21px;
+  }
+
+  .how-to-sections {
+    grid-template-columns: 1fr;
+  }
+
+  .archive-pagination {
+    grid-template-columns: minmax(82px, 1fr) auto minmax(82px, 1fr);
+    gap: 8px;
+  }
+
+  .dialog-action-button {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .future-puzzle .panels {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 400px) {
+  .shell {
+    width: calc(100% - 12px);
+  }
+
+  .title-panel {
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  h1 {
+    font-size: clamp(2.65rem, 14vw, 3.5rem);
+  }
+
+  .intro {
+    font-size: 1rem;
+  }
+
+  .masthead-actions {
+    grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  }
+
+  .masthead-action {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .comic-dialog-header {
+    gap: 9px;
+  }
+
+  .comic-dialog-header h2 {
+    font-size: clamp(1.8rem, 10vw, 2.6rem);
+  }
+
+  .archive-link {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .archive-badges {
+    justify-content: flex-start;
+  }
+
+  .archive-pagination {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .archive-page-status {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .game-header {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .panels {
+    gap: 9px;
+    padding-right: 11px;
+    padding-left: 11px;
+  }
+
+  figure img {
+    border-width: var(--line-light);
+    box-shadow: 2px 3px 0 var(--ink);
+  }
+
+  .guess-entry-panel {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .validation-message {
+    margin-right: 12px;
+    margin-left: 12px;
+  }
+
+  .action-grid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(100px, 1fr);
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .tactile-button:hover:not(:disabled),
+  figure:hover {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  h1 {
+    color: CanvasText;
+    -webkit-text-stroke: 0;
+    text-shadow: none;
+  }
+
+  .title-panel::after,
+  .masthead-action::before {
+    background: CanvasText;
+  }
+
+  .masthead-action::after {
+    background: Canvas;
+  }
+
+  button,
+  input,
+  select,
+  dialog,
+  .comic-page,
+  figure img {
+    forced-color-adjust: auto;
+  }
+}

@@ -1,19 +1,25 @@
-import { loadState } from './storage.ts';
+import type { GameStateStore } from './storage.ts';
 
-export type LoadCompletedPuzzleIds = (
-  puzzleIds: readonly string[],
-) => Promise<ReadonlySet<string>>;
-
-export const loadCompletedPuzzleIds: LoadCompletedPuzzleIds = async (
-  puzzleIds,
-) => {
-  const completedPuzzleIds = new Set<string>();
-
-  for (const puzzleId of puzzleIds) {
-    if (loadState(puzzleId).status !== 'playing') {
-      completedPuzzleIds.add(puzzleId);
-    }
-  }
-
-  return completedPuzzleIds;
+export type CompletionSource = {
+  loadCompletedPuzzleIds: (
+    puzzleIds: readonly string[],
+  ) => Promise<ReadonlySet<string>>;
 };
+
+export function createLocalCompletionSource(
+  gameStateStore: GameStateStore,
+): CompletionSource {
+  return {
+    loadCompletedPuzzleIds: async (puzzleIds) => {
+      const completedPuzzleIds = new Set<string>();
+
+      for (const puzzleId of puzzleIds) {
+        if (gameStateStore.load(puzzleId).status !== 'playing') {
+          completedPuzzleIds.add(puzzleId);
+        }
+      }
+
+      return completedPuzzleIds;
+    },
+  };
+}

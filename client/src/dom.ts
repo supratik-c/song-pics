@@ -1,4 +1,24 @@
-import type { GameElements } from './types.ts';
+import type { ModalElements } from './modal.ts';
+
+export type GameElements = {
+  artistHint: HTMLElement;
+  attemptsCount: HTMLElement;
+  date: HTMLElement;
+  form: HTMLFormElement;
+  guessInput: HTMLInputElement;
+  guessList: HTMLOListElement;
+  howToPlayButton: HTMLButtonElement;
+  message: HTMLElement;
+  modal: ModalElements;
+  panels: HTMLElement;
+  previousIssuesButton: HTMLButtonElement;
+  revealArtistButton: HTMLButtonElement;
+  revealSongButton: HTMLButtonElement;
+  submitButton: HTMLButtonElement;
+  songClue: HTMLElement;
+  validationMessage: HTMLElement;
+};
+
 export function getGameElements(): GameElements {
   return {
     artistHint: getElement<HTMLElement>('#artist-hint'),

@@ -33,6 +33,13 @@ If you are opening the site from Windows while the server runs inside WSL, use e
 
 ## Build
 
+Run the focused unit and build-script tests:
+
+```bash
+cd client
+npm test
+```
+
 Check TypeScript types:
 
 ```bash
@@ -68,3 +75,10 @@ The workflow sets `VITE_BASE_PATH` from the GitHub repository name so Vite asset
 
 Start with [docs/architecture.md](docs/architecture.md), which links to the
 detailed gameplay, frontend, and content-delivery architecture.
+
+At runtime, `client/src/main.ts` composes browser adapters and starts
+`client/src/app.ts`. Pure game transitions live in `game.ts`; static content is
+loaded and validated at loader boundaries; `storage.ts` and `completion.ts`
+provide replaceable progress boundaries; and focused modules under
+`client/src/views/` own DOM output. `client/src/styles.css` preserves cascade
+order while importing the focused stylesheets under `client/src/styles/`.

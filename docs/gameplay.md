@@ -11,6 +11,11 @@ parameter, the game opens the latest released puzzle. A valid released
 values fall back to the latest puzzle. A future date produces the dedicated
 future-puzzle view rather than attempting to fetch its answer data.
 
+Query parsing and archive URL construction are pure functions in
+`client/src/navigation.ts`. The composition root supplies the requested ID to
+the puzzle loader, so content selection does not read browser globals. Archive
+rendering similarly receives a URL callback and does not inspect location.
+
 The generated archive index is chronological. The client assigns contiguous
 issue numbers from that ordering, so the earliest available puzzle is Issue #1
 and missing calendar dates do not create gaps. The main eyebrow is
@@ -20,12 +25,19 @@ older links preserve it.
 
 ## Guess matching
 
+`client/src/gameConfig.ts` exposes the single durable gameplay-policy object,
+`GAME_RULES`, currently allowing a maximum of five attempts and a 64-character
+answer. Feature-local values such as archive page size stay beside their
+only consumer rather than becoming global configuration.
+
 `client/src/game.ts` owns answer normalization and matching. Normalization:
 
 - lowercases text, removes accents and punctuation, converts `&` to `and`, and
   collapses whitespace;
-- removes matching artist words, including a preceding `by`, before matching;
-- rejects input longer than the limit in `constants.ts`.
+- removes matching artist words, including a preceding `by`, before matching.
+
+`submitGuess` rejects raw input longer than `GAME_RULES.maxAnswerLength` before
+normalization.
 
 A normalized guess matches any normalized `acceptedAnswers` entry. Empty
 answers, repeated normalized guesses, and answers containing only the artist do
@@ -38,6 +50,21 @@ alternate titles in `acceptedAnswers`, but should not duplicate variants already
 covered by normalization or enumerate `Song by Artist` permutations.
 
 ## State transitions and results
+
+State changes are immutable domain operations rather than behavior embedded in
+DOM handlers:
+
+- `createInitialGameState()` creates a new playing state;
+- `submitGuess(state, rawGuess, solution, rules)` evaluates one guess and
+  returns a `GuessSubmission` without mutating its inputs;
+- `revealSong(state)` returns the revealed state only while play is active.
+
+`GuessSubmission` is discriminated by `kind`. A `recorded` result contains the
+next state. An `invalid` result identifies `too-long`, `empty`, `artist-only`,
+`duplicate`, or `not-playing`; expected input problems do not use exceptions or
+consume an attempt. Terminal operations are no-ops. This keeps transitions
+testable without a DOM and gives the application one explicit place to map
+domain outcomes to messages and focus behavior.
 
 Game state contains normalized guesses and one status:
 
@@ -59,24 +86,33 @@ when a saved puzzle is revisited.
 
 ## Persistence and completion
 
-Production stores state in `localStorage` under a key derived from the puzzle
-ID. Vite development deliberately clears that puzzle's stored record and starts
-clean. Stored data is treated as untrusted: malformed data falls back safely,
-string guesses are recovered where possible, and a stored `playing` state with
-five guesses is corrected to `failed`.
+`GameStateStore` is a synchronous `load`/`save` boundary. Its browser adapter
+uses `localStorage` under a key derived from the puzzle ID in production; Vite
+development deliberately disables persistence and starts clean. Unavailable
+storage, access failures, and quota errors degrade to in-memory gameplay rather
+than breaking the game. Stored data is treated as untrusted: malformed data
+falls back safely, string guesses are recovered where possible, and a stored
+`playing` state at the attempt limit is corrected to `failed`.
 
 Legacy records migrate as follows: `isSolved: true` becomes `solved`; an
 unsolved record with five guesses becomes `failed`; other legacy records become
 `playing`.
 
-Archive completion is currently derived from any terminal local state. The
-asynchronous completion boundary can later use an account-backed API without
-changing archive rendering. Completion is refreshed whenever Previous Issues
-opens; lookup failure leaves navigation usable and simply omits completion
-markers.
+`CompletionSource` is a separate asynchronous read-model boundary. Its local
+implementation derives completed IDs from terminal states returned by the
+state store; it is not folded into the storage adapter because a future
+account-backed completion API may have different ownership and timing.
+Completion is refreshed whenever Previous Issues opens. Lookup failure leaves
+navigation usable and simply omits completion markers.
 
-If a future backend validates guesses, it should own its server-side rules.
-Keep browser and server behavior aligned through shared fixture cases rather
-than introducing a root TypeScript package solely to share implementation. Add
-focused normalization and date coverage when a test runner is introduced or a
-regression justifies it.
+The current wire JSON remains unchanged, but its runtime contract is split by
+capability: `PuzzleClue` contains ID, date, issue, clue, and panels;
+`PuzzleSolution` contains title, artist, accepted answers, and optional video;
+`Puzzle` combines them. Views and domain functions accept the narrowest useful
+contract, reducing accidental solution access.
+
+If a future backend validates guesses, publicly load only `PuzzleClue` and
+replace the local synchronous use case with an asynchronous validation gateway.
+The server should own its authoritative rules. Keep browser and server behavior
+aligned through the shared normalization/date JSON fixtures rather than adding
+a root TypeScript package solely to share implementation.

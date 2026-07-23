@@ -28,9 +28,11 @@ changes. Do not copy transient implementation detail into documentation.
   server must own secrets or authority.
 - Keep the client dependency-light. Do not introduce a framework, state
   library, CSS framework, or extra build layer without a demonstrated need.
-- Keep responsibilities in their existing modules: rules in `game.ts`, content
-  loading in loaders, DOM output in `render.ts`, persistence in `storage.ts`,
-  and orchestration in `app.ts`.
+- Keep responsibilities in their established boundaries: pure rules and
+  transitions in `game.ts`, policy in `gameConfig.ts`, content fetching in
+  loaders, DOM output in focused `views/`, persistence in `storage.ts`, the
+  completion read model in `completion.ts`, orchestration in `app.ts`, and
+  concrete dependency composition in `main.ts`.
 - Keep domain types explicit and validate data at external boundaries. Use DOM
   APIs and `textContent`, not untrusted `innerHTML`.
 - Pass runtime content and asset paths through `resolvePublicPath`; deployment
@@ -53,8 +55,8 @@ behavior incidentally. In particular:
 - user-visible controls remain semantic, keyboard-operable, visibly focused,
   and usable at the 320 px minimum width.
 
-If these behaviors intentionally change, update implementation, types or
-constants, user-facing copy, and the relevant architecture document together.
+If these behaviors intentionally change, update implementation, types or game
+policy, user-facing copy, and the relevant architecture document together.
 
 ## Puzzle content
 
@@ -64,9 +66,10 @@ Keep song and artist spoilers out of pre-solve copy, filenames, alt text, logs,
 and share text. Prefer compressed WebP for new raster panels and keep important
 content crop-safe in the 4:3 frame.
 
-Use useful accepted-answer alternatives only. Normalization already handles
-case, punctuation, accents, spacing, `&` versus `and`, and matching artist
-words. Keep answers within the client limit.
+Use useful accepted-answer alternatives only, always including the canonical
+title. Normalization already handles case, punctuation, accents, spacing, `&`
+versus `and`, and matching artist words. Do not include normalized duplicates
+and keep answers within `GAME_RULES.maxAnswerLength`.
 
 ## Visual changes
 
@@ -90,6 +93,7 @@ Use Node 22.12 or newer. From `client/`:
 
 ```bash
 npm ci
+npm test
 npm run typecheck
 npm run build
 ```
@@ -107,11 +111,12 @@ default and review any dependency that requires an exception. Keep
 Verify in proportion to the change and report commands that could not run:
 
 - Documentation only: verify links, paths, commands, and claims against source.
-- Puzzle content: run `npm run generate:puzzle-index`, validate JSON and
-  answers, inspect panel ordering and crops, then build.
-- TypeScript or game behavior: run typecheck and build; exercise affected states.
-- HTML, CSS, or rendering: run typecheck and build; inspect keyboard behavior,
-  narrow/wide layouts, and affected states.
+- Puzzle content: run `npm run generate:puzzle-index` and `npm test`, validate
+  JSON and answers, inspect panel ordering and crops, then build.
+- TypeScript or game behavior: run tests, typecheck, and build; exercise affected
+  states.
+- HTML, CSS, or rendering: run tests, typecheck, and build; inspect keyboard
+  behavior, narrow/wide layouts, and affected states.
 - Build, path, or date behavior: build with the default base and with
   `VITE_BASE_PATH=/badly-drawn-bangers/`; inspect `dist/content` for correct
   released and shared content.

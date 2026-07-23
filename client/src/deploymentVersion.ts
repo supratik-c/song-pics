@@ -1,7 +1,13 @@
+import {
+  fetchStaticJson,
+  isNonEmptyString,
+  isRecord,
+} from './validation.ts';
+
 const BUILD_VERSION_FILE_NAME = 'build-version.json';
 const DEPLOYMENT_QUERY_PARAMETER = '_deployment';
 
-interface BuildVersionManifest {
+export interface BuildVersionManifest {
   buildId: string;
 }
 
@@ -52,33 +58,21 @@ async function loadLatestBuildId(): Promise<string> {
   );
   versionUrl.searchParams.set('check', Date.now().toString());
 
-  const response = await fetch(versionUrl, { cache: 'no-store' });
+  const manifest = await fetchStaticJson(
+    versionUrl,
+    'build version',
+    isBuildVersionManifest,
+  );
 
-  if (!response.ok) {
-    throw new Error(
-      `Could not load build version: ${response.status} ${response.statusText}`,
-    );
-  }
-
-  const value: unknown = await response.json();
-
-  if (!isBuildVersionManifest(value)) {
-    throw new Error('Build version contains invalid data.');
-  }
-
-  return value.buildId;
+  return manifest.buildId;
 }
 
-function isBuildVersionManifest(
+export function isBuildVersionManifest(
   value: unknown,
 ): value is BuildVersionManifest {
   return (
-    typeof value === 'object' &&
-    value !== null &&
-    !Array.isArray(value) &&
-    'buildId' in value &&
-    typeof value.buildId === 'string' &&
-    value.buildId.trim().length > 0
+    isRecord(value) &&
+    isNonEmptyString(value.buildId)
   );
 }
 

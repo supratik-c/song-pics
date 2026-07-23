@@ -1,0 +1,49 @@
+{
+  "normalizationCases": [
+    {
+      "name": "case accents punctuation and whitespace",
+      "input": "  Héy,   JÚDE!! ",
+      "artist": "The Beatles",
+      "expected": {
+        "answer": "hey jude",
+        "artistRemoved": false
+      }
+    },
+    {
+      "name": "ampersand expands to and",
+      "input": "Rock & Roll",
+      "artist": "",
+      "expected": {
+        "answer": "rock and roll",
+        "artistRemoved": false
+      }
+    },
+    {
+      "name": "full artist and preceding by are removed",
+      "input": "Dog Days Are Over by Florence & The Machine",
+      "artist": "Florence and The Machine",
+      "expected": {
+        "answer": "dog days are over",
+        "artistRemoved": true
+      }
+    },
+    {
+      "name": "matching artist subset is removed",
+      "input": "Blinding Lights Weeknd",
+      "artist": "The Weeknd",
+      "expected": {
+        "answer": "blinding lights",
+        "artistRemoved": true
+      }
+    },
+    {
+      "name": "artist-only input normalizes empty",
+      "input": "The Weeknd",
+      "artist": "The Weeknd",
+      "expected": {
+        "answer": "",
+        "artistRemoved": true
+      }
+    }
+  ]
+}
