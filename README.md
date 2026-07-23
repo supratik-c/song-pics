@@ -66,7 +66,5 @@ The workflow sets `VITE_BASE_PATH` from the GitHub repository name so Vite asset
 
 ## Architecture
 
-See [docs/architecture.md](docs/architecture.md).
-
-The current sample puzzle accepts `Take Me Out` or `Franz Ferdinand Take Me Out`.
-
+Start with [docs/architecture.md](docs/architecture.md), which links to the
+detailed gameplay, frontend, and content-delivery architecture.
