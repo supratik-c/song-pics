@@ -34,6 +34,15 @@ selected. `?puzzle=YYYY-MM-DD` selects a released archive entry. Runtime
 content paths pass through `resolvePublicPath` so the same code works at `/`
 and beneath a GitHub Pages repository base path.
 
+Generated `/share/YYYY-MM-DD/` entry pages give link-preview crawlers static,
+puzzle-specific metadata whose image points at the released puzzle's existing
+first panel. The browser recognizes that base-aware path, selects its puzzle,
+and normalizes the address to the canonical puzzle query before composing
+navigation URLs. Terminal share controls copy the invitation on desktop and
+use link-only OS sharing on conservatively recognized mobile platforms when
+available. Both paths use the same stable share-page URL; no clue file is
+attached to the browser share payload.
+
 ## Build flow
 
 `client/content/` is source content. Before development or production builds,
@@ -44,6 +53,10 @@ only released puzzles to `client/dist/`, regenerates released-only metadata,
 and retains shared non-dated content. The UI's future-puzzle screen is a
 friendly guard; excluding the files from the production artifact is the
 security boundary.
+
+The same captured release date drives generation of one small share HTML page
+per released puzzle. Those pages reuse the bundled application shell and
+reference existing puzzle panels rather than copying images beneath `share/`.
 
 Shared JSON fixtures exercise normalization and date behavior in both browser
 TypeScript and build scripts. This keeps independently implemented boundaries
@@ -64,6 +77,8 @@ carry the same build identifier; compiled assets use Vite's content hashes.
 - `client/src/game.ts` and `gameConfig.ts`: pure game rules, immutable
   transitions, and gameplay policy.
 - `client/src/navigation.ts`: pure query parsing and archive URL behavior.
+- `client/src/share.ts`, `browserShare.ts`, and `views/shareView.ts`: pure share
+  requests, browser sharing/copy fallbacks, and reusable share controls.
 - `client/src/types.ts` and `validation.ts`: domain/content contracts and
   reusable runtime validation primitives.
 - Loaders: static content selection, fetching, and complete boundary validation.
@@ -72,7 +87,7 @@ carry the same build identifier; compiled assets use Vite's content hashes.
 - `client/src/views/`, `modal.ts`, and `styles/`: focused DOM output, dialog
   lifecycle, and the visual system.
 - `client/scripts/` and `client/vite.config.js`: authoring validation, generated
-  metadata, release filtering/copying, and build integration.
+  metadata and share pages, release filtering/copying, and build integration.
 
 ## Documentation map
 

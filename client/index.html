@@ -39,6 +39,29 @@
           <div class="game-header">
             <p class="eyebrow" id="puzzle-date">Loading...</p>
             <h2 id="puzzle-song-clue"></h2>
+            <nav
+              class="issue-navigation"
+              id="issue-navigation"
+              aria-label="Adjacent issues"
+              hidden
+            >
+              <a
+                class="issue-navigation-link previous-issue-link tactile-button"
+                id="previous-issue-link"
+                rel="prev"
+                role="link"
+              >
+                Previous Issue
+              </a>
+              <a
+                class="issue-navigation-link next-issue-link tactile-button"
+                id="next-issue-link"
+                rel="next"
+                role="link"
+              >
+                Next Issue
+              </a>
+            </nav>
           </div>
 
           <div class="panels" id="panels" aria-label="Storyboard clue panels"></div>
@@ -94,6 +117,7 @@
 
           <p class="message" id="message" aria-live="polite"></p>
           <ol class="guess-list" id="guess-list" aria-label="Previous guesses"></ol>
+          <div class="share-region" id="share-region" hidden></div>
         </section>
       </div>
     </main>

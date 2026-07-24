@@ -43,6 +43,12 @@ content must remain crop-safe because the grid uses a 4:3 frame with
 Song and artist data are spoilers. Pre-solve headings, captions, filenames, alt
 text, logs, and share copy must not expose them.
 
+Puzzle share pages use the first numerically ordered panel already present in
+the puzzle directory. Their dated URLs, metadata, alt text, and invitation copy
+remain neutral; no duplicate share image is authored or emitted. Browser share
+payloads contain the invitation and dated URL rather than an image attachment,
+leaving a receiving app to fetch the first panel when it creates a link preview.
+
 Reusable How to Play content lives in `client/content/how-to-play/`; its
 manifest is validated lazily in the browser and its panel paths are relative to
 that directory. Interface-owned assets live in `client/src/assets/ui/` and are
@@ -70,6 +76,14 @@ gitignored. They are never source and must not be hand-edited. The `dev` and
 `build` scripts generate them explicitly because npm lifecycle scripts are
 disabled in `client/.npmrc`.
 
+Production builds also generate `dist/share/YYYY-MM-DD/index.html` from the
+built application shell for each released puzzle. Each page supplies static
+Open Graph and Twitter metadata, including an absolute image URL for the
+puzzle's existing first panel, its media type and accessible alternative, and
+a canonical dated URL. HTTPS builds also identify the secure image URL. Share
+HTML is a build artifact and is not committed; images remain only under
+`dist/content/puzzles`.
+
 ## Runtime paths and loading
 
 The browser fetches the generated archive, selected puzzle JSON, inferred
@@ -90,6 +104,11 @@ identifier. External URLs are returned unchanged. The build-version check
 deliberately constructs its own base-aware URL with a fresh check value so it
 can discover a newer build.
 
+The browser recognizes base-aware `/share/YYYY-MM-DD/` paths before loading a
+puzzle and normalizes them to `?puzzle=YYYY-MM-DD`. Share controls always emit
+the dated entry URL, including for the latest issue, so an old invitation cannot
+start selecting a newer daily puzzle.
+
 This path boundary is required for both domain-root hosting and GitHub Pages
 project hosting. Imported JavaScript, CSS, and UI assets use Vite's normal
 content-hashed paths instead.
@@ -107,6 +126,7 @@ own its filesystem policy:
 - future dated puzzle directories are omitted entirely;
 - source generated `index.json` and `panels.json` files are not copied;
 - released-only archive and panel manifests are regenerated in `dist`;
+- released-only share entry pages are generated without copying panel images;
 - shared non-dated content remains available.
 
 The future-puzzle screen improves the experience for manually entered URLs but
@@ -145,6 +165,11 @@ new build loads. Failure or invalid version data does not block the game.
 
 Runtime content URLs include the build ID so browsers and GitHub Pages do not
 reuse stale puzzle JSON or images after replacement under the same filename.
+
+`VITE_PUBLIC_SITE_URL` supplies the absolute canonical base used in social
+metadata. GitHub Pages builds derive it from the repository owner and name. The
+manual Cloudflare preview continues pointing metadata at the GitHub Pages
+canonical site until the documented domain cutover.
 
 ## Cross-runtime fixtures
 

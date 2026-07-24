@@ -6,12 +6,18 @@ import {
 } from './game.ts';
 import { GAME_RULES } from './gameConfig.ts';
 import type { HowToPlayManifest } from './howToPlayLoader.ts';
+import type { BuildPuzzleUrl } from './navigation.ts';
 import {
   createModalController,
   renderModalMessage,
   type ModalController,
 } from './modal.ts';
 import type { GameStateStore } from './storage.ts';
+import {
+  createPuzzleShareRequest,
+  type PuzzleShareRequest,
+  type ShareGateway,
+} from './share.ts';
 import {
   FuturePuzzleError,
   type GameState,
@@ -21,7 +27,6 @@ import {
 } from './types.ts';
 import {
   renderArchiveContent,
-  type BuildPuzzleUrl,
 } from './views/archiveView.ts';
 import { renderHowToPlayContent } from './views/howToPlayView.ts';
 import {
@@ -33,6 +38,7 @@ import {
   renderState,
 } from './views/puzzleView.ts';
 import { renderResultContent } from './views/resultView.ts';
+import { renderShareControl } from './views/shareView.ts';
 
 export type AppDependencies = {
   loadPuzzle: (requestedPuzzleId: string | null) => Promise<LoadedPuzzle>;
@@ -40,6 +46,8 @@ export type AppDependencies = {
   gameStateStore: GameStateStore;
   completionSource: CompletionSource;
   buildPuzzleUrl: BuildPuzzleUrl;
+  buildPuzzleShareUrl: (puzzleId: string) => string;
+  shareGateway: ShareGateway;
 };
 
 export async function initApp(
@@ -68,8 +76,19 @@ export async function initApp(
   }
 
   let state = dependencies.gameStateStore.load(puzzle.id);
+  const shareRequest = createPuzzleShareRequest(
+    puzzle,
+    dependencies.buildPuzzleShareUrl(puzzle.id),
+  );
+  const createShareControl = (): HTMLElement => renderShareControl({
+    request: shareRequest,
+    preferredAction: dependencies.shareGateway.preferredAction,
+    share: () => dependencies.shareGateway.share(shareRequest),
+  });
 
-  renderPuzzle(elements, puzzle, archive);
+  elements.shareRegion.replaceChildren(createShareControl());
+
+  renderPuzzle(elements, puzzle, archive, dependencies.buildPuzzleUrl);
   renderState(elements, state, GAME_RULES);
   bindArchiveButton(elements, archive, modal, dependencies);
 
@@ -99,7 +118,14 @@ export async function initApp(
     if (state.status === 'playing') {
       elements.guessInput.focus();
     } else {
-      openResultModal(elements, puzzle, state, modal);
+      openResultModal(
+        elements,
+        puzzle,
+        state,
+        modal,
+        shareRequest,
+        dependencies.shareGateway,
+      );
     }
   });
 
@@ -117,7 +143,14 @@ export async function initApp(
       renderState(elements, state, GAME_RULES);
     }
 
-    openResultModal(elements, puzzle, state, modal);
+    openResultModal(
+      elements,
+      puzzle,
+      state,
+      modal,
+      shareRequest,
+      dependencies.shareGateway,
+    );
   });
 }
 
@@ -191,12 +224,22 @@ function openResultModal(
   puzzle: Puzzle,
   state: GameState,
   modal: ModalController,
+  shareRequest: PuzzleShareRequest,
+  shareGateway: ShareGateway,
 ): void {
   if (state.status === 'playing') {
     return;
   }
 
-  const result = renderResultContent(puzzle, state.status);
+  const result = renderResultContent(
+    puzzle,
+    state.status,
+    renderShareControl({
+      request: shareRequest,
+      preferredAction: shareGateway.preferredAction,
+      share: () => shareGateway.share(shareRequest),
+    }),
+  );
 
   modal.open({
     title: result.title,

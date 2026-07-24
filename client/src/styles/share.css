@@ -1,0 +1,97 @@
+/* Reusable terminal-state sharing */
+
+.share-region {
+  padding: 22px 28px 25px;
+  border-top: var(--line-heavy) solid var(--ink);
+  background:
+    radial-gradient(circle at 10px 10px, rgba(36, 31, 28, 0.07) 1px, transparent 1.2px),
+    var(--cream);
+  background-size: 20px 20px;
+}
+
+.share-control {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.comic-dialog-body .share-control {
+  margin-top: 26px;
+  padding-top: 24px;
+  border-top: var(--line-medium) dashed var(--ink);
+}
+
+.share-button {
+  --share-shape: polygon(2% 8%, 98% 0, 100% 88%, 5% 100%, 0 18%);
+  --tactile-shadow-x: 5px;
+  --tactile-shadow-y: 6px;
+
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: min(100%, 390px);
+  min-height: 62px;
+  padding: 13px 26px 10px;
+  border: 0;
+  border-radius: 0;
+  color: var(--ink);
+  background: transparent;
+  box-shadow: none;
+  font-size: clamp(1.15rem, 3vw, 1.55rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.share-button::before,
+.share-button::after {
+  position: absolute;
+  content: '';
+  clip-path: var(--share-shape);
+}
+
+.share-button::before {
+  z-index: -2;
+  inset: 0;
+  background: var(--ink);
+}
+
+.share-button::after {
+  z-index: -1;
+  inset: var(--line-heavy);
+  background: var(--green-light);
+}
+
+.share-button:focus-visible {
+  outline-offset: 5px;
+}
+
+.share-icon {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  overflow: visible;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.share-icon circle {
+  fill: var(--cream);
+}
+
+.share-status {
+  min-height: 1.5em;
+  margin: 0;
+  font-weight: 700;
+  text-align: center;
+}
+
+.share-status a {
+  color: var(--blue-dark);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}

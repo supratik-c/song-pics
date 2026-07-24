@@ -43,7 +43,30 @@
   }
 
   .game-header {
+    grid-template-columns: 1fr;
+    gap: 7px;
     padding: 19px 16px 10px;
+  }
+
+  .game-header .eyebrow,
+  .game-header h2,
+  .issue-navigation {
+    grid-column: 1;
+  }
+
+  .game-header .eyebrow {
+    grid-row: 1;
+  }
+
+  .game-header h2 {
+    grid-row: 2;
+  }
+
+  .issue-navigation {
+    grid-row: auto;
+    justify-self: end;
+    width: min(100%, 270px);
+    margin-top: 7px;
   }
 
   .panels {
@@ -109,6 +132,14 @@
 
   .guess-list {
     padding: 15px 16px 18px;
+  }
+
+  .share-region {
+    padding: 19px 16px 22px;
+  }
+
+  .share-button {
+    width: 100%;
   }
 
   .comic-dialog {
@@ -217,6 +248,16 @@
     padding-left: 12px;
   }
 
+  .issue-navigation {
+    gap: 7px;
+  }
+
+  .issue-navigation-link {
+    padding-right: clamp(16px, 5vw, 18px);
+    padding-left: clamp(16px, 5vw, 18px);
+    font-size: clamp(0.8rem, 4vw, 0.88rem);
+  }
+
   .panels {
     gap: 9px;
     padding-right: 11px;
@@ -236,6 +277,11 @@
   .validation-message {
     margin-right: 12px;
     margin-left: 12px;
+  }
+
+  .share-region {
+    padding-right: 12px;
+    padding-left: 12px;
   }
 
   .action-grid {
@@ -268,17 +314,23 @@
   }
 
   .title-panel::after,
-  .masthead-action::before {
+  .masthead-action::before,
+  .issue-navigation-link::before,
+  .share-button::before {
     background: CanvasText;
   }
 
-  .masthead-action::after {
+  .masthead-action::after,
+  .issue-navigation-link::after,
+  .share-button::after {
     background: Canvas;
   }
 
   button,
   input,
   select,
+  .issue-navigation-link,
+  .share-button,
   dialog,
   .comic-page,
   figure img {

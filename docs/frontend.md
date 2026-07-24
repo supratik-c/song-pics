@@ -24,7 +24,9 @@ DOM output is divided by stable UI responsibility:
 - `views/archiveView.ts` renders archive navigation and pagination using an
   injected puzzle-URL callback;
 - `views/howToPlayView.ts` renders tutorial content;
-- `views/resultView.ts` renders terminal results and optional video.
+- `views/resultView.ts` renders terminal results and optional video;
+- `views/shareView.ts` creates reusable terminal share controls and owns their
+  busy and feedback rendering.
 
 These views use DOM APIs and `textContent`; external or content-authored strings
 are not inserted with untrusted `innerHTML`. The split does not introduce a
@@ -37,6 +39,13 @@ language is warm graph paper, ink-dark outlines, cream surfaces, hard offset
 shadows, bold accents, informal typography, and deliberately rough clue art.
 Controls share tactile hover, focus, and press behavior, while the drawings
 remain the primary visual focus.
+
+The puzzle header includes compact Previous Issue and Next Issue links in the
+main game region rather than the masthead archive controls. They sit side by
+side at the header's top right while the song clue spans the full row beneath
+them; at narrow widths they move to their own right-aligned row. Both
+directions remain visible at archive boundaries, with the unavailable link
+presented as disabled; the group is absent when no released puzzle has loaded.
 
 ## Dialogs and secondary views
 
@@ -56,7 +65,9 @@ Completion lookup failure does not block archive navigation.
 
 Correct, revealed, and failed outcomes share the result dialog. Only correct
 answers use its success treatment. Result content owns any YouTube iframe
-cleanup so closing the dialog stops playback.
+cleanup so closing the dialog stops playback. Each result appends a fresh share
+control after its optional video; the same control factory also populates the
+main terminal-state share region.
 
 ## State rendering and errors
 
@@ -70,6 +81,11 @@ a view rather than direct writes from `main.ts` or `app.ts`.
 A requested future date renders a friendly future-puzzle state while retaining
 archive access. Unexpected load failures use the general message region and are
 logged for diagnosis.
+
+The main share region is hidden while play is active and in future or load-error
+views. It appears for solved, manually revealed, failed, and restored terminal
+states. Share feedback uses its own polite status region; dismissing the OS
+share sheet is not announced as an error.
 
 ## Accessibility and responsive behavior
 
@@ -89,6 +105,17 @@ Visible changes should be checked at narrow and wide sizes across every affected
 state, including validation, terminal results, archive, future-puzzle, and load
 errors.
 
+The share action has a visible label as well as its three-node icon. Desktop
+and unknown platforms present a copy-first action even when the browser exposes
+an OS share mechanism, avoiding desktop share targets that discard the link in
+favour of another payload representation. Conservatively recognized Android,
+iPhone, iPod, and iPadOS browsers present native sharing when it is available;
+their payload contains only the title, spoiler-free invitation, and dated URL.
+Unsupported native sharing falls back to copying, and a complete failure leaves
+an operable share-page link. No share-specific image fetch is performed in the
+browser; receiving apps may fetch the first-panel preview from the share page's
+static metadata.
+
 ## Stylesheet structure
 
 `client/src/styles.css` is an ordered import entry. Vite inlines its plain CSS
@@ -98,7 +125,8 @@ stylesheet:
 1. `styles/foundation.css` owns fonts, tokens, reset, page shell, and masthead;
 2. `styles/game.css` owns panels, controls, feedback, and the future state;
 3. `styles/dialog.css` owns the dialog, tutorial, archive, and results;
-4. `styles/responsive.css` owns ordered breakpoint, motion, and forced-color
+4. `styles/share.css` owns the reusable main and dialog share control;
+5. `styles/responsive.css` owns ordered breakpoint, motion, and forced-color
    overrides.
 
 The import order is part of the cascade contract. Exact measurements, font

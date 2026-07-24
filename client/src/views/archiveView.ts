@@ -1,11 +1,7 @@
+import type { BuildPuzzleUrl } from '../navigation.ts';
 import type { PuzzleArchive } from '../types.ts';
 
 const ARCHIVE_PAGE_SIZE = 50;
-
-export type BuildPuzzleUrl = (
-  puzzleId: string,
-  latestPuzzleId: string,
-) => string;
 
 export function renderArchiveContent(
   archive: PuzzleArchive,

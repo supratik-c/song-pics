@@ -11,12 +11,14 @@ export type RenderedResult = {
 export function renderResultContent(
   solution: PuzzleSolution,
   status: Exclude<GameStatus, 'playing'>,
+  shareControl?: HTMLElement,
 ): RenderedResult {
   const content = document.createDocumentFragment();
   const message = document.createElement('p');
   const answer = document.createElement('p');
   let title: string;
   const tone = status === 'solved' ? 'success' : 'default';
+  let onClose: (() => void) | undefined;
 
   message.className = 'result-message';
   answer.className = 'result-answer';
@@ -41,18 +43,17 @@ export function renderResultContent(
 
     if (video) {
       content.append(video);
-      return {
-        title,
-        content,
-        tone,
-        onClose: () => {
-          video.src = 'about:blank';
-        },
+      onClose = () => {
+        video.src = 'about:blank';
       };
     }
   }
 
-  return { title, content, tone };
+  if (shareControl) {
+    content.append(shareControl);
+  }
+
+  return { title, content, tone, onClose };
 }
 
 export function getYouTubeEmbedUrl(url: string): string | null {

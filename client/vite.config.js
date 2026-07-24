@@ -6,12 +6,15 @@ import {
   copyReleasedContent,
   writeReleasedPuzzleMetadata,
 } from './scripts/releaseContent.mjs';
+import { writeReleasedPuzzleSharePages } from './scripts/sharePages.mjs';
 
 const projectRoot = import.meta.dirname;
 const contentDirectory = resolve(projectRoot, CONTENT_DIRECTORY_NAME);
 const outputDirectory = resolve(projectRoot, 'dist');
 const basePath = process.env.VITE_BASE_PATH ?? '/';
 const buildId = process.env.VITE_BUILD_ID?.trim() || 'local';
+const publicSiteUrl = process.env.VITE_PUBLIC_SITE_URL?.trim() ||
+  new URL(basePath, 'http://localhost').toString();
 
 function emitBuildVersion() {
   return {
@@ -42,6 +45,10 @@ function copyContent() {
           contentOutputDirectory,
           { today: releaseDate },
         );
+        writeReleasedPuzzleSharePages(projectRoot, outputDirectory, {
+          publicSiteUrl,
+          today: releaseDate,
+        });
       }
     },
   };

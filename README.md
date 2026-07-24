@@ -72,6 +72,10 @@ https://<your-github-user>.github.io/song-pics/
 ```
 
 The workflow sets `VITE_BASE_PATH` from the GitHub repository name so Vite assets and copied puzzle content resolve correctly from the GitHub Pages project URL.
+It also sets `VITE_PUBLIC_SITE_URL` to the absolute Pages address used by the
+generated per-puzzle social-share metadata. Local builds fall back to a
+base-aware localhost URL; set the variable explicitly when inspecting a
+production-like share artifact.
 
 An inactive Cloudflare Workers Static Assets deployment is scaffolded in
 `.github/workflows/deploy-cloudflare.yml`. It has no push or schedule trigger:
