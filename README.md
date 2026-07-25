@@ -1,6 +1,6 @@
 # Scribble Bops
 
-A game about guessing songs from badly drawn art in Paint.
+A game about guessing songs from badly drawn art.
 
 ## Run Locally
 
