@@ -23,9 +23,9 @@ describe('puzzle share request', () => {
     );
 
     expect(request).toEqual({
-      title: 'Scribble Bops — Guess the Song',
+      title: 'Scribble Bops',
       text:
-        'Issue #4: What song are these suspicious scribbles trying to be?',
+        "Can you guess today's song from some highly questionable scribbles?",
       url: 'https://example.test/share/2026-07-23/',
     });
   });
@@ -37,8 +37,8 @@ describe('puzzle share request', () => {
     );
 
     expect(getCopyText(request)).toBe(
-      'Scribble Bops — Guess the Song\n' +
-      'Issue #4: What song are these suspicious scribbles trying to be?\n' +
+      'Scribble Bops\n' +
+      "Can you guess today's song from some highly questionable scribbles?\n" +
       'https://example.test/share/2026-07-23/',
     );
   });

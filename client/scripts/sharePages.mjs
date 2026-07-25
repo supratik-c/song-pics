@@ -13,7 +13,9 @@ import { getPuzzleMetadata } from './puzzleMetadata.mjs';
 
 const SHARE_DIRECTORY_NAME = 'share';
 const SHARE_PAGE_FILE_NAME = 'index.html';
-const PAGE_TITLE = 'Scribble Bops — Guess the Song';
+const PAGE_TITLE = 'Scribble Bops';
+const PAGE_DESCRIPTION =
+  "Can you guess today's song from some highly questionable scribbles?";
 
 export function writeReleasedPuzzleSharePages(
   projectRoot,
@@ -73,8 +75,6 @@ export function createPuzzleSharePage(
   applicationHtml,
   { firstPanelUrl, issueNumber, shareUrl },
 ) {
-  const description =
-    `Issue #${issueNumber}: What song are these suspicious scribbles trying to be?`;
   const firstPanel = new URL(firstPanelUrl);
   const imageMimeType = getImageMimeType(firstPanel.pathname);
   const metadata = [
@@ -82,7 +82,7 @@ export function createPuzzleSharePage(
     '<meta property="og:type" content="website" />',
     '<meta property="og:site_name" content="Scribble Bops" />',
     `<meta property="og:title" content="${escapeHtml(PAGE_TITLE)}" />`,
-    `<meta property="og:description" content="${escapeHtml(description)}" />`,
+    `<meta property="og:description" content="${escapeHtml(PAGE_DESCRIPTION)}" />`,
     `<meta property="og:url" content="${escapeHtml(shareUrl)}" />`,
     `<meta property="og:image" content="${escapeHtml(firstPanelUrl)}" />`,
     ...(firstPanel.protocol === 'https:'
@@ -92,7 +92,7 @@ export function createPuzzleSharePage(
     `<meta property="og:image:alt" content="First Scribble Bops clue panel for Issue #${issueNumber}" />`,
     '<meta name="twitter:card" content="summary_large_image" />',
     `<meta name="twitter:title" content="${escapeHtml(PAGE_TITLE)}" />`,
-    `<meta name="twitter:description" content="${escapeHtml(description)}" />`,
+    `<meta name="twitter:description" content="${escapeHtml(PAGE_DESCRIPTION)}" />`,
     `<meta name="twitter:image" content="${escapeHtml(firstPanelUrl)}" />`,
     `<meta name="twitter:image:alt" content="First Scribble Bops clue panel for Issue #${issueNumber}" />`,
   ].map((line) => `    ${line}`).join('\n');

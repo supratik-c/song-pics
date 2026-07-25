@@ -6,8 +6,8 @@ import {
 import type { PuzzleShareRequest } from './share.ts';
 
 const request: PuzzleShareRequest = {
-  title: 'Scribble Bops — Guess the Song',
-  text: 'What song are these suspicious scribbles trying to be?',
+  title: 'Scribble Bops',
+  text: "Can you guess today's song from some highly questionable scribbles?",
   url: 'https://example.test/share/2026-07-23/',
 };
 

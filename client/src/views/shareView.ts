@@ -1,12 +1,10 @@
 import type {
-  PreferredShareAction,
   PuzzleShareRequest,
   ShareOutcome,
 } from '../share.ts';
 
 type ShareControlOptions = {
   request: PuzzleShareRequest;
-  preferredAction: PreferredShareAction;
   share: () => Promise<ShareOutcome>;
 };
 
@@ -17,18 +15,12 @@ export function renderShareControl(
   const button = document.createElement('button');
   const label = document.createElement('span');
   const status = document.createElement('p');
-  const idleLabel = options.preferredAction === 'native-share'
-    ? 'Share puzzle'
-    : 'Copy invite';
-  const busyLabel = options.preferredAction === 'native-share'
-    ? 'Opening share...'
-    : 'Copying invite...';
 
   control.className = 'share-control';
   button.type = 'button';
   button.className = 'share-button tactile-button';
   label.className = 'share-button-label';
-  label.textContent = idleLabel;
+  label.textContent = 'Share';
   status.className = 'share-status';
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
@@ -38,7 +30,6 @@ export function renderShareControl(
 
   button.addEventListener('click', () => {
     button.disabled = true;
-    label.textContent = busyLabel;
     status.replaceChildren();
 
     void options.share().then((outcome) => {
@@ -47,7 +38,6 @@ export function renderShareControl(
       renderShareOutcome(status, 'failed', options.request.url);
     }).finally(() => {
       button.disabled = false;
-      label.textContent = idleLabel;
     });
   });
 
@@ -62,7 +52,7 @@ function renderShareOutcome(
   if (outcome === 'shared') {
     status.textContent = 'Sent to your chosen app.';
   } else if (outcome === 'copied') {
-    status.textContent = 'Invite copied — paste it anywhere.';
+    status.textContent = 'Invite Copied';
   } else if (outcome === 'cancelled') {
     status.textContent = '';
   } else {

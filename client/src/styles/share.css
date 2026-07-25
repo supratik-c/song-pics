@@ -11,8 +11,8 @@
 
 .share-control {
   display: grid;
-  justify-items: center;
-  gap: 12px;
+  justify-items: start;
+  gap: 8px;
 }
 
 .comic-dialog-body .share-control {
@@ -31,16 +31,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  width: min(100%, 390px);
-  min-height: 62px;
-  padding: 13px 26px 10px;
+  gap: 9px;
+  width: auto;
+  max-width: 100%;
+  min-height: 50px;
+  padding: 10px 19px 8px;
   border: 0;
   border-radius: 0;
   color: var(--ink);
   background: transparent;
   box-shadow: none;
-  font-size: clamp(1.15rem, 3vw, 1.55rem);
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
   font-weight: 700;
   line-height: 1.1;
 }
@@ -70,8 +71,8 @@
 
 .share-icon {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   overflow: visible;
   stroke: currentColor;
   stroke-linecap: round;
@@ -87,7 +88,7 @@
   min-height: 1.5em;
   margin: 0;
   font-weight: 700;
-  text-align: center;
+  text-align: left;
 }
 
 .share-status a {

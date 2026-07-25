@@ -82,7 +82,6 @@ export async function initApp(
   );
   const createShareControl = (): HTMLElement => renderShareControl({
     request: shareRequest,
-    preferredAction: dependencies.shareGateway.preferredAction,
     share: () => dependencies.shareGateway.share(shareRequest),
   });
 
@@ -236,7 +235,6 @@ function openResultModal(
     state.status,
     renderShareControl({
       request: shareRequest,
-      preferredAction: shareGateway.preferredAction,
       share: () => shareGateway.share(shareRequest),
     }),
   );

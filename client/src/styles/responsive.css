@@ -138,10 +138,6 @@
     padding: 19px 16px 22px;
   }
 
-  .share-button {
-    width: 100%;
-  }
-
   .comic-dialog {
     width: calc(100% - 18px);
     max-height: calc(100dvh - 18px);

@@ -24,9 +24,8 @@ export function createPuzzleShareRequest(
   url: string,
 ): PuzzleShareRequest {
   return {
-    title: 'Scribble Bops — Guess the Song',
-    text:
-      `Issue #${puzzle.issueNumber}: What song are these suspicious scribbles trying to be?`,
+    title: 'Scribble Bops',
+    text: "Can you guess today's song from some highly questionable scribbles?",
     url,
   };
 }
