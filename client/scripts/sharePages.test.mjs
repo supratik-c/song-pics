@@ -73,7 +73,7 @@ describe('released puzzle share pages', () => {
     expect(laterPage).toContain('property="og:image:secure_url"');
     expect(laterPage).toContain('name="twitter:image:alt"');
     expect(laterPage).toContain(
-      'Can you guess today&#39;s song from some highly questionable scribbles?',
+      'Can you guess today&#39;s song from some questionable hand-drawn doodles?',
     );
     expect(laterPage).not.toContain('Issue #2:');
     expect(() => readSharePage('2026-07-24')).toThrow();

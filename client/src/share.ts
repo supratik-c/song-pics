@@ -25,7 +25,7 @@ export function createPuzzleShareRequest(
 ): PuzzleShareRequest {
   return {
     title: 'Scribble Bops',
-    text: "Can you guess today's song from some highly questionable scribbles?",
+    text: "Can you guess today's song from some questionable hand-drawn doodles?",
     url,
   };
 }

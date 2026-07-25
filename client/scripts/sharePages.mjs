@@ -15,7 +15,7 @@ const SHARE_DIRECTORY_NAME = 'share';
 const SHARE_PAGE_FILE_NAME = 'index.html';
 const PAGE_TITLE = 'Scribble Bops';
 const PAGE_DESCRIPTION =
-  "Can you guess today's song from some highly questionable scribbles?";
+  "Can you guess today's song from some questionable hand-drawn doodles?";
 
 export function writeReleasedPuzzleSharePages(
   projectRoot,

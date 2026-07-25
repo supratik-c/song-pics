@@ -25,7 +25,7 @@ describe('puzzle share request', () => {
     expect(request).toEqual({
       title: 'Scribble Bops',
       text:
-        "Can you guess today's song from some highly questionable scribbles?",
+        "Can you guess today's song from some questionable hand-drawn doodles?",
       url: 'https://example.test/share/2026-07-23/',
     });
   });
@@ -38,7 +38,7 @@ describe('puzzle share request', () => {
 
     expect(getCopyText(request)).toBe(
       'Scribble Bops\n' +
-      "Can you guess today's song from some highly questionable scribbles?\n" +
+      "Can you guess today's song from some questionable hand-drawn doodles?\n" +
       'https://example.test/share/2026-07-23/',
     );
   });
