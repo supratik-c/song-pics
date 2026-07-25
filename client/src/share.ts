@@ -1,4 +1,4 @@
-import type { PuzzleClue } from './types.ts';
+import type { PuzzlePerformance } from './performance.ts';
 
 export type PuzzleShareRequest = {
   title: string;
@@ -19,17 +19,45 @@ export type ShareGateway = {
   share: (request: PuzzleShareRequest) => Promise<ShareOutcome>;
 };
 
+export type PuzzleShareRequestFactory = () => PuzzleShareRequest;
+
 export function createPuzzleShareRequest(
-  puzzle: PuzzleClue,
   url: string,
+  performance: PuzzlePerformance,
 ): PuzzleShareRequest {
   return {
     title: 'Scribble Bops',
-    text: "Can you guess today's song from some questionable hand-drawn doodles?",
+    text:
+      "Can you guess today's song from some questionable hand-drawn doodles?\n" +
+      getPerformanceLine(performance),
     url,
   };
 }
 
 export function getCopyText(request: PuzzleShareRequest): string {
   return `${request.title}\n${request.text}\n${request.url}`;
+}
+
+export async function shareCurrentPuzzle(
+  getRequest: PuzzleShareRequestFactory,
+  share: (request: PuzzleShareRequest) => Promise<ShareOutcome>,
+): Promise<{ request: PuzzleShareRequest; outcome: ShareOutcome }> {
+  const request = getRequest();
+  const outcome = await share(request);
+
+  return { request, outcome };
+}
+
+function getPerformanceLine(performance: PuzzlePerformance): string {
+  if (performance.outcome !== 'solved') {
+    return 'Or will you surrender to the scribbles like me?';
+  }
+
+  if (performance.attemptsUsed <= 0) {
+    return 'I cracked the scribbles!';
+  }
+
+  const guessLabel = performance.attemptsUsed === 1 ? 'guess' : 'guesses';
+
+  return `I got it in ${performance.attemptsUsed} ${guessLabel}!`;
 }

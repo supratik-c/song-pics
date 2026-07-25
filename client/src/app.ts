@@ -7,6 +7,7 @@ import {
 import { GAME_RULES } from './gameConfig.ts';
 import type { HowToPlayManifest } from './howToPlayLoader.ts';
 import type { BuildPuzzleUrl } from './navigation.ts';
+import { getPuzzlePerformance } from './performance.ts';
 import {
   createModalController,
   renderModalMessage,
@@ -15,7 +16,7 @@ import {
 import type { GameStateStore } from './storage.ts';
 import {
   createPuzzleShareRequest,
-  type PuzzleShareRequest,
+  type PuzzleShareRequestFactory,
   type ShareGateway,
 } from './share.ts';
 import {
@@ -76,13 +77,20 @@ export async function initApp(
   }
 
   let state = dependencies.gameStateStore.load(puzzle.id);
-  const shareRequest = createPuzzleShareRequest(
-    puzzle,
-    dependencies.buildPuzzleShareUrl(puzzle.id),
-  );
+  const shareUrl = dependencies.buildPuzzleShareUrl(puzzle.id);
+  const getShareRequest: PuzzleShareRequestFactory = () => {
+    const performance = getPuzzlePerformance(puzzle.id, state);
+
+    if (!performance) {
+      throw new Error('Puzzle performance is unavailable during play.');
+    }
+
+    return createPuzzleShareRequest(shareUrl, performance);
+  };
   const createShareControl = (): HTMLElement => renderShareControl({
-    request: shareRequest,
-    share: () => dependencies.shareGateway.share(shareRequest),
+    fallbackUrl: shareUrl,
+    getRequest: getShareRequest,
+    share: dependencies.shareGateway.share,
   });
 
   elements.shareRegion.replaceChildren(createShareControl());
@@ -122,7 +130,8 @@ export async function initApp(
         puzzle,
         state,
         modal,
-        shareRequest,
+        shareUrl,
+        getShareRequest,
         dependencies.shareGateway,
       );
     }
@@ -147,7 +156,8 @@ export async function initApp(
       puzzle,
       state,
       modal,
-      shareRequest,
+      shareUrl,
+      getShareRequest,
       dependencies.shareGateway,
     );
   });
@@ -223,7 +233,8 @@ function openResultModal(
   puzzle: Puzzle,
   state: GameState,
   modal: ModalController,
-  shareRequest: PuzzleShareRequest,
+  shareUrl: string,
+  getShareRequest: PuzzleShareRequestFactory,
   shareGateway: ShareGateway,
 ): void {
   if (state.status === 'playing') {
@@ -234,8 +245,9 @@ function openResultModal(
     puzzle,
     state.status,
     renderShareControl({
-      request: shareRequest,
-      share: () => shareGateway.share(shareRequest),
+      fallbackUrl: shareUrl,
+      getRequest: getShareRequest,
+      share: shareGateway.share,
     }),
   );
 

@@ -1,11 +1,14 @@
-import type {
-  PuzzleShareRequest,
-  ShareOutcome,
+import {
+  shareCurrentPuzzle,
+  type PuzzleShareRequestFactory,
+  type PuzzleShareRequest,
+  type ShareOutcome,
 } from '../share.ts';
 
 type ShareControlOptions = {
-  request: PuzzleShareRequest;
-  share: () => Promise<ShareOutcome>;
+  fallbackUrl: string;
+  getRequest: PuzzleShareRequestFactory;
+  share: (request: PuzzleShareRequest) => Promise<ShareOutcome>;
 };
 
 export function renderShareControl(
@@ -32,10 +35,10 @@ export function renderShareControl(
     button.disabled = true;
     status.replaceChildren();
 
-    void options.share().then((outcome) => {
-      renderShareOutcome(status, outcome, options.request.url);
+    void shareCurrentPuzzle(options.getRequest, options.share).then((attempt) => {
+      renderShareOutcome(status, attempt.outcome, attempt.request.url);
     }).catch(() => {
-      renderShareOutcome(status, 'failed', options.request.url);
+      renderShareOutcome(status, 'failed', options.fallbackUrl);
     }).finally(() => {
       button.disabled = false;
     });

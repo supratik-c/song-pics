@@ -41,7 +41,9 @@ and normalizes the address to the canonical puzzle query before composing
 navigation URLs. Terminal share controls copy the invitation on desktop and
 use link-only OS sharing on conservatively recognized mobile platforms when
 available. Both paths use the same stable share-page URL; no clue file is
-attached to the browser share payload.
+attached to the browser share payload. The request is derived synchronously
+when the control is activated, so its playful performance line reflects the
+latest in-memory terminal state without delaying the native share call.
 
 ## Build flow
 
@@ -76,6 +78,9 @@ carry the same build identifier; compiled assets use Vite's content hashes.
 - `client/src/app.ts`: application orchestration and browser event handling.
 - `client/src/game.ts` and `gameConfig.ts`: pure game rules, immutable
   transitions, and gameplay policy.
+- `client/src/performance.ts`: a pure terminal-performance read model derived
+  from the current game state; its browser values are not authoritative for
+  competitive leaderboards.
 - `client/src/navigation.ts`: pure query parsing and archive URL behavior.
 - `client/src/share.ts`, `browserShare.ts`, and `views/shareView.ts`: pure share
   requests, browser sharing/copy fallbacks, and reusable share controls.

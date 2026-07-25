@@ -111,7 +111,9 @@ platforms make that action copy the invitation even when the browser exposes an
 OS share mechanism, avoiding desktop share targets that discard the link in
 favour of another payload representation. Conservatively recognized Android,
 iPhone, iPod, and iPadOS browsers use native sharing when it is available; their
-payload contains only the title, spoiler-free invitation, and dated URL.
+payload contains only the title, spoiler-free invitation with terminal
+performance, and dated URL. The request is created synchronously from current
+state inside the activation handler so native sharing retains user activation.
 Unsupported native sharing falls back to copying, and a complete failure leaves
 an operable share-page link. No share-specific image fetch is performed in the
 browser; receiving apps may fetch the first-panel preview from the share page's

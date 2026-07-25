@@ -91,9 +91,18 @@ when a saved puzzle is revisited.
 Every terminal outcome offers the same spoiler-free puzzle invitation at the
 bottom of its result dialog and in the persistent main game region. The
 invitation uses the dated issue URL, whose link preview identifies the first
-clue panel, but never includes the solution, artist, guesses, or outcome. A
-restored terminal state shows the main share control even though its result
-dialog does not reopen automatically.
+clue panel. Solved invitations include the number of recorded attempts with
+singular or plural wording; failed and manually revealed invitations use the
+same playful surrender challenge. They never include the solution, artist, or
+submitted guess text. The share request derives this performance synchronously
+from the latest in-memory state when the control is activated, including for a
+restored terminal state whose result dialog does not reopen automatically.
+
+`getPuzzlePerformance` is a pure terminal read model containing puzzle ID,
+outcome, and recorded attempts. It returns no performance while play continues
+and performs no persistence or network access. It may support future local
+statistics, but a competitive leaderboard must use server-owned validation
+rather than trusting client-derived performance.
 
 ## Persistence and completion
 
