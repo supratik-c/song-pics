@@ -110,13 +110,15 @@ rather than trusting client-derived performance.
 uses `localStorage` under a key derived from the puzzle ID in production; Vite
 development deliberately disables persistence and starts clean. Unavailable
 storage, access failures, and quota errors degrade to in-memory gameplay rather
-than breaking the game. Stored data is treated as untrusted: malformed data
-falls back safely, string guesses are recovered where possible, and a stored
-`playing` state at the attempt limit is corrected to `failed`.
+than breaking the game.
 
-Legacy records migrate as follows: `isSolved: true` becomes `solved`; an
-unsolved record with five guesses becomes `failed`; other legacy records become
-`playing`.
+Stored data is untrusted and must match the current `{ guesses, status }`
+contract exactly. Guesses must be unique, non-empty normalized strings within
+the attempt limit, and their count must agree with the status: `playing` and
+`revealed` remain below the limit, `solved` has at least one attempt, and
+`failed` is exactly at the limit. A malformed or inconsistent record is
+best-effort removed as a whole and play starts clean; no fields are recovered
+and no previous format is migrated.
 
 `CompletionSource` is a separate asynchronous read-model boundary. Its local
 implementation derives completed IDs from terminal states returned by the
@@ -125,8 +127,9 @@ account-backed completion API may have different ownership and timing.
 Completion is refreshed whenever Previous Issues opens. Lookup failure leaves
 navigation usable and simply omits completion markers.
 
-The current wire JSON remains unchanged, but its runtime contract is split by
-capability: `PuzzleClue` contains ID, date, issue, clue, and panels;
+The authored wire JSON uses the single current puzzle shape, while its runtime
+contract is split by capability: `PuzzleClue` contains ID, date, issue, clue,
+and panels;
 `PuzzleSolution` contains title, artist, accepted answers, and optional video;
 `Puzzle` combines them. Views and domain functions accept the narrowest useful
 contract, reducing accidental solution access.

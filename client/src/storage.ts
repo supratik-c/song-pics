@@ -1,4 +1,4 @@
-import { createInitialGameState } from './game.ts';
+import { createInitialGameState, normalizeText } from './game.ts';
 import { GAME_RULES, type GameRules } from './gameConfig.ts';
 import type { GameState, GameStatus } from './types.ts';
 import { isRecord } from './validation.ts';
@@ -36,30 +36,21 @@ export function createLocalGameStateStore({
         (storage) => storage.getItem(key),
       );
 
-      if (!stored) {
+      if (stored === null || stored === undefined) {
         return fallback;
       }
 
       try {
         const parsed: unknown = JSON.parse(stored);
+        const state = parseStoredGameState(parsed, rules);
 
-        if (!isRecord(parsed)) {
-          return fallback;
+        if (state) {
+          return state;
         }
+      } catch {}
 
-        const guesses = Array.isArray(parsed.guesses)
-          ? parsed.guesses.filter(
-            (guess): guess is string => typeof guess === 'string',
-          )
-          : [];
-
-        return {
-          guesses,
-          status: resolveStoredStatus(parsed, guesses.length, rules),
-        };
-      } catch {
-        return fallback;
-      }
+      tryStorage(getStorage, (storage) => storage.removeItem(key));
+      return fallback;
     },
     save: (puzzleId, state) => {
       if (!shouldPersist) {
@@ -77,31 +68,52 @@ export function storageKey(puzzleId: string): string {
   return `scribble-bops:${puzzleId}`;
 }
 
-function resolveStoredStatus(
-  value: Record<string, unknown>,
-  guessCount: number,
+function parseStoredGameState(
+  value: unknown,
   rules: GameRules,
-): GameStatus {
-  if (isGameStatus(value.status)) {
-    if (
-      value.status === 'playing' &&
-      guessCount >= rules.maxAttempts
-    ) {
-      return 'failed';
-    }
-
-    return value.status;
+): GameState | null {
+  if (!isRecord(value) || !hasExactGameStateKeys(value)) {
+    return null;
   }
 
-  if (value.isSolved === true) {
-    return 'solved';
+  if (
+    !Array.isArray(value.guesses) ||
+    !value.guesses.every(isStoredGuess) ||
+    new Set(value.guesses).size !== value.guesses.length ||
+    !isGameStatus(value.status)
+  ) {
+    return null;
   }
 
-  if (guessCount >= rules.maxAttempts) {
-    return 'failed';
+  const attemptsUsed = value.guesses.length;
+  const hasValidAttemptCount = value.status === 'failed'
+    ? attemptsUsed === rules.maxAttempts
+    : value.status === 'solved'
+      ? attemptsUsed >= 1 && attemptsUsed <= rules.maxAttempts
+      : attemptsUsed < rules.maxAttempts;
+
+  if (!hasValidAttemptCount) {
+    return null;
   }
 
-  return 'playing';
+  return {
+    guesses: [...value.guesses],
+    status: value.status,
+  };
+}
+
+function hasExactGameStateKeys(value: Record<string, unknown>): boolean {
+  const keys = Object.keys(value);
+
+  return keys.length === 2 &&
+    Object.hasOwn(value, 'guesses') &&
+    Object.hasOwn(value, 'status');
+}
+
+function isStoredGuess(value: unknown): value is string {
+  return typeof value === 'string' &&
+    value.length > 0 &&
+    normalizeText(value) === value;
 }
 
 function isGameStatus(value: unknown): value is GameStatus {

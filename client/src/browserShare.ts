@@ -10,7 +10,6 @@ type ShareEnvironment = {
   isMobilePlatform: boolean;
   share?: (data: ShareData) => Promise<void>;
   writeText?: (text: string) => Promise<void>;
-  legacyCopy: (text: string) => boolean;
 };
 
 type PlatformSignals = {
@@ -33,16 +32,16 @@ export function createBrowserShareGateway(
   ): Promise<ShareOutcome> => {
     const copyText = getCopyText(request);
 
-    if (environment.writeText) {
-      try {
-        await environment.writeText(copyText);
-        return 'copied';
-      } catch {
-        // Continue to the synchronous fallback.
-      }
+    if (!environment.writeText) {
+      return 'failed';
     }
 
-    return environment.legacyCopy(copyText) ? 'copied' : 'failed';
+    try {
+      await environment.writeText(copyText);
+      return 'copied';
+    } catch {
+      return 'failed';
+    }
   };
 
   return {
@@ -86,7 +85,6 @@ function createBrowserEnvironment(): ShareEnvironment {
     }),
     share: navigator.share?.bind(navigator),
     writeText: navigator.clipboard?.writeText.bind(navigator.clipboard),
-    legacyCopy,
   };
 }
 
@@ -109,23 +107,4 @@ function isShareCancellation(error: unknown): boolean {
     error !== null &&
     'name' in error &&
     error.name === 'AbortError';
-}
-
-function legacyCopy(text: string): boolean {
-  const textarea = document.createElement('textarea');
-
-  textarea.value = text;
-  textarea.setAttribute('readonly', '');
-  textarea.style.position = 'fixed';
-  textarea.style.opacity = '0';
-  document.body.append(textarea);
-  textarea.select();
-
-  try {
-    return document.execCommand('copy');
-  } catch {
-    return false;
-  } finally {
-    textarea.remove();
-  }
 }

@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
+import { createInitialGameState, submitGuess } from './game.ts';
+import { GAME_RULES } from './gameConfig.ts';
 import { getPuzzlePerformance } from './performance.ts';
 import {
   createPuzzleShareRequest,
@@ -50,17 +52,6 @@ describe('puzzle share request', () => {
     },
   );
 
-  it('avoids claiming a zero-attempt restored solve', () => {
-    const request = createPuzzleShareRequest(shareUrl, {
-      puzzleId,
-      outcome: 'solved',
-      attemptsUsed: 0,
-    });
-
-    expect(request.text).toContain('I cracked the scribbles!');
-    expect(request.text).not.toContain('0 guesses');
-  });
-
   it('formats the clipboard invitation in the intended line order', () => {
     const request = createPuzzleShareRequest(shareUrl, {
       puzzleId,
@@ -77,7 +68,7 @@ describe('puzzle share request', () => {
   });
 
   it('resolves performance from the latest state when sharing begins', async () => {
-    let state: GameState = { guesses: [], status: 'playing' };
+    let state: GameState = createInitialGameState();
     const share = vi.fn().mockResolvedValue('copied' as const);
     const getRequest = () => {
       const performance = getPuzzlePerformance(puzzleId, state);
@@ -89,10 +80,8 @@ describe('puzzle share request', () => {
       return createPuzzleShareRequest(shareUrl, performance);
     };
 
-    state = {
-      guesses: ['first attempt', 'winning attempt'],
-      status: 'solved',
-    };
+    state = recordGuess(state, 'first attempt');
+    state = recordGuess(state, 'winning attempt');
 
     const attempt = await shareCurrentPuzzle(getRequest, share);
 
@@ -114,3 +103,21 @@ describe('puzzle share request', () => {
     expect(getCopyText(request)).not.toContain('secret correct answer');
   });
 });
+
+function recordGuess(state: GameState, guess: string): GameState {
+  const submission = submitGuess(
+    state,
+    guess,
+    {
+      acceptedAnswers: ['winning attempt'],
+      artist: 'The Artist',
+    },
+    GAME_RULES,
+  );
+
+  if (submission.kind !== 'recorded') {
+    throw new Error(`Expected a recorded guess, got ${submission.reason}.`);
+  }
+
+  return submission.state;
+}

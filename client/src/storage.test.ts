@@ -29,18 +29,30 @@ describe('local game-state storage', () => {
     expect(storageKey('2026-07-23')).toBe('scribble-bops:2026-07-23');
   });
 
-  it('round-trips current game state by puzzle ID', () => {
+  it.each([
+    { guesses: ['one', 'two', 'three', 'four'], status: 'playing' },
+    { guesses: ['answer'], status: 'solved' },
+    {
+      guesses: ['one', 'two', 'three', 'four', 'answer'],
+      status: 'solved',
+    },
+    { guesses: [], status: 'revealed' },
+    { guesses: ['one', 'two', 'three', 'four'], status: 'revealed' },
+    {
+      guesses: ['one', 'two', 'three', 'four', 'five'],
+      status: 'failed',
+    },
+  ] as const)('round-trips a current $status state by puzzle ID', (state) => {
     const storage = createMemoryStorage();
     const store = createLocalGameStateStore({
       shouldPersist: true,
       getStorage: () => storage,
     });
-    const state: GameState = {
-      guesses: ['first guess'],
-      status: 'revealed',
-    };
 
-    store.save('2026-07-23', state);
+    store.save('2026-07-23', {
+      guesses: [...state.guesses],
+      status: state.status,
+    });
 
     expect(store.load('2026-07-23')).toEqual(state);
     expect(
@@ -48,10 +60,68 @@ describe('local game-state storage', () => {
     ).toBe(false);
   });
 
-  it('migrates solved legacy state', () => {
+  it.each([
+    {
+      name: 'an unknown field',
+      value: { guesses: ['one'], status: 'playing', extra: true },
+    },
+    {
+      name: 'a missing field',
+      value: { status: 'playing' },
+    },
+    {
+      name: 'an unknown status',
+      value: { guesses: ['one'], status: 'complete' },
+    },
+    {
+      name: 'a partially malformed guess list',
+      value: { guesses: ['one', 2], status: 'playing' },
+    },
+    {
+      name: 'an empty guess',
+      value: { guesses: [''], status: 'playing' },
+    },
+    {
+      name: 'a non-normalized guess',
+      value: { guesses: ['Hey Jude'], status: 'playing' },
+    },
+    {
+      name: 'duplicate guesses',
+      value: { guesses: ['one', 'one'], status: 'playing' },
+    },
+    {
+      name: 'a zero-attempt solved state',
+      value: { guesses: [], status: 'solved' },
+    },
+    {
+      name: 'an exhausted playing state',
+      value: {
+        guesses: ['one', 'two', 'three', 'four', 'five'],
+        status: 'playing',
+      },
+    },
+    {
+      name: 'a failed state below the attempt limit',
+      value: { guesses: ['one', 'two'], status: 'failed' },
+    },
+    {
+      name: 'a revealed state at the attempt limit',
+      value: {
+        guesses: ['one', 'two', 'three', 'four', 'five'],
+        status: 'revealed',
+      },
+    },
+    {
+      name: 'a solved state above the attempt limit',
+      value: {
+        guesses: ['one', 'two', 'three', 'four', 'five', 'answer'],
+        status: 'solved',
+      },
+    },
+  ])('rejects $name instead of repairing it', ({ value }) => {
     const key = storageKey('2026-07-23');
     const storage = createMemoryStorage({
-      [key]: JSON.stringify({ guesses: ['hey jude'], isSolved: true }),
+      [key]: JSON.stringify(value),
     });
     const store = createLocalGameStateStore({
       shouldPersist: true,
@@ -59,65 +129,11 @@ describe('local game-state storage', () => {
     });
 
     expect(store.load('2026-07-23')).toEqual({
-      guesses: ['hey jude'],
-      status: 'solved',
-    });
-  });
-
-  it('migrates an exhausted legacy state to failed', () => {
-    const guesses = ['one', 'two', 'three', 'four', 'five'];
-    const storage = createMemoryStorage({
-      [storageKey('2026-07-23')]: JSON.stringify({
-        guesses,
-        isSolved: false,
-      }),
-    });
-    const store = createLocalGameStateStore({
-      shouldPersist: true,
-      getStorage: () => storage,
-    });
-
-    expect(store.load('2026-07-23')).toEqual({
-      guesses,
-      status: 'failed',
-    });
-  });
-
-  it('migrates unfinished legacy state to playing', () => {
-    const storage = createMemoryStorage({
-      [storageKey('2026-07-23')]: JSON.stringify({
-        guesses: ['one', 'two'],
-        isSolved: false,
-      }),
-    });
-    const store = createLocalGameStateStore({
-      shouldPersist: true,
-      getStorage: () => storage,
-    });
-
-    expect(store.load('2026-07-23')).toEqual({
-      guesses: ['one', 'two'],
+      guesses: [],
       status: 'playing',
     });
-  });
-
-  it('repairs an exhausted current playing state and filters bad guesses', () => {
-    const storage = createMemoryStorage({
-      [storageKey('2026-07-23')]: JSON.stringify({
-        guesses: ['one', 2, 'three'],
-        status: 'playing',
-      }),
-    });
-    const store = createLocalGameStateStore({
-      shouldPersist: true,
-      getStorage: () => storage,
-      rules: { maxAttempts: 2, maxAnswerLength: 64 },
-    });
-
-    expect(store.load('2026-07-23')).toEqual({
-      guesses: ['one', 'three'],
-      status: 'failed',
-    });
+    expect(storage.removeItem).toHaveBeenCalledWith(key);
+    expect(storage.values.has(key)).toBe(false);
   });
 
   it.each([
@@ -137,6 +153,9 @@ describe('local game-state storage', () => {
       guesses: [],
       status: 'playing',
     });
+    expect(storage.removeItem).toHaveBeenCalledWith(
+      storageKey('2026-07-23'),
+    );
   });
 
   it('clears stale progress and ignores saves when persistence is disabled', () => {

@@ -53,10 +53,6 @@ function getPerformanceLine(performance: PuzzlePerformance): string {
     return 'Or will you succumb to the scribbles?';
   }
 
-  if (performance.attemptsUsed <= 0) {
-    return 'I cracked the scribbles!';
-  }
-
   const guessLabel = performance.attemptsUsed === 1 ? 'guess' : 'guesses';
 
   return `I got it in ${performance.attemptsUsed} ${guessLabel}!`;

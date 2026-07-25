@@ -25,6 +25,13 @@ const PUZZLE_DIRECTORY = '/content/puzzles';
 const PUZZLE_FILE_NAME = 'puzzle.json';
 const PUZZLE_INDEX_PATH = `${PUZZLE_DIRECTORY}/index.json`;
 const PUZZLE_PANELS_PATH = `${PUZZLE_DIRECTORY}/panels.json`;
+const puzzleJsonFields = new Set([
+  'songClue',
+  'songTitle',
+  'artist',
+  'acceptedAnswers',
+  'youtubeURL',
+]);
 
 export async function loadPuzzle(
   requestedPuzzleId: string | null,
@@ -78,21 +85,14 @@ export function isPuzzleJson(value: unknown): value is PuzzleJson {
   }
 
   return (
+    Object.keys(value).every((field) => puzzleJsonFields.has(field)) &&
     isNonEmptyString(value.songClue) &&
     isNonEmptyString(value.songTitle) &&
     isNonEmptyString(value.artist) &&
     Array.isArray(value.acceptedAnswers) &&
     value.acceptedAnswers.length > 0 &&
     value.acceptedAnswers.every(isNonEmptyString) &&
-    isOptionalNonEmptyString(value.youtubeURL) &&
-    (
-      value.panels === undefined ||
-      (
-        Array.isArray(value.panels) &&
-        value.panels.length > 0 &&
-        value.panels.every(isPuzzlePanel)
-      )
-    )
+    isOptionalNonEmptyString(value.youtubeURL)
   );
 }
 
@@ -178,11 +178,10 @@ async function loadPuzzleJson(
     'puzzle',
     isPuzzleJson,
   );
-  const panels = puzzleJson.panels ?? await loadPuzzlePanels(puzzleId);
-  const { panels: _explicitPanels, ...puzzleContent } = puzzleJson;
+  const panels = await loadPuzzlePanels(puzzleId);
 
   return {
-    ...puzzleContent,
+    ...puzzleJson,
     id: puzzleId,
     displayDate: formatPuzzleDisplayDate(puzzleId),
     issueNumber,

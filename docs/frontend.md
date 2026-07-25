@@ -114,10 +114,10 @@ iPhone, iPod, and iPadOS browsers use native sharing when it is available; their
 payload contains only the title, spoiler-free invitation with terminal
 performance, and dated URL. The request is created synchronously from current
 state inside the activation handler so native sharing retains user activation.
-Unsupported native sharing falls back to copying, and a complete failure leaves
-an operable share-page link. No share-specific image fetch is performed in the
-browser; receiving apps may fetch the first-panel preview from the share page's
-static metadata.
+Unsupported native sharing falls back to the Clipboard API. If modern clipboard
+access is unavailable or rejected, the control leaves an operable share-page
+link. No share-specific image fetch is performed in the browser; receiving apps
+may fetch the first-panel preview from the share page's static metadata.
 
 ## Stylesheet structure
 

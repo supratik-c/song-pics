@@ -74,11 +74,11 @@ describe('authored puzzle validation', () => {
     })).toThrow('duplicates acceptedAnswers[0] after normalization');
   });
 
-  it('validates explicit panel entries when present', () => {
+  it.each(['panels', 'unknown'])('rejects the unsupported %s field', (field) => {
     expect(() => validatePuzzleJson({
       ...validPuzzle,
-      panels: [{ src: '' }],
-    })).toThrow('panels[0].src must be a non-empty string');
+      [field]: field === 'panels' ? [{ src: '1.webp' }] : true,
+    })).toThrow(`${field} is not a supported field`);
   });
 });
 

@@ -62,7 +62,6 @@ describe('browser share gateway', () => {
     const gateway = createBrowserShareGateway({
       isMobilePlatform: true,
       share,
-      legacyCopy: () => false,
     });
 
     expect(gateway.preferredAction).toBe('native-share');
@@ -81,7 +80,6 @@ describe('browser share gateway', () => {
       isMobilePlatform: false,
       share,
       writeText,
-      legacyCopy: () => false,
     });
 
     expect(gateway.preferredAction).toBe('copy');
@@ -97,7 +95,6 @@ describe('browser share gateway', () => {
     const gateway = createBrowserShareGateway({
       isMobilePlatform: true,
       writeText,
-      legacyCopy: () => false,
     });
 
     expect(gateway.preferredAction).toBe('copy');
@@ -110,7 +107,6 @@ describe('browser share gateway', () => {
       isMobilePlatform: true,
       share: vi.fn().mockRejectedValue({ name: 'AbortError' }),
       writeText,
-      legacyCopy: () => false,
     });
 
     await expect(gateway.share(request)).resolves.toBe('cancelled');
@@ -123,29 +119,24 @@ describe('browser share gateway', () => {
       isMobilePlatform: true,
       share: vi.fn().mockRejectedValue(new Error('share failed')),
       writeText,
-      legacyCopy: () => false,
     });
 
     await expect(gateway.share(request)).resolves.toBe('copied');
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining(request.url));
   });
 
-  it('uses legacy copying after clipboard failure', async () => {
-    const legacyCopy = vi.fn().mockReturnValue(true);
+  it('reports failure when clipboard access is rejected', async () => {
     const gateway = createBrowserShareGateway({
       isMobilePlatform: false,
       writeText: vi.fn().mockRejectedValue(new Error('denied')),
-      legacyCopy,
     });
 
-    await expect(gateway.share(request)).resolves.toBe('copied');
-    expect(legacyCopy).toHaveBeenCalledWith(expect.stringContaining(request.url));
+    await expect(gateway.share(request)).resolves.toBe('failed');
   });
 
-  it('reports failure when neither sharing nor copying works', async () => {
+  it('reports failure when clipboard access is unavailable', async () => {
     const gateway = createBrowserShareGateway({
       isMobilePlatform: false,
-      legacyCopy: () => false,
     });
 
     await expect(gateway.share(request)).resolves.toBe('failed');

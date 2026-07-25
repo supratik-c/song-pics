@@ -19,10 +19,7 @@ export type PuzzleSolution = {
 
 export type Puzzle = PuzzleClue & PuzzleSolution;
 
-export type PuzzleJson = Pick<PuzzleClue, 'songClue'> &
-  PuzzleSolution & {
-  panels?: PuzzlePanel[];
-};
+export type PuzzleJson = Pick<PuzzleClue, 'songClue'> & PuzzleSolution;
 
 export type PuzzlePanelsManifest = Record<string, PuzzlePanel[]>;
 

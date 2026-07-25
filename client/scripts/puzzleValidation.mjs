@@ -3,6 +3,13 @@ const supportedYouTubeHosts = new Set([
   'www.youtube.com',
   'youtu.be',
 ]);
+const puzzleJsonFields = new Set([
+  'songClue',
+  'songTitle',
+  'artist',
+  'acceptedAnswers',
+  'youtubeURL',
+]);
 
 export function parsePuzzleJson(source, sourcePath) {
   let value;
@@ -21,6 +28,17 @@ export function parsePuzzleJson(source, sourcePath) {
 export function validatePuzzleJson(value, sourcePath = 'puzzle.json') {
   if (!isRecord(value)) {
     throw invalidPuzzle(sourcePath, 'must contain a JSON object');
+  }
+
+  const unsupportedField = Object.keys(value).find(
+    (field) => !puzzleJsonFields.has(field),
+  );
+
+  if (unsupportedField) {
+    throw invalidPuzzle(
+      sourcePath,
+      `${unsupportedField} is not a supported field`,
+    );
   }
 
   assertNonEmptyString(value.songClue, 'songClue', sourcePath);
@@ -54,10 +72,6 @@ export function validatePuzzleJson(value, sourcePath = 'puzzle.json') {
         'youtubeURL must identify a video on youtube.com, www.youtube.com, or youtu.be',
       );
     }
-  }
-
-  if (value.panels !== undefined) {
-    validateExplicitPanels(value.panels, sourcePath);
   }
 
   validateAcceptedAnswers(value, sourcePath);
@@ -130,23 +144,6 @@ export function isSupportedYouTubeUrl(value) {
   } catch {
     return false;
   }
-}
-
-function validateExplicitPanels(value, sourcePath) {
-  if (!Array.isArray(value) || value.length === 0) {
-    throw invalidPuzzle(sourcePath, 'panels must be a non-empty array');
-  }
-
-  value.forEach((panel, index) => {
-    if (!isRecord(panel)) {
-      throw invalidPuzzle(
-        sourcePath,
-        `panels[${index}] must be an object`,
-      );
-    }
-
-    assertNonEmptyString(panel.src, `panels[${index}].src`, sourcePath);
-  });
 }
 
 function validateAcceptedAnswers(puzzle, sourcePath) {

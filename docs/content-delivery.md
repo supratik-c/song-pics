@@ -29,9 +29,9 @@ Required strings and `acceptedAnswers` must be non-empty. The canonical title
 must have a matching accepted answer after normalization, and accepted answers
 must not contain normalized duplicates. `youtubeURL` is optional and must use a
 supported `youtube.com`, `www.youtube.com`, or `youtu.be` video form. The ID,
-formatted date, and issue number are runtime-derived fields and do not belong in
-source JSON. Panels are normally inferred; an explicit `panels` array is
-available only when filename inference cannot express the intended content.
+formatted date, issue number, and panels are runtime-derived fields and do not
+belong in source JSON. Any unknown field is rejected. Panel metadata is always
+generated from the files in the puzzle directory.
 
 Panel filenames may have numeric gaps; their integer values control display
 order. Metadata generation recognizes AVIF, GIF, JPEG, PNG, and WebP. New
@@ -95,9 +95,10 @@ and non-empty-string checks live in `validation.ts`; puzzle JSON, panel
 manifests, tutorial data, archive data, and build-version data are validated
 before entering application code.
 
-The source puzzle JSON wire shape is unchanged. Runtime types distinguish
-`PuzzleClue` from `PuzzleSolution` and combine them as `Puzzle`, allowing code
-to accept only the data it needs while static delivery still ships both.
+Source puzzle JSON uses the single authored shape documented above. Runtime
+types distinguish `PuzzleClue` from `PuzzleSolution` and combine them as
+`Puzzle`, allowing code to accept only the data it needs while static delivery
+still ships both.
 Puzzle, panel, tutorial, and miscellaneous content URLs pass through
 `resolvePublicPath`, which applies Vite's `BASE_URL` and adds the current build
 identifier. External URLs are returned unchanged. The build-version check

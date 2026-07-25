@@ -30,17 +30,8 @@ const validHowToPlay = {
 };
 
 describe('puzzle runtime guards', () => {
-  it('accepts a complete puzzle with inferred panels', () => {
+  it('accepts the current authored puzzle contract', () => {
     expect(isPuzzleJson(validPuzzle)).toBe(true);
-  });
-
-  it('accepts valid explicit panels', () => {
-    expect(
-      isPuzzleJson({
-        ...validPuzzle,
-        panels: [{ src: '1.webp' }, { src: 'nested/2.png' }],
-      }),
-    ).toBe(true);
   });
 
   it.each([
@@ -52,8 +43,8 @@ describe('puzzle runtime guards', () => {
     { ...validPuzzle, acceptedAnswers: [] },
     { ...validPuzzle, acceptedAnswers: ['Hey Jude', ''] },
     { ...validPuzzle, youtubeURL: '' },
-    { ...validPuzzle, panels: [] },
-    { ...validPuzzle, panels: [{ src: '' }] },
+    { ...validPuzzle, panels: [{ src: '1.webp' }] },
+    { ...validPuzzle, unknown: true },
   ])('rejects malformed puzzle data %#', (value) => {
     expect(isPuzzleJson(value)).toBe(false);
   });
