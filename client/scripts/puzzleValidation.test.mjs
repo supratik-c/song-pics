@@ -26,8 +26,8 @@ const validPuzzle = {
 describe('build-side answer normalization', () => {
   it.each(answerFixture.normalizationCases)(
     '$name',
-    ({ input, artist, expected }) => {
-      expect(normalizePuzzleAnswer(input, artist)).toEqual(expected);
+    ({ input, expected }) => {
+      expect(normalizePuzzleAnswer(input)).toBe(expected);
     },
   );
 });

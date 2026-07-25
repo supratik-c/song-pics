@@ -37,17 +37,18 @@ only consumer rather than becoming global configuration.
 `client/src/game.ts` owns answer normalization and matching. Normalization:
 
 - lowercases text, removes accents and punctuation, converts `&` to `and`, and
-  collapses whitespace;
-- removes matching artist words, including a preceding `by`, before matching.
+  collapses whitespace.
 
 `submitGuess` rejects raw input longer than `GAME_RULES.maxAnswerLength` before
 normalization.
 
 A normalized guess matches any normalized `acceptedAnswers` entry. Empty
-answers, repeated normalized guesses, and answers containing only the artist do
-not consume an attempt. When artist text is removed from a guess, the artist
-hint is revealed. Players receive five non-duplicate normalized guesses by
-default.
+answers and repeated normalized guesses do not consume an attempt. Artist text
+has no special matching behavior: partial or complete artist guesses consume an
+attempt like any other incorrect guess, and adding artist text to a song title
+does not produce a match unless that complete value is explicitly accepted.
+The Reveal Artist button is the only pre-solve path that reveals the artist.
+Players receive five non-duplicate normalized guesses by default.
 
 Puzzle content should include the canonical title and genuinely useful
 alternate titles in `acceptedAnswers`, but should not duplicate variants already
@@ -64,11 +65,11 @@ DOM handlers:
 - `revealSong(state)` returns the revealed state only while play is active.
 
 `GuessSubmission` is discriminated by `kind`. A `recorded` result contains the
-next state. An `invalid` result identifies `too-long`, `empty`, `artist-only`,
-`duplicate`, or `not-playing`; expected input problems do not use exceptions or
-consume an attempt. Terminal operations are no-ops. This keeps transitions
-testable without a DOM and gives the application one explicit place to map
-domain outcomes to messages and focus behavior.
+next state. An `invalid` result identifies `too-long`, `empty`, `duplicate`, or
+`not-playing`; expected input problems do not use exceptions or consume an
+attempt. Terminal operations are no-ops. This keeps transitions testable
+without a DOM and gives the application one explicit place to map domain
+outcomes to messages and focus behavior.
 
 Game state contains normalized guesses and one status:
 

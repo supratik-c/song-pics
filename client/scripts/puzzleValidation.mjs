@@ -79,54 +79,8 @@ export function validatePuzzleJson(value, sourcePath = 'puzzle.json') {
   return value;
 }
 
-export function normalizePuzzleAnswer(answer, artist) {
-  const normalizedInput = normalizeText(answer);
-  const normalizedArtist = normalizeText(artist);
-  const answerWords = normalizedInput ? normalizedInput.split(' ') : [];
-  const artistWords = normalizedArtist ? normalizedArtist.split(' ') : [];
-  let artistRemoved = false;
-
-  for (
-    let subsetLength = artistWords.length;
-    subsetLength >= 1;
-    subsetLength -= 1
-  ) {
-    for (
-      let artistStart = 0;
-      artistStart <= artistWords.length - subsetLength;
-      artistStart += 1
-    ) {
-      const artistSubset = artistWords.slice(
-        artistStart,
-        artistStart + subsetLength,
-      );
-      let answerStart = 0;
-
-      while (answerStart <= answerWords.length - artistSubset.length) {
-        const matches = artistSubset.every(
-          (word, index) => answerWords[answerStart + index] === word,
-        );
-
-        if (!matches) {
-          answerStart += 1;
-          continue;
-        }
-
-        answerWords.splice(answerStart, artistSubset.length);
-        artistRemoved = true;
-
-        if (answerStart > 0 && answerWords[answerStart - 1] === 'by') {
-          answerWords.splice(answerStart - 1, 1);
-          answerStart -= 1;
-        }
-      }
-    }
-  }
-
-  return {
-    answer: answerWords.join(' ').trim(),
-    artistRemoved,
-  };
+export function normalizePuzzleAnswer(answer) {
+  return normalizeText(answer);
 }
 
 export function isSupportedYouTubeUrl(value) {
@@ -147,14 +101,11 @@ export function isSupportedYouTubeUrl(value) {
 }
 
 function validateAcceptedAnswers(puzzle, sourcePath) {
-  const normalizedCanonical = normalizePuzzleAnswer(
-    puzzle.songTitle,
-    puzzle.artist,
-  ).answer;
+  const normalizedCanonical = normalizePuzzleAnswer(puzzle.songTitle);
   const normalizedAnswers = new Map();
 
   puzzle.acceptedAnswers.forEach((answer, index) => {
-    const normalized = normalizePuzzleAnswer(answer, puzzle.artist).answer;
+    const normalized = normalizePuzzleAnswer(answer);
 
     if (!normalized) {
       throw invalidPuzzle(

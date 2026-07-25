@@ -1,18 +1,9 @@
 import type { GameRules } from './gameConfig.ts';
-import type {
-  GameState,
-  PuzzleSolution,
-} from './types.ts';
-
-export type NormalizedAnswer = {
-  answer: string;
-  artistRemoved: boolean;
-};
+import type { GameState, PuzzleSolution } from './types.ts';
 
 export type InvalidGuessReason =
   | 'too-long'
   | 'empty'
-  | 'artist-only'
   | 'duplicate'
   | 'not-playing';
 
@@ -20,12 +11,10 @@ export type GuessSubmission =
   | {
     kind: 'recorded';
     state: GameState;
-    artistRemoved: boolean;
   }
   | {
     kind: 'invalid';
     reason: InvalidGuessReason;
-    artistRemoved: boolean;
   };
 
 export function createInitialGameState(): GameState {
@@ -38,7 +27,7 @@ export function createInitialGameState(): GameState {
 export function submitGuess(
   state: Readonly<GameState>,
   rawGuess: string,
-  solution: Pick<PuzzleSolution, 'acceptedAnswers' | 'artist'>,
+  solution: Pick<PuzzleSolution, 'acceptedAnswers'>,
   rules: GameRules,
 ): GuessSubmission {
   if (state.status !== 'playing') {
@@ -49,25 +38,18 @@ export function submitGuess(
     return invalid('too-long');
   }
 
-  const normalized = normalizeAnswer(rawGuess, solution.artist);
+  const normalized = normalizeAnswer(rawGuess);
 
-  if (normalized.answer.length === 0) {
-    return invalid(
-      normalized.artistRemoved ? 'artist-only' : 'empty',
-      normalized.artistRemoved,
-    );
+  if (normalized.length === 0) {
+    return invalid('empty');
   }
 
-  if (state.guesses.includes(normalized.answer)) {
-    return invalid('duplicate', normalized.artistRemoved);
+  if (state.guesses.includes(normalized)) {
+    return invalid('duplicate');
   }
 
-  const guesses = [...state.guesses, normalized.answer];
-  const status = isAcceptedAnswer(
-    normalized.answer,
-    solution.acceptedAnswers,
-    solution.artist,
-  )
+  const guesses = [...state.guesses, normalized];
+  const status = isAcceptedAnswer(normalized, solution.acceptedAnswers)
     ? 'solved'
     : guesses.length >= rules.maxAttempts
       ? 'failed'
@@ -76,7 +58,6 @@ export function submitGuess(
   return {
     kind: 'recorded',
     state: { guesses, status },
-    artistRemoved: normalized.artistRemoved,
   };
 }
 
@@ -91,65 +72,8 @@ export function revealSong(state: GameState): GameState {
   };
 }
 
-export function normalizeAnswer(
-  answer: string,
-  artist: string,
-): NormalizedAnswer {
-  const normalizedInput = normalizeText(answer);
-  const normalizedArtist = normalizeText(artist);
-
-  const answerWords = normalizedInput.length > 0
-    ? normalizedInput.split(' ')
-    : [];
-  const artistWords = normalizedArtist.length > 0
-    ? normalizedArtist.split(' ')
-    : [];
-
-  let artistRemoved = false;
-
-  /* Try longer artist subsets before shorter ones. */
-  for (
-    let subsetLength = artistWords.length;
-    subsetLength >= 1;
-    subsetLength -= 1
-  ) {
-    for (
-      let artistStart = 0;
-      artistStart <= artistWords.length - subsetLength;
-      artistStart += 1
-    ) {
-      const artistSubset = artistWords.slice(
-        artistStart,
-        artistStart + subsetLength,
-      );
-
-      let answerStart = 0;
-
-      while (answerStart <= answerWords.length - artistSubset.length) {
-        const matches = artistSubset.every(
-          (word, index) => answerWords[answerStart + index] === word,
-        );
-
-        if (!matches) {
-          answerStart += 1;
-          continue;
-        }
-
-        answerWords.splice(answerStart, artistSubset.length);
-        artistRemoved = true;
-
-        if (answerStart > 0 && answerWords[answerStart - 1] === 'by') {
-          answerWords.splice(answerStart - 1, 1);
-          answerStart -= 1;
-        }
-      }
-    }
-  }
-
-  return {
-    answer: answerWords.join(' ').trim(),
-    artistRemoved,
-  };
+export function normalizeAnswer(answer: string): string {
+  return normalizeText(answer);
 }
 
 export function normalizeText(value: string): string {
@@ -166,17 +90,12 @@ export function normalizeText(value: string): string {
 export function isAcceptedAnswer(
   guess: string,
   acceptedAnswers: readonly string[],
-  artist: string,
 ): boolean {
   return acceptedAnswers.some(
-    (acceptedAnswer) =>
-      normalizeAnswer(acceptedAnswer, artist).answer === guess,
+    (acceptedAnswer) => normalizeAnswer(acceptedAnswer) === guess,
   );
 }
 
-function invalid(
-  reason: InvalidGuessReason,
-  artistRemoved = false,
-): GuessSubmission {
-  return { kind: 'invalid', reason, artistRemoved };
+function invalid(reason: InvalidGuessReason): GuessSubmission {
+  return { kind: 'invalid', reason };
 }

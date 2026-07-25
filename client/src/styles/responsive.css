@@ -55,18 +55,17 @@
   }
 
   .game-header .eyebrow {
-    grid-row: 1;
-  }
-
-  .game-header h2 {
     grid-row: 2;
   }
 
+  .game-header h2 {
+    grid-row: 3;
+  }
+
   .issue-navigation {
-    grid-row: auto;
+    grid-row: 1;
     justify-self: end;
     width: min(100%, 270px);
-    margin-top: 7px;
   }
 
   .panels {

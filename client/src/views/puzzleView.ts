@@ -133,7 +133,7 @@ export function renderArtistHint(
   elements: GameElements,
   artist: string,
 ): void {
-  elements.artistHint.textContent = `Artist: ${artist}`;
+  elements.artistHint.textContent = `${artist}`;
   elements.artistHint.hidden = false;
   elements.revealArtistButton.hidden = true;
 }
@@ -147,8 +147,6 @@ export function renderGuessValidation(
     'too-long':
       `Your answer is too long. Please use ${rules.maxAnswerLength} characters or fewer.`,
     empty: 'Please enter an answer containing letters or numbers.',
-    'artist-only':
-      'Please enter the song title rather than only the artist.',
     duplicate: 'You have already submitted that answer.',
   };
 

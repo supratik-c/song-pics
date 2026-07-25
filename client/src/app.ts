@@ -108,10 +108,6 @@ export async function initApp(
     );
     const submission = submitGuess(state, rawGuess, puzzle, GAME_RULES);
 
-    if (submission.artistRemoved) {
-      renderArtistHint(elements, puzzle.artist);
-    }
-
     if (submission.kind === 'invalid') {
       renderGuessValidation(elements, submission.reason, GAME_RULES);
       return;

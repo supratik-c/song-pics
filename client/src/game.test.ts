@@ -14,11 +14,7 @@ type NormalizationFixture = {
   normalizationCases: Array<{
     name: string;
     input: string;
-    artist: string;
-    expected: {
-      answer: string;
-      artistRemoved: boolean;
-    };
+    expected: string;
   }>;
 };
 
@@ -26,35 +22,27 @@ const normalizationFixture = normalizationFixtureData as NormalizationFixture;
 
 const solution = {
   acceptedAnswers: ['Hey Jude'],
-  artist: 'The Beatles',
 };
 
 describe('answer normalization', () => {
   for (const testCase of normalizationFixture.normalizationCases) {
     it(testCase.name, () => {
-      expect(normalizeAnswer(testCase.input, testCase.artist)).toEqual(
-        testCase.expected,
-      );
+      expect(normalizeAnswer(testCase.input)).toBe(testCase.expected);
     });
   }
 
-  it('matches accepted answers after normalization and artist stripping', () => {
-    const guess = normalizeAnswer(
-      'HÉY, JUDE by The Beatles!',
-      solution.artist,
-    );
+  it('matches accepted answers after text normalization', () => {
+    const guess = normalizeAnswer('HÉY, JUDE!');
 
-    expect(guess).toEqual({
-      answer: 'hey jude',
-      artistRemoved: true,
-    });
-    expect(
-      isAcceptedAnswer(
-        guess.answer,
-        solution.acceptedAnswers,
-        solution.artist,
-      ),
-    ).toBe(true);
+    expect(guess).toBe('hey jude');
+    expect(isAcceptedAnswer(guess, solution.acceptedAnswers)).toBe(true);
+  });
+
+  it('does not ignore artist text when matching an answer', () => {
+    const guess = normalizeAnswer('HÉY, JUDE by The Beatles!');
+
+    expect(guess).toBe('hey jude by the beatles');
+    expect(isAcceptedAnswer(guess, solution.acceptedAnswers)).toBe(false);
   });
 });
 
@@ -74,19 +62,11 @@ describe('game transitions', () => {
       name: 'an overlong guess',
       guess: 'x'.repeat(GAME_RULES.maxAnswerLength + 1),
       reason: 'too-long',
-      artistRemoved: false,
     },
     {
       name: 'an empty guess',
       guess: '  ... ',
       reason: 'empty',
-      artistRemoved: false,
-    },
-    {
-      name: 'an artist-only guess',
-      guess: 'The Beatles',
-      reason: 'artist-only',
-      artistRemoved: true,
     },
   ] as const)('rejects $name without consuming an attempt', (testCase) => {
     const state = createInitialGameState();
@@ -96,7 +76,6 @@ describe('game transitions', () => {
     ).toEqual({
       kind: 'invalid',
       reason: testCase.reason,
-      artistRemoved: testCase.artistRemoved,
     });
     expect(state).toEqual({ guesses: [], status: 'playing' });
   });
@@ -112,7 +91,6 @@ describe('game transitions', () => {
     ).toEqual({
       kind: 'invalid',
       reason: 'duplicate',
-      artistRemoved: false,
     });
     expect(state.guesses).toEqual(['wrong answer']);
   });
@@ -128,8 +106,44 @@ describe('game transitions', () => {
 
     expect(result).toEqual({
       kind: 'recorded',
-      state: { guesses: ['let it be'], status: 'playing' },
-      artistRemoved: true,
+      state: {
+        guesses: ['let it be by the beatles'],
+        status: 'playing',
+      },
+    });
+  });
+
+  it.each(['The', 'The Killers'])(
+    'records artist-related guess %j as an incorrect attempt',
+    (guess) => {
+      const result = submitGuess(
+        createInitialGameState(),
+        guess,
+        { acceptedAnswers: ['Mr Brightside'] },
+        GAME_RULES,
+      );
+
+      expect(result).toEqual({
+        kind: 'recorded',
+        state: { guesses: [normalizeAnswer(guess)], status: 'playing' },
+      });
+    },
+  );
+
+  it('does not accept a song title followed by artist text', () => {
+    const result = submitGuess(
+      createInitialGameState(),
+      'Mr Brightside by The Killers',
+      { acceptedAnswers: ['Mr Brightside'] },
+      GAME_RULES,
+    );
+
+    expect(result).toEqual({
+      kind: 'recorded',
+      state: {
+        guesses: ['mr brightside by the killers'],
+        status: 'playing',
+      },
     });
   });
 
@@ -165,7 +179,6 @@ describe('game transitions', () => {
         guesses: ['first wrong answer', 'second wrong answer'],
         status: 'failed',
       },
-      artistRemoved: false,
     });
   });
 
@@ -193,7 +206,6 @@ describe('game transitions', () => {
       expect(submitGuess(state, 'anything', solution, GAME_RULES)).toEqual({
         kind: 'invalid',
         reason: 'not-playing',
-        artistRemoved: false,
       });
       expect(state).toEqual({ guesses: ['hey jude'], status });
     }

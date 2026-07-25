@@ -110,7 +110,6 @@ function recordGuess(state: GameState, guess: string): GameState {
     guess,
     {
       acceptedAnswers: ['winning attempt'],
-      artist: 'The Artist',
     },
     GAME_RULES,
   );

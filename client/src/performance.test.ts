@@ -36,7 +36,7 @@ describe('puzzle performance', () => {
     const submission = submitGuess(
       state,
       '',
-      { acceptedAnswers: ['A Song'], artist: 'An Artist' },
+      { acceptedAnswers: ['A Song'] },
       GAME_RULES,
     );
 
