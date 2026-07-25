@@ -43,7 +43,7 @@ describe('puzzle share request', () => {
       });
 
       expect(request.text).toContain(
-        'Or will you surrender to the scribbles like me?',
+        'Or will you succumb to the scribbles?',
       );
       expect(request.text).not.toContain('5 guesses');
       expect(request.text).not.toContain('2 guesses');
