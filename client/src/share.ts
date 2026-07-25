@@ -50,7 +50,7 @@ export async function shareCurrentPuzzle(
 
 function getPerformanceLine(performance: PuzzlePerformance): string {
   if (performance.outcome !== 'solved') {
-    return 'Or will you surrender to the scribbles like me?';
+    return 'Or will you succumb to the scribbles?';
   }
 
   if (performance.attemptsUsed <= 0) {

@@ -128,6 +128,8 @@ different command ran.
 
 ## Change discipline
 
+As the product is still in private development, favour hard migrations that delete or remove old behaviour instead of maintaining legacy compatibility. Focus on concise, functional code that can swap out front-end behaviour for backend in future as needed.
+
 Read the relevant source before editing. If implementation and documentation
 disagree, verify runtime or build behavior and correct stale documentation when
 it is in scope. Make focused edits and preserve unrelated user work. Do not edit
