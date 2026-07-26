@@ -5,6 +5,7 @@ import {
   getAdjacentPuzzleIds,
   type BuildPuzzleUrl,
 } from '../navigation.ts';
+import { formatCompactPuzzleDisplayDate } from '../puzzleDates.ts';
 import { resolvePublicPath } from '../publicPath.ts';
 import type {
   GameState,
@@ -27,8 +28,7 @@ export function renderPuzzle(
   closeExpandedPanel?.();
   setPlayableView(elements);
 
-  elements.date.textContent =
-    `Issue #${puzzle.issueNumber} - ${puzzle.displayDate}`;
+  renderPuzzleDate(elements.date, puzzle);
   elements.songClue.textContent = puzzle.songClue;
   elements.panels.replaceChildren(
     ...puzzle.panels.map((panel, index) => {
@@ -57,6 +57,23 @@ export function renderPuzzle(
   renderIssueNavigation(elements, archive, buildPuzzleUrl);
 
   elements.previousIssuesButton.disabled = archive.entries.length === 0;
+}
+
+function renderPuzzleDate(
+  element: HTMLElement,
+  puzzle: PuzzleClue,
+): void {
+  const fullDate = document.createElement('span');
+  const compactDate = document.createElement('span');
+
+  fullDate.className = 'puzzle-date-full';
+  fullDate.textContent =
+    `Issue #${puzzle.issueNumber} - ${puzzle.displayDate}`;
+  compactDate.className = 'puzzle-date-compact';
+  compactDate.textContent =
+    `Issue #${puzzle.issueNumber} · ${formatCompactPuzzleDisplayDate(puzzle.id)}`;
+
+  element.replaceChildren(fullDate, compactDate);
 }
 
 export function renderFuturePuzzle(

@@ -43,29 +43,88 @@
   }
 
   .game-header {
+    gap: 10px;
+    padding: 19px 15px 2px;
+  }
+
+  .issue-pager {
+    --compact-pager-width: min(100%, 280px);
+
     grid-template-columns: 1fr;
-    gap: 7px;
-    padding: 19px 16px 10px;
+    gap: 0;
   }
 
-  .game-header .eyebrow,
-  .game-header h2,
-  .issue-navigation {
+  .issue-pager::after {
     grid-column: 1;
+    grid-row: 2;
+    justify-self: center;
+    width: var(--compact-pager-width);
+    margin-top: 8px;
+    border-bottom: var(--line-light) solid var(--ink);
+    content: '';
+    pointer-events: none;
   }
 
-  .game-header .eyebrow {
-    grid-row: 2;
+  .issue-pager .eyebrow {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    justify-self: center;
+    font-size: clamp(0.7rem, 2.4vw, 0.82rem);
+    text-align: center;
+    white-space: nowrap;
   }
 
   .game-header h2 {
-    grid-row: 3;
+    grid-row: 2;
+    font-size: clamp(1.75rem, 7vw, 2rem);
+    text-align: left;
   }
 
   .issue-navigation {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-column: 1;
     grid-row: 1;
-    justify-self: end;
-    width: min(100%, 270px);
+    justify-self: center;
+    width: var(--compact-pager-width);
+    gap: 7px;
+  }
+
+  .previous-issue-link {
+    --issue-navigation-shape:
+      polygon(12px 0, 100% 0, 100% 100%, 12px 100%, 0 50%);
+
+    grid-column: 1;
+  }
+
+  .next-issue-link {
+    --issue-navigation-shape:
+      polygon(
+        0 0,
+        calc(100% - 12px) 0,
+        100% 50%,
+        calc(100% - 12px) 100%,
+        0 100%
+      );
+
+    grid-column: 3;
+  }
+
+  .issue-navigation-link {
+    min-width: 58px;
+    padding-right: 13px;
+    padding-left: 13px;
+    font-size: clamp(0.8rem, 2.8vw, 0.88rem);
+  }
+
+  .issue-navigation-label-full,
+  .puzzle-date-full {
+    display: none;
+  }
+
+  .issue-navigation-label-compact,
+  .puzzle-date-compact {
+    display: inline;
   }
 
   .panels {
@@ -239,8 +298,8 @@
   }
 
   .game-header {
-    padding-right: 12px;
-    padding-left: 12px;
+    padding-right: 11px;
+    padding-left: 11px;
   }
 
   .issue-navigation {
@@ -248,9 +307,9 @@
   }
 
   .issue-navigation-link {
-    padding-right: clamp(16px, 5vw, 18px);
-    padding-left: clamp(16px, 5vw, 18px);
-    font-size: clamp(0.8rem, 4vw, 0.88rem);
+    min-width: 54px;
+    padding-right: 11px;
+    padding-left: 11px;
   }
 
   .panels {

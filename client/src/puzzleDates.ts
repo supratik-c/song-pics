@@ -34,6 +34,18 @@ export function formatPuzzleDisplayDate(dateId: string): string {
   return `${parts.day} ${monthNames[parts.month - 1]} ${parts.year}`;
 }
 
+export function formatCompactPuzzleDisplayDate(dateId: string): string {
+  const parts = parsePuzzleDateId(dateId);
+
+  if (!parts) {
+    throw new Error(`Invalid puzzle date id: ${dateId}`);
+  }
+
+  const abbreviatedMonth = monthNames[parts.month - 1].slice(0, 3);
+
+  return `${parts.day} ${abbreviatedMonth}`;
+}
+
 export function isFuturePuzzleDateId(
   dateId: string,
   now: Date = new Date(),

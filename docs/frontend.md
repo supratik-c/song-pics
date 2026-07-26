@@ -41,12 +41,14 @@ Controls share tactile hover, focus, and press behavior, while the drawings
 remain the primary visual focus.
 
 The puzzle header includes compact Previous Issue and Next Issue links in the
-main game region rather than the masthead archive controls. They sit side by
-side at the header's top right while the song clue spans the full row beneath
-them; at narrow widths they move to their own right-aligned row above the issue
-date and song clue. Both directions remain visible at archive boundaries, with
-the unavailable link presented as disabled; the group is absent when no
-released puzzle has loaded.
+main game region rather than the masthead archive controls. At wide widths the
+date sits at the left and the links sit side by side at the top right, while the
+song clue spans the full row beneath them. At narrow widths they become one
+pager row with short Prev and Next labels around an abbreviated issue date;
+the controls retain full accessible names and minimum touch-target height.
+Both directions remain visible at archive boundaries, with the unavailable
+link presented as disabled; the group is absent when no released puzzle has
+loaded.
 
 ## Dialogs and secondary views
 
