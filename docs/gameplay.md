@@ -16,14 +16,14 @@ Query parsing and archive URL construction are pure functions in
 the puzzle loader, so content selection does not read browser globals. Archive
 rendering similarly receives a URL callback and does not inspect location.
 Adjacent-issue navigation uses the same archive ordering and URL callback:
-Previous Issue selects the next, chronologically older archive entry, while
-Next Issue selects the preceding, newer entry. The unavailable direction stays
+Prev selects the next, chronologically older archive entry, while Next selects
+the preceding, newer entry. The unavailable direction stays
 visible but disabled at the oldest and latest boundaries.
 
 The generated archive index is chronological. The client assigns contiguous
 issue numbers from that ordering, so the earliest available puzzle is Issue #1
 and missing calendar dates do not create gaps. The main eyebrow is
-`Issue #N - display date`; the clue remains unprefixed; archive links are
+`Issue #N · D Mon YY`; the clue remains unprefixed; archive links are
 `Issue #N - song clue`. The newest archive link omits the query parameter while
 older links preserve it.
 

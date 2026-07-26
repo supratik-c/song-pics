@@ -1,17 +1,17 @@
 const puzzleDateIdPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
-const monthNames = [
-  'January',
-  'February',
-  'March',
-  'April',
+const monthAbbreviations = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
   'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 
 type PuzzleDateParts = {
@@ -31,19 +31,9 @@ export function formatPuzzleDisplayDate(dateId: string): string {
     throw new Error(`Invalid puzzle date id: ${dateId}`);
   }
 
-  return `${parts.day} ${monthNames[parts.month - 1]} ${parts.year}`;
-}
+  const twoDigitYear = String(parts.year % 100).padStart(2, '0');
 
-export function formatCompactPuzzleDisplayDate(dateId: string): string {
-  const parts = parsePuzzleDateId(dateId);
-
-  if (!parts) {
-    throw new Error(`Invalid puzzle date id: ${dateId}`);
-  }
-
-  const abbreviatedMonth = monthNames[parts.month - 1].slice(0, 3);
-
-  return `${parts.day} ${abbreviatedMonth}`;
+  return `${parts.day} ${monthAbbreviations[parts.month - 1]} ${twoDigitYear}`;
 }
 
 export function isFuturePuzzleDateId(

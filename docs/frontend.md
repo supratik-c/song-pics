@@ -40,15 +40,14 @@ shadows, bold accents, informal typography, and deliberately rough clue art.
 Controls share tactile hover, focus, and press behavior, while the drawings
 remain the primary visual focus.
 
-The puzzle header includes compact Previous Issue and Next Issue links in the
-main game region rather than the masthead archive controls. At wide widths the
-date sits at the left and the links sit side by side at the top right, while the
-song clue spans the full row beneath them. At narrow widths they become one
-pager row with short Prev and Next labels around an abbreviated issue date;
-the controls retain full accessible names and minimum touch-target height.
-Both directions remain visible at archive boundaries, with the unavailable
-link presented as disabled; the group is absent when no released puzzle has
-loaded.
+The puzzle header includes compact Prev and Next links in the main game region
+rather than the masthead archive controls. At every width the abbreviated
+issue date sits at the left, the links sit together at the top right, and the
+song clue spans the full row beneath them. The visible date uses one
+`Issue #N · D Mon YY` format everywhere, while the links retain full accessible
+names and minimum touch-target height. Both directions remain visible at
+archive boundaries, with the unavailable link presented as disabled; the
+group is absent when no released puzzle has loaded.
 
 ## Dialogs and secondary views
 

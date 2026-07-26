@@ -48,20 +48,17 @@
   }
 
   .issue-pager {
-    --compact-pager-width: min(100%, 280px);
-
-    grid-template-columns: 1fr;
-    gap: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
   }
 
   .issue-pager .eyebrow {
     grid-column: 1;
     grid-row: 1;
-    align-self: center;
     justify-self: start;
-    width: var(--compact-pager-width);
     font-size: clamp(0.7rem, 2.4vw, 0.82rem);
-    text-align: center;
+    text-align: left;
     white-space: nowrap;
   }
 
@@ -72,32 +69,13 @@
   }
 
   .issue-navigation {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-column: 1;
+    grid-template-columns: repeat(2, auto);
+    grid-column: 2;
     grid-row: 1;
-    justify-self: start;
-    width: var(--compact-pager-width);
+    align-self: start;
+    justify-self: end;
+    width: auto;
     gap: 7px;
-  }
-
-  .previous-issue-link {
-    --issue-navigation-shape:
-      polygon(12px 0, 100% 0, 100% 100%, 12px 100%, 0 50%);
-
-    grid-column: 1;
-  }
-
-  .next-issue-link {
-    --issue-navigation-shape:
-      polygon(
-        0 0,
-        calc(100% - 12px) 0,
-        100% 50%,
-        calc(100% - 12px) 100%,
-        0 100%
-      );
-
-    grid-column: 3;
   }
 
   .issue-navigation-link {
@@ -113,16 +91,6 @@
 
   .issue-navigation-link::after {
     inset: calc(7px + var(--line-medium)) var(--line-medium);
-  }
-
-  .issue-navigation-label-full,
-  .puzzle-date-full {
-    display: none;
-  }
-
-  .issue-navigation-label-compact,
-  .puzzle-date-compact {
-    display: inline;
   }
 
   .panels {

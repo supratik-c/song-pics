@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import dateFixtureData from '../fixtures/date-behavior.json';
 import {
-  formatCompactPuzzleDisplayDate,
   formatPuzzleDisplayDate,
   isFuturePuzzleDateId,
   isPuzzleDateId,
@@ -30,26 +29,17 @@ describe('puzzle date IDs', () => {
     });
   }
 
-  it('formats a valid puzzle ID without timezone conversion', () => {
-    expect(formatPuzzleDisplayDate('2024-02-29')).toBe('29 February 2024');
+  it.each([
+    ['2026-01-03', '3 Jan 26'],
+    ['2024-02-29', '29 Feb 24'],
+    ['2000-07-18', '18 Jul 00'],
+    ['2001-09-12', '12 Sep 01'],
+  ])('formats %s as %s without timezone conversion', (dateId, expected) => {
+    expect(formatPuzzleDisplayDate(dateId)).toBe(expected);
   });
 
   it('rejects formatting an invalid puzzle ID', () => {
     expect(() => formatPuzzleDisplayDate('2025-02-29')).toThrow(
-      'Invalid puzzle date id: 2025-02-29',
-    );
-  });
-
-  it.each([
-    ['2026-01-03', '3 Jan'],
-    ['2024-02-29', '29 Feb'],
-    ['2026-09-12', '12 Sep'],
-  ])('formats %s as the compact date %s', (dateId, expected) => {
-    expect(formatCompactPuzzleDisplayDate(dateId)).toBe(expected);
-  });
-
-  it('rejects compact formatting for an invalid puzzle ID', () => {
-    expect(() => formatCompactPuzzleDisplayDate('2025-02-29')).toThrow(
       'Invalid puzzle date id: 2025-02-29',
     );
   });
