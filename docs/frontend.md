@@ -40,14 +40,9 @@ shadows, bold accents, informal typography, and deliberately rough clue art.
 Controls share tactile hover, focus, and press behavior, while the drawings
 remain the primary visual focus.
 
-The puzzle header includes compact Prev and Next links in the main game region
-rather than the masthead archive controls. At every width the abbreviated
-issue date sits at the left, the links sit together at the top right, and the
-song clue spans the full row beneath them. The visible date uses one
-`Issue #N · D Mon YY` format everywhere, while the links retain full accessible
-names and minimum touch-target height. Both directions remain visible at
-archive boundaries, with the unavailable link presented as disabled; the
-group is absent when no released puzzle has loaded.
+The puzzle header stacks the abbreviated issue date above the song clue. The
+visible date uses one `Issue #N · D Mon YY` format everywhere. All Issues is the
+single browsing surface for selecting another released puzzle.
 
 ## Dialogs and secondary views
 
@@ -59,7 +54,7 @@ Updating an obsolete asynchronous view is ignored, and closing the dialog
 removes its content.
 
 How to Play types stay with its loader. The feature loads its validated content
-manifest lazily and shows a recoverable error if loading fails. Previous Issues
+manifest lazily and shows a recoverable error if loading fails. All Issues
 loads completion asynchronously each time it opens, orders released puzzles
 newest first, paginates in groups of 50, and opens on the page containing the
 selected puzzle. Long lists scroll within the height-constrained dialog.

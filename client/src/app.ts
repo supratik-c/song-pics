@@ -68,7 +68,7 @@ export async function initApp(
     ({ puzzle, archive } = await dependencies.loadPuzzle(requestedPuzzleId));
   } catch (error) {
     if (error instanceof FuturePuzzleError) {
-      renderFuturePuzzle(elements, error.archive);
+      renderFuturePuzzle(elements);
       bindArchiveButton(elements, error.archive, modal, dependencies);
       return;
     }
@@ -95,7 +95,7 @@ export async function initApp(
 
   elements.shareRegion.replaceChildren(createShareControl());
 
-  renderPuzzle(elements, puzzle, archive, dependencies.buildPuzzleUrl);
+  renderPuzzle(elements, puzzle);
   renderState(elements, state, GAME_RULES);
   bindArchiveButton(elements, archive, modal, dependencies);
 
@@ -194,11 +194,13 @@ function bindArchiveButton(
   modal: ModalController,
   dependencies: AppDependencies,
 ): void {
-  elements.previousIssuesButton.addEventListener('click', () => {
+  elements.allIssuesButton.disabled = archive.entries.length === 0;
+
+  elements.allIssuesButton.addEventListener('click', () => {
     const viewId = modal.open({
-      title: 'Previous Issues',
+      title: 'All Issues',
       content: renderModalMessage('Checking your back catalogue...'),
-      returnFocus: elements.previousIssuesButton,
+      returnFocus: elements.allIssuesButton,
     });
 
     void dependencies.completionSource.loadCompletedPuzzleIds(

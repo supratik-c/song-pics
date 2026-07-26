@@ -1,57 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import type { PuzzleArchive } from './types.ts';
 import {
   buildCanonicalPuzzleUrl,
   buildPuzzleShareUrl,
   buildPuzzleUrl,
-  getAdjacentPuzzleIds,
   getRequestedPuzzleId,
   getSharePuzzleId,
 } from './navigation.ts';
 
-const archiveEntries = [
-  { id: '2026-07-23', issueNumber: 3, songClue: 'Newest clue' },
-  { id: '2026-07-21', issueNumber: 2, songClue: 'Middle clue' },
-  { id: '2026-07-20', issueNumber: 1, songClue: 'Oldest clue' },
-];
-
-function createArchive(selectedPuzzleId: string): PuzzleArchive {
-  return {
-    entries: archiveEntries,
-    latestPuzzleId: archiveEntries[0].id,
-    selectedPuzzleId,
-  };
-}
-
 describe('puzzle navigation', () => {
-  it('finds the chronologically adjacent issues from a middle issue', () => {
-    expect(getAdjacentPuzzleIds(createArchive('2026-07-21'))).toEqual({
-      previousPuzzleId: '2026-07-20',
-      nextPuzzleId: '2026-07-23',
-    });
-  });
-
-  it('has no next issue when the latest issue is selected', () => {
-    expect(getAdjacentPuzzleIds(createArchive('2026-07-23'))).toEqual({
-      previousPuzzleId: '2026-07-21',
-      nextPuzzleId: null,
-    });
-  });
-
-  it('has no previous issue when the oldest issue is selected', () => {
-    expect(getAdjacentPuzzleIds(createArchive('2026-07-20'))).toEqual({
-      previousPuzzleId: null,
-      nextPuzzleId: '2026-07-21',
-    });
-  });
-
-  it('returns no adjacent issues for an unavailable selection', () => {
-    expect(getAdjacentPuzzleIds(createArchive('2026-07-24'))).toEqual({
-      previousPuzzleId: null,
-      nextPuzzleId: null,
-    });
-  });
-
   it('returns no requested puzzle when the query is absent', () => {
     expect(getRequestedPuzzleId('')).toBeNull();
     expect(getRequestedPuzzleId('?campaign=doodles')).toBeNull();

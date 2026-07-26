@@ -1,15 +1,10 @@
 import type { GameElements } from '../dom.ts';
 import type { InvalidGuessReason } from '../game.ts';
 import type { GameRules } from '../gameConfig.ts';
-import {
-  getAdjacentPuzzleIds,
-  type BuildPuzzleUrl,
-} from '../navigation.ts';
 import { resolvePublicPath } from '../publicPath.ts';
 import type {
   GameState,
   GameStatus,
-  PuzzleArchive,
   PuzzleClue,
 } from '../types.ts';
 
@@ -21,8 +16,6 @@ let closeExpandedPanel: (() => void) | null = null;
 export function renderPuzzle(
   elements: GameElements,
   puzzle: PuzzleClue,
-  archive: PuzzleArchive,
-  buildPuzzleUrl: BuildPuzzleUrl,
 ): void {
   closeExpandedPanel?.();
   setPlayableView(elements);
@@ -54,15 +47,9 @@ export function renderPuzzle(
       return figure;
     }),
   );
-  renderIssueNavigation(elements, archive, buildPuzzleUrl);
-
-  elements.previousIssuesButton.disabled = archive.entries.length === 0;
 }
 
-export function renderFuturePuzzle(
-  elements: GameElements,
-  archive: PuzzleArchive,
-): void {
+export function renderFuturePuzzle(elements: GameElements): void {
   closeExpandedPanel?.();
   const game = elements.form.closest<HTMLElement>('.game');
 
@@ -75,7 +62,6 @@ export function renderFuturePuzzle(
   elements.message.hidden = true;
   elements.validationMessage.hidden = true;
   elements.guessList.hidden = true;
-  elements.issueNavigation.hidden = true;
   elements.shareRegion.hidden = true;
 
   elements.date.textContent = '';
@@ -97,7 +83,6 @@ export function renderFuturePuzzle(
 
   elements.panels.setAttribute('aria-label', 'Future puzzle message');
   elements.panels.replaceChildren(image, message);
-  elements.previousIssuesButton.disabled = archive.entries.length === 0;
 }
 
 export function renderState(
@@ -165,50 +150,9 @@ export function clearGuessValidation(elements: GameElements): void {
 
 export function renderLoadError(elements: GameElements): void {
   closeExpandedPanel?.();
-  elements.issueNavigation.hidden = true;
   elements.shareRegion.hidden = true;
   elements.message.textContent =
     'The puzzle could not be loaded. Please refresh the page and try again.';
-}
-
-function renderIssueNavigation(
-  elements: GameElements,
-  archive: PuzzleArchive,
-  buildPuzzleUrl: BuildPuzzleUrl,
-): void {
-  const { previousPuzzleId, nextPuzzleId } = getAdjacentPuzzleIds(archive);
-
-  configureIssueLink(
-    elements.previousIssueLink,
-    previousPuzzleId,
-    archive.latestPuzzleId,
-    buildPuzzleUrl,
-  );
-  configureIssueLink(
-    elements.nextIssueLink,
-    nextPuzzleId,
-    archive.latestPuzzleId,
-    buildPuzzleUrl,
-  );
-  elements.issueNavigation.hidden = false;
-}
-
-function configureIssueLink(
-  link: HTMLAnchorElement,
-  puzzleId: string | null,
-  latestPuzzleId: string,
-  buildPuzzleUrl: BuildPuzzleUrl,
-): void {
-  if (puzzleId === null) {
-    link.removeAttribute('href');
-    link.setAttribute('aria-disabled', 'true');
-    link.tabIndex = -1;
-    return;
-  }
-
-  link.href = buildPuzzleUrl(puzzleId, latestPuzzleId);
-  link.removeAttribute('aria-disabled');
-  link.removeAttribute('tabindex');
 }
 
 function configurePanelZoom(

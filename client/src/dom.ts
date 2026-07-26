@@ -8,13 +8,10 @@ export type GameElements = {
   guessInput: HTMLInputElement;
   guessList: HTMLOListElement;
   howToPlayButton: HTMLButtonElement;
-  issueNavigation: HTMLElement;
   message: HTMLElement;
   modal: ModalElements;
-  nextIssueLink: HTMLAnchorElement;
   panels: HTMLElement;
-  previousIssueLink: HTMLAnchorElement;
-  previousIssuesButton: HTMLButtonElement;
+  allIssuesButton: HTMLButtonElement;
   revealArtistButton: HTMLButtonElement;
   revealSongButton: HTMLButtonElement;
   shareRegion: HTMLElement;
@@ -32,7 +29,6 @@ export function getGameElements(): GameElements {
     guessInput: getElement<HTMLInputElement>('#guess-input'),
     guessList: getElement<HTMLOListElement>('#guess-list'),
     howToPlayButton: getElement<HTMLButtonElement>('#how-to-play-button'),
-    issueNavigation: getElement<HTMLElement>('#issue-navigation'),
     message: getElement<HTMLElement>('#message'),
     modal: {
       dialog: getElement<HTMLDialogElement>('#game-dialog'),
@@ -40,10 +36,8 @@ export function getGameElements(): GameElements {
       body: getElement<HTMLElement>('#game-dialog-body'),
       closeButton: getElement<HTMLButtonElement>('#game-dialog-close'),
     },
-    nextIssueLink: getElement<HTMLAnchorElement>('#next-issue-link'),
     panels: getElement<HTMLElement>('#panels'),
-    previousIssueLink: getElement<HTMLAnchorElement>('#previous-issue-link'),
-    previousIssuesButton: getElement<HTMLButtonElement>('#previous-issues-button'),
+    allIssuesButton: getElement<HTMLButtonElement>('#all-issues-button'),
     revealArtistButton: getElement<HTMLButtonElement>('#reveal-artist-button'),
     revealSongButton: getElement<HTMLButtonElement>('#reveal-song-button'),
     shareRegion: getElement<HTMLElement>('#share-region'),

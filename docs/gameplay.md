@@ -14,11 +14,9 @@ future-puzzle view rather than attempting to fetch its answer data.
 Query parsing and archive URL construction are pure functions in
 `client/src/navigation.ts`. The composition root supplies the requested ID to
 the puzzle loader, so content selection does not read browser globals. Archive
-rendering similarly receives a URL callback and does not inspect location.
-Adjacent-issue navigation uses the same archive ordering and URL callback:
-Prev selects the next, chronologically older archive entry, while Next selects
-the preceding, newer entry. The unavailable direction stays
-visible but disabled at the oldest and latest boundaries.
+rendering similarly receives a URL callback and does not inspect location. All
+Issues is the single in-app browsing surface for selecting another released
+puzzle.
 
 The generated archive index is chronological. The client assigns contiguous
 issue numbers from that ordering, so the earliest available puzzle is Issue #1
@@ -125,7 +123,7 @@ and no previous format is migrated.
 implementation derives completed IDs from terminal states returned by the
 state store; it is not folded into the storage adapter because a future
 account-backed completion API may have different ownership and timing.
-Completion is refreshed whenever Previous Issues opens. Lookup failure leaves
+Completion is refreshed whenever All Issues opens. Lookup failure leaves
 navigation usable and simply omits completion markers.
 
 The authored wire JSON uses the single current puzzle shape, while its runtime

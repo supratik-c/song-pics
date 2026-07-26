@@ -81,7 +81,7 @@
   --green-dark: #1f6f36;
   --green-light: #cde7b8;
   --yellow: #ffd447;
-  --blue: #74c0e3;
+  --blue: #5fc8f8;
   --blue-dark: #15617c;
   --peach: #f2c59e;
   --line-heavy: 4px;
@@ -305,9 +305,11 @@ h1 {
   font-size: clamp(1.25rem, 2.5vw, var(--header-control-font-max));
 }
 
-.previous-issues-button {
+.all-issues-button {
   --header-control-fill: var(--blue);
   --header-control-shape: polygon(0 0, 100% 0, 100% 100%, 12px 100%);
+
+  color: var(--ink);
 }
 
 .masthead-action::before,
@@ -327,14 +329,6 @@ h1 {
   z-index: -1;
   inset: var(--line-medium);
   background: var(--header-control-fill);
-}
-
-.masthead-action:active:not(:disabled) {
-  --header-control-fill: #f4c62c;
-}
-
-.previous-issues-button:active:not(:disabled) {
-  --header-control-fill: #5fb4dc;
 }
 
 .masthead-action:focus-visible {

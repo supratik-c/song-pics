@@ -1,15 +1,9 @@
-import type { PuzzleArchive } from './types.ts';
 import { isPuzzleDateId } from './puzzleDates.ts';
 
 export type BuildPuzzleUrl = (
   puzzleId: string,
   latestPuzzleId: string,
 ) => string;
-
-export type AdjacentPuzzleIds = {
-  previousPuzzleId: string | null;
-  nextPuzzleId: string | null;
-};
 
 export function getRequestedPuzzleId(search: string): string | null {
   return new URLSearchParams(search).get('puzzle');
@@ -70,26 +64,6 @@ export function buildCanonicalPuzzleUrl(
 
   canonicalUrl.searchParams.set('puzzle', puzzleId);
   return canonicalUrl.toString();
-}
-
-export function getAdjacentPuzzleIds(
-  archive: PuzzleArchive,
-): AdjacentPuzzleIds {
-  const selectedIndex = archive.entries.findIndex(
-    (entry) => entry.id === archive.selectedPuzzleId,
-  );
-
-  if (selectedIndex === -1) {
-    return {
-      previousPuzzleId: null,
-      nextPuzzleId: null,
-    };
-  }
-
-  return {
-    previousPuzzleId: archive.entries[selectedIndex + 1]?.id ?? null,
-    nextPuzzleId: archive.entries[selectedIndex - 1]?.id ?? null,
-  };
 }
 
 export function buildPuzzleUrl(

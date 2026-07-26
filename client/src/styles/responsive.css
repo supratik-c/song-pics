@@ -47,15 +47,7 @@
     padding: 9px 15px 2px;
   }
 
-  .issue-pager {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px;
-    align-items: start;
-  }
-
-  .issue-pager .eyebrow {
-    grid-column: 1;
-    grid-row: 1;
+  .game-header .eyebrow {
     justify-self: start;
     font-size: clamp(0.7rem, 2.4vw, 0.82rem);
     text-align: left;
@@ -63,34 +55,8 @@
   }
 
   .game-header h2 {
-    grid-row: 2;
     font-size: clamp(1.75rem, 7vw, 2rem);
     text-align: left;
-  }
-
-  .issue-navigation {
-    grid-template-columns: repeat(2, auto);
-    grid-column: 2;
-    grid-row: 1;
-    align-self: start;
-    justify-self: end;
-    width: auto;
-    gap: 7px;
-  }
-
-  .issue-navigation-link {
-    min-width: 58px;
-    margin-block: -4px;
-    padding: 0 13px;
-    font-size: clamp(0.8rem, 2.8vw, 0.88rem);
-  }
-
-  .issue-navigation-link::before {
-    inset: 7px 0;
-  }
-
-  .issue-navigation-link::after {
-    inset: calc(7px + var(--line-medium)) var(--line-medium);
   }
 
   .panels {
@@ -268,16 +234,6 @@
     padding-left: 11px;
   }
 
-  .issue-navigation {
-    gap: 7px;
-  }
-
-  .issue-navigation-link {
-    min-width: 54px;
-    padding-right: 11px;
-    padding-left: 11px;
-  }
-
   .panels {
     gap: 9px;
     padding-right: 11px;
@@ -335,13 +291,11 @@
 
   .title-panel::after,
   .masthead-action::before,
-  .issue-navigation-link::before,
   .share-button::before {
     background: CanvasText;
   }
 
   .masthead-action::after,
-  .issue-navigation-link::after,
   .share-button::after {
     background: Canvas;
   }
@@ -349,7 +303,6 @@
   button,
   input,
   select,
-  .issue-navigation-link,
   .share-button,
   dialog,
   .comic-page,
