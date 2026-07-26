@@ -43,8 +43,8 @@
   }
 
   .game-header {
-    gap: 10px;
-    padding: 19px 15px 2px;
+    gap: 16px;
+    padding: 9px 15px 2px;
   }
 
   .issue-pager {
@@ -54,22 +54,12 @@
     gap: 0;
   }
 
-  .issue-pager::after {
-    grid-column: 1;
-    grid-row: 2;
-    justify-self: center;
-    width: var(--compact-pager-width);
-    margin-top: 8px;
-    border-bottom: var(--line-light) solid var(--ink);
-    content: '';
-    pointer-events: none;
-  }
-
   .issue-pager .eyebrow {
     grid-column: 1;
     grid-row: 1;
     align-self: center;
-    justify-self: center;
+    justify-self: start;
+    width: var(--compact-pager-width);
     font-size: clamp(0.7rem, 2.4vw, 0.82rem);
     text-align: center;
     white-space: nowrap;
@@ -85,7 +75,7 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-column: 1;
     grid-row: 1;
-    justify-self: center;
+    justify-self: start;
     width: var(--compact-pager-width);
     gap: 7px;
   }
@@ -112,9 +102,17 @@
 
   .issue-navigation-link {
     min-width: 58px;
-    padding-right: 13px;
-    padding-left: 13px;
+    margin-block: -4px;
+    padding: 0 13px;
     font-size: clamp(0.8rem, 2.8vw, 0.88rem);
+  }
+
+  .issue-navigation-link::before {
+    inset: 7px 0;
+  }
+
+  .issue-navigation-link::after {
+    inset: calc(7px + var(--line-medium)) var(--line-medium);
   }
 
   .issue-navigation-label-full,
