@@ -89,8 +89,10 @@ Optional lyric captions are created only for terminal states and are semantic
 `figcaption` children of their corresponding panels. Each caption is one plain
 text sentence flanked by music-note characters, without a containing box.
 Captions wrap within the panel width, and each grid row follows its tallest
-caption so later content remains aligned. Panel zoom temporarily hides its
-caption to keep the expanded artwork unobstructed.
+caption so later content remains aligned. Terminal captions continuously bob
+in numeric panel order using a staggered, transform-only wave; reduced-motion
+preferences leave them stationary. Panel zoom temporarily hides its caption to
+keep the expanded artwork unobstructed.
 
 A requested future date renders a friendly future-puzzle state while retaining
 archive access. Unexpected load failures use the general message region and are

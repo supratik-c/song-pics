@@ -12,6 +12,7 @@ import type {
 const futurePuzzleMessage = 'Still in development....';
 const futurePuzzleImagePath =
   '/content/misc/double-semiquaver-orange.svg';
+const lyricWaveStaggerMs = 140;
 let closeExpandedPanel: (() => void) | null = null;
 
 export function renderPuzzle(
@@ -143,6 +144,10 @@ export function renderPanelLyrics(
 
     const caption = document.createElement('figcaption');
     caption.className = 'panel-lyric';
+    caption.style.setProperty(
+      '--lyric-wave-delay',
+      `${index * lyricWaveStaggerMs}ms`,
+    );
     caption.textContent = `♪  ${line}  ♪`;
     panel.append(caption);
   });

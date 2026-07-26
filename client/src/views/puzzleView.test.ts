@@ -8,6 +8,7 @@ import type { GameStatus } from '../types.ts';
 class FakeElement {
   readonly attributes = new Map<string, string>();
   readonly children: FakeElement[] = [];
+  readonly style = new FakeStyle();
   className = '';
   hidden = false;
   parent: FakeElement | null = null;
@@ -56,6 +57,18 @@ class FakeElement {
   }
 }
 
+class FakeStyle {
+  private readonly properties = new Map<string, string>();
+
+  getPropertyValue(name: string): string {
+    return this.properties.get(name) ?? '';
+  }
+
+  setProperty(name: string, value: string): void {
+    this.properties.set(name, value);
+  }
+}
+
 class FakeNodeList extends Array<FakeElement> {
   item(index: number): FakeElement | null {
     return this[index] ?? null;
@@ -96,6 +109,12 @@ describe('panel lyric rendering', () => {
       expect(captions[0].textContent).toBe('♪  First line  ♪');
       expect(captions[1].textContent).toBe('♪  Second line  ♪');
       expect(captions[0].children).toHaveLength(0);
+      expect(
+        captions[0].style.getPropertyValue('--lyric-wave-delay'),
+      ).toBe('0ms');
+      expect(
+        captions[1].style.getPropertyValue('--lyric-wave-delay'),
+      ).toBe('140ms');
     },
   );
 

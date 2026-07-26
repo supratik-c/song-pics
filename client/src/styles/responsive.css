@@ -294,6 +294,11 @@
   figure:hover {
     transform: none;
   }
+
+  .panel-lyric {
+    animation: none;
+    transform: none;
+  }
 }
 
 @media (forced-colors: active) {
