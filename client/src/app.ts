@@ -96,7 +96,7 @@ export async function initApp(
   elements.shareRegion.replaceChildren(createShareControl());
 
   renderPuzzle(elements, puzzle);
-  renderState(elements, state, GAME_RULES);
+  renderState(elements, state, GAME_RULES, puzzle.lyricLines);
   bindArchiveButton(elements, archive, modal, dependencies);
 
   elements.form.addEventListener('submit', (event) => {
@@ -116,7 +116,7 @@ export async function initApp(
     state = submission.state;
     dependencies.gameStateStore.save(puzzle.id, state);
     elements.form.reset();
-    renderState(elements, state, GAME_RULES);
+    renderState(elements, state, GAME_RULES, puzzle.lyricLines);
 
     if (state.status === 'playing') {
       elements.guessInput.focus();
@@ -144,7 +144,7 @@ export async function initApp(
       state = revealSong(state);
       dependencies.gameStateStore.save(puzzle.id, state);
       clearGuessValidation(elements);
-      renderState(elements, state, GAME_RULES);
+      renderState(elements, state, GAME_RULES, puzzle.lyricLines);
     }
 
     openResultModal(

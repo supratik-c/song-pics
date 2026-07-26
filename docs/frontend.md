@@ -40,9 +40,19 @@ shadows, bold accents, informal typography, and deliberately rough clue art.
 Controls share tactile hover, focus, and press behavior, while the drawings
 remain the primary visual focus.
 
+The title panel places a compact question-mark control beside the introduction;
+its accessible name remains “How to Play,” and closing its dialog restores
+focus to that control. The separate masthead action row currently retains All
+Issues in its right-hand slot.
+
 The puzzle header stacks the abbreviated issue date above the song clue. The
 visible date uses one `Issue #N · D Mon YY` format everywhere. All Issues is the
 single browsing surface for selecting another released puzzle.
+
+When puzzle content includes a `doodledBy` credit, the clue section displays
+`Doodled By: {name}` as small, left-aligned ink text beneath the panels. The
+credit remains outside the separate guess-entry panel and is absent rather than
+empty when the field is omitted.
 
 ## Dialogs and secondary views
 
@@ -74,6 +84,13 @@ region and does not replace general application errors. Artist and attempt
 feedback use deliberate live regions without making every visual change an
 announcement. Fatal initialization and load failures are also rendered through
 a view rather than direct writes from `main.ts` or `app.ts`.
+
+Optional lyric captions are created only for terminal states and are semantic
+`figcaption` children of their corresponding panels. Each caption is one plain
+text sentence flanked by music-note characters, without a containing box.
+Captions wrap within the panel width, and each grid row follows its tallest
+caption so later content remains aligned. Panel zoom temporarily hides its
+caption to keep the expanded artwork unobstructed.
 
 A requested future date renders a friendly future-puzzle state while retaining
 archive access. Unexpected load failures use the general message region and are

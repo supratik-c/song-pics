@@ -9,6 +9,8 @@ const puzzleJsonFields = new Set([
   'artist',
   'acceptedAnswers',
   'youtubeURL',
+  'lyricLines',
+  'doodledBy',
 ]);
 
 export function parsePuzzleJson(source, sourcePath) {
@@ -74,9 +76,42 @@ export function validatePuzzleJson(value, sourcePath = 'puzzle.json') {
     }
   }
 
+  if (value.doodledBy !== undefined) {
+    assertNonEmptyString(value.doodledBy, 'doodledBy', sourcePath);
+  }
+
+  if (value.lyricLines !== undefined) {
+    if (!Array.isArray(value.lyricLines)) {
+      throw invalidPuzzle(sourcePath, 'lyricLines must be an array');
+    }
+
+    value.lyricLines.forEach((line, index) => {
+      assertNonEmptyString(line, `lyricLines[${index}]`, sourcePath);
+    });
+  }
+
   validateAcceptedAnswers(value, sourcePath);
 
   return value;
+}
+
+export function validateLyricLineCount(
+  puzzle,
+  panelCount,
+  sourcePath = 'puzzle.json',
+) {
+  if (
+    puzzle.lyricLines === undefined ||
+    puzzle.lyricLines.length === 0 ||
+    puzzle.lyricLines.length === panelCount
+  ) {
+    return;
+  }
+
+  throw invalidPuzzle(
+    sourcePath,
+    `lyricLines must contain exactly ${panelCount} lines to match ${panelCount} panels`,
+  );
 }
 
 export function normalizePuzzleAnswer(answer) {

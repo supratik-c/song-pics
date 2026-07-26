@@ -34,6 +34,21 @@ describe('puzzle runtime guards', () => {
     expect(isPuzzleJson(validPuzzle)).toBe(true);
   });
 
+  it('accepts an optional doodler credit', () => {
+    expect(isPuzzleJson({
+      ...validPuzzle,
+      doodledBy: 'purblevibes',
+    })).toBe(true);
+  });
+
+  it('accepts optional lyric lines, including an empty list', () => {
+    expect(isPuzzleJson({
+      ...validPuzzle,
+      lyricLines: ['Hey Jude, don\'t make it bad'],
+    })).toBe(true);
+    expect(isPuzzleJson({ ...validPuzzle, lyricLines: [] })).toBe(true);
+  });
+
   it.each([
     null,
     {},
@@ -43,6 +58,12 @@ describe('puzzle runtime guards', () => {
     { ...validPuzzle, acceptedAnswers: [] },
     { ...validPuzzle, acceptedAnswers: ['Hey Jude', ''] },
     { ...validPuzzle, youtubeURL: '' },
+    { ...validPuzzle, doodledBy: '' },
+    { ...validPuzzle, doodledBy: '   ' },
+    { ...validPuzzle, doodledBy: 42 },
+    { ...validPuzzle, doodledBy: null },
+    { ...validPuzzle, lyricLines: 'Hey Jude' },
+    { ...validPuzzle, lyricLines: [''] },
     { ...validPuzzle, panels: [{ src: '1.webp' }] },
     { ...validPuzzle, unknown: true },
   ])('rejects malformed puzzle data %#', (value) => {

@@ -6,6 +6,7 @@ import type {
   GameState,
   GameStatus,
   PuzzleClue,
+  PuzzleSolution,
 } from '../types.ts';
 
 const futurePuzzleMessage = 'Still in development....';
@@ -23,6 +24,7 @@ export function renderPuzzle(
   elements.date.textContent =
     `Issue #${puzzle.issueNumber} · ${puzzle.displayDate}`;
   elements.songClue.textContent = puzzle.songClue;
+  renderDoodleCredit(elements.doodleCredit, puzzle.doodledBy);
   elements.panels.replaceChildren(
     ...puzzle.panels.map((panel, index) => {
       const figure = document.createElement('figure');
@@ -63,6 +65,7 @@ export function renderFuturePuzzle(elements: GameElements): void {
   elements.validationMessage.hidden = true;
   elements.guessList.hidden = true;
   elements.shareRegion.hidden = true;
+  renderDoodleCredit(elements.doodleCredit, undefined);
 
   elements.date.textContent = '';
   elements.songClue.textContent = '';
@@ -89,10 +92,12 @@ export function renderState(
   elements: GameElements,
   state: GameState,
   rules: GameRules,
+  lyricLines: PuzzleSolution['lyricLines'],
 ): void {
   const attemptsLeft = rules.maxAttempts - state.guesses.length;
 
   elements.shareRegion.hidden = state.status === 'playing';
+  renderPanelLyrics(elements.panels, state.status, lyricLines);
 
   elements.attemptsCount.textContent =
     `${attemptsLeft} ${attemptsLeft === 1 ? 'guess' : 'guesses'} left`;
@@ -112,6 +117,45 @@ export function renderState(
   setRevealSongButtonLabel(elements, 'Reveal Song');
   elements.message.textContent =
     state.guesses.length === 0 ? '' : 'Try again.';
+}
+
+export function renderPanelLyrics(
+  panelsElement: HTMLElement,
+  status: GameStatus,
+  lyricLines: PuzzleSolution['lyricLines'],
+): void {
+  const panels = panelsElement.querySelectorAll<HTMLElement>('.panel');
+
+  panels.forEach((panel) => {
+    panel.querySelector('.panel-lyric')?.remove();
+  });
+
+  if (status === 'playing' || !lyricLines || lyricLines.length === 0) {
+    return;
+  }
+
+  lyricLines.forEach((line, index) => {
+    const panel = panels.item(index);
+
+    if (!panel) {
+      return;
+    }
+
+    const caption = document.createElement('figcaption');
+    caption.className = 'panel-lyric';
+    caption.textContent = `♪  ${line}  ♪`;
+    panel.append(caption);
+  });
+}
+
+export function renderDoodleCredit(
+  creditElement: HTMLElement,
+  doodledBy: PuzzleClue['doodledBy'],
+): void {
+  creditElement.textContent = doodledBy
+    ? `Doodled By: ${doodledBy}`
+    : '';
+  creditElement.hidden = !doodledBy;
 }
 
 export function renderArtistHint(
@@ -151,6 +195,7 @@ export function clearGuessValidation(elements: GameElements): void {
 export function renderLoadError(elements: GameElements): void {
   closeExpandedPanel?.();
   elements.shareRegion.hidden = true;
+  renderDoodleCredit(elements.doodleCredit, undefined);
   elements.message.textContent =
     'The puzzle could not be loaded. Please refresh the page and try again.';
 }

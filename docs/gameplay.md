@@ -84,6 +84,11 @@ treatment, and may embed the configured YouTube video. A manually revealed
 result may also embed the video. A failed result reveals the answer without a
 video. Closing a result removes its content so any embedded video stops.
 
+When authored lyric lines exist, every terminal state also reveals them beneath
+their corresponding clue panels. They remain absent from the DOM while play is
+active and appear immediately for newly reached and restored terminal states.
+Puzzles without lyric lines retain the same terminal flow without captions.
+
 Terminal results open immediately when reached but do not reopen automatically
 when a saved puzzle is revisited.
 
@@ -129,7 +134,8 @@ navigation usable and simply omits completion markers.
 The authored wire JSON uses the single current puzzle shape, while its runtime
 contract is split by capability: `PuzzleClue` contains ID, date, issue, clue,
 and panels;
-`PuzzleSolution` contains title, artist, accepted answers, and optional video;
+`PuzzleSolution` contains title, artist, accepted answers, optional video, and
+optional lyric lines;
 `Puzzle` combines them. Views and domain functions accept the narrowest useful
 contract, reducing accidental solution access.
 

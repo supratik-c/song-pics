@@ -61,7 +61,16 @@
 
   .panels {
     gap: 11px;
-    padding: 10px 15px 20px;
+    padding: 10px 15px;
+  }
+
+  .clue-panel-area {
+    padding-bottom: 10px;
+  }
+
+  .doodle-credit {
+    padding-right: 15px;
+    padding-left: 15px;
   }
 
   .guess-entry-panel {
@@ -236,6 +245,11 @@
 
   .panels {
     gap: 9px;
+    padding-right: 11px;
+    padding-left: 11px;
+  }
+
+  .doodle-credit {
     padding-right: 11px;
     padding-left: 11px;
   }

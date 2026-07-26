@@ -7,6 +7,7 @@ export type PuzzleClue = {
   displayDate: string;
   issueNumber: number;
   songClue: string;
+  doodledBy?: string;
   panels: PuzzlePanel[];
 };
 
@@ -15,11 +16,13 @@ export type PuzzleSolution = {
   artist: string;
   acceptedAnswers: string[];
   youtubeURL?: string;
+  lyricLines?: string[];
 };
 
 export type Puzzle = PuzzleClue & PuzzleSolution;
 
-export type PuzzleJson = Pick<PuzzleClue, 'songClue'> & PuzzleSolution;
+export type PuzzleJson =
+  Pick<PuzzleClue, 'songClue' | 'doodledBy'> & PuzzleSolution;
 
 export type PuzzlePanelsManifest = Record<string, PuzzlePanel[]>;
 

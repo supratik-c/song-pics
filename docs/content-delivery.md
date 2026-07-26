@@ -18,10 +18,12 @@ Puzzle JSON has this source shape:
 ```json
 {
   "songClue": "Playful non-spoiler clue heading",
+  "doodledBy": "Panel artist name or handle",
   "songTitle": "Canonical Song Title",
   "artist": "Artist Name",
   "youtubeURL": "https://www.youtube.com/watch?v=...",
-  "acceptedAnswers": ["Canonical Song Title"]
+  "acceptedAnswers": ["Canonical Song Title"],
+  "lyricLines": ["Line matching panel 1", "Line matching panel 2"]
 }
 ```
 
@@ -33,6 +35,16 @@ formatted date, issue number, and panels are runtime-derived fields and do not
 belong in source JSON. Any unknown field is rejected. Panel metadata is always
 generated from the files in the puzzle directory.
 
+`doodledBy` is an optional non-empty panel artist name or handle. It is
+non-spoiler clue metadata displayed beneath the panels and is not included in
+archive metadata or share copy.
+
+`lyricLines` is optional. An omitted or empty array means the puzzle has no
+terminal lyric captions. When non-empty, every entry must be a non-empty string
+and the array must contain exactly one line per numeric panel. Lines map by
+position after panel filenames are numerically sorted, so the first line belongs
+to the first displayed panel even when filenames contain gaps.
+
 Panel filenames may have numeric gaps; their integer values control display
 order. Metadata generation recognizes AVIF, GIF, JPEG, PNG, and WebP. New
 hand-drawn rasters should normally use compressed WebP on an 800 × 600 (4:3)
@@ -40,8 +52,8 @@ canvas. `client/scripts/convert.sh` performs that conversion. Important clue
 content must remain crop-safe because the grid uses a 4:3 frame with
 `object-fit: cover`.
 
-Song and artist data are spoilers. Pre-solve headings, captions, filenames, alt
-text, logs, and share copy must not expose them.
+Song, artist, and lyric data are spoilers. Pre-solve headings, captions,
+filenames, alt text, logs, and share copy must not expose them.
 
 Puzzle share pages use the first numerically ordered panel already present in
 the puzzle directory. Their dated URLs, metadata, alt text, and invitation copy
@@ -63,7 +75,8 @@ creates an ascending, non-spoiler archive index containing `id` and `songClue`,
 plus a panel manifest whose entries follow numeric filename order. Generation
 fails early for impossible dates, missing or invalid puzzle JSON, missing
 numeric panels, invalid required values or videos, a missing canonical accepted
-answer, and normalized duplicate answers.
+answer, normalized duplicate answers, and non-empty lyric arrays whose length
+does not match the panel count.
 
 `puzzleConventions.mjs` owns path, date-ID, and panel-file conventions;
 `puzzleValidation.mjs` owns authored JSON, answer, and video validation; and

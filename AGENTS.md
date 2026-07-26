@@ -130,6 +130,12 @@ different command ran.
 
 As the product is still in private development, favour hard migrations that delete or remove old behaviour instead of maintaining legacy compatibility. Focus on concise, functional code that can swap out front-end behaviour for backend in future as needed.
 
+Ask clarifying questions when things are ambiguous. 
+
+You should feel free to think through alternatives that achieve the same desired outcomes when they exist, and raise these as options before finalizing on a plan.
+
+Be token efficient. For example, favour using ripgrep or rg over grep.
+
 Read the relevant source before editing. If implementation and documentation
 disagree, verify runtime or build behavior and correct stale documentation when
 it is in scope. Make focused edits and preserve unrelated user work. Do not edit

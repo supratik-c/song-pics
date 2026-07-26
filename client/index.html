@@ -14,16 +14,17 @@
           <div class="title-panel">
             <h1>Scribble Bops</h1>
             <p class="intro">Guess today's song from these highly professional drawings.</p>
-          </div>
-
-          <div class="masthead-actions" aria-label="Game information and archive">
             <button
-              class="masthead-action tactile-button how-to-play-button"
+              class="how-to-play-button tactile-button"
               id="how-to-play-button"
               type="button"
             >
-              How to Play
+              <span class="how-to-play-icon" aria-hidden="true">?</span>
+              <span class="visually-hidden">How to Play</span>
             </button>
+          </div>
+
+          <div class="masthead-actions" aria-label="Archive navigation">
             <button
               class="masthead-action tactile-button all-issues-button"
               id="all-issues-button"
@@ -41,7 +42,10 @@
             <h2 id="puzzle-song-clue"></h2>
           </div>
 
-          <div class="panels" id="panels" aria-label="Storyboard clue panels"></div>
+          <div class="clue-panel-area">
+            <div class="panels" id="panels" aria-label="Storyboard clue panels"></div>
+            <p class="doodle-credit" id="doodle-credit" hidden></p>
+          </div>
 
           <form class="guess-form" id="guess-form" novalidate>
             <div class="guess-entry-panel">

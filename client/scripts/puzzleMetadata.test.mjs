@@ -95,6 +95,31 @@ describe('puzzle metadata extraction', () => {
       'Puzzle has no numeric panel images',
     );
   });
+
+  it('accepts lyric lines that match numeric panel order', () => {
+    writePuzzle('2026-07-22', {
+      ...validPuzzle,
+      lyricLines: ['First line', 'Second line'],
+    }, ['10.webp', '2.webp']);
+
+    expect(getPuzzleMetadata(puzzleDirectory).puzzlePanels).toEqual({
+      '2026-07-22': [
+        { src: '/content/puzzles/2026-07-22/2.webp' },
+        { src: '/content/puzzles/2026-07-22/10.webp' },
+      ],
+    });
+  });
+
+  it('rejects lyric lines that do not match the panel count', () => {
+    writePuzzle('2026-07-22', {
+      ...validPuzzle,
+      lyricLines: ['Only one line'],
+    }, ['1.webp', '2.webp']);
+
+    expect(() => getPuzzleMetadata(puzzleDirectory)).toThrow(
+      'lyricLines must contain exactly 2 lines to match 2 panels',
+    );
+  });
 });
 
 describe('released content filtering', () => {

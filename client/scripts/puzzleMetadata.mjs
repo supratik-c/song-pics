@@ -10,7 +10,10 @@ import {
   getPuzzleJsonPath,
   isPuzzleDateId,
 } from './puzzleConventions.mjs';
-import { parsePuzzleJson } from './puzzleValidation.mjs';
+import {
+  parsePuzzleJson,
+  validateLyricLineCount,
+} from './puzzleValidation.mjs';
 
 export function getPuzzleMetadata(
   puzzleDirectory,
@@ -41,6 +44,8 @@ export function getPuzzleMetadata(
       puzzleJsonPath,
     );
     const panels = getPanelEntries(entry.name, puzzleEntries, puzzlePath);
+
+    validateLyricLineCount(puzzleJson, panels.length, puzzleJsonPath);
 
     if (!shouldIncludePuzzle(entry.name)) {
       continue;

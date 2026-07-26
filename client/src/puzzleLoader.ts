@@ -31,6 +31,8 @@ const puzzleJsonFields = new Set([
   'artist',
   'acceptedAnswers',
   'youtubeURL',
+  'lyricLines',
+  'doodledBy',
 ]);
 
 export async function loadPuzzle(
@@ -92,7 +94,15 @@ export function isPuzzleJson(value: unknown): value is PuzzleJson {
     Array.isArray(value.acceptedAnswers) &&
     value.acceptedAnswers.length > 0 &&
     value.acceptedAnswers.every(isNonEmptyString) &&
-    isOptionalNonEmptyString(value.youtubeURL)
+    isOptionalNonEmptyString(value.youtubeURL) &&
+    isOptionalNonEmptyString(value.doodledBy) &&
+    (
+      value.lyricLines === undefined ||
+      (
+        Array.isArray(value.lyricLines) &&
+        value.lyricLines.every(isNonEmptyString)
+      )
+    )
   );
 }
 
@@ -179,6 +189,16 @@ async function loadPuzzleJson(
     isPuzzleJson,
   );
   const panels = await loadPuzzlePanels(puzzleId);
+
+  if (
+    puzzleJson.lyricLines &&
+    puzzleJson.lyricLines.length > 0 &&
+    puzzleJson.lyricLines.length !== panels.length
+  ) {
+    throw new Error(
+      `Puzzle lyricLines must contain exactly ${panels.length} lines to match ${panels.length} panels: ${puzzleId}`,
+    );
+  }
 
   return {
     ...puzzleJson,

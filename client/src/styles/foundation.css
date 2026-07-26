@@ -224,7 +224,8 @@ select:disabled {
 .title-panel {
   position: relative;
   display: grid;
-  gap: 13px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 13px 18px;
   padding: 28px 34px 34px;
   background: var(--cream);
 }
@@ -249,6 +250,7 @@ h2,
 }
 
 h1 {
+  grid-column: 1 / -1;
   width: fit-content;
   max-width: 100%;
   color: var(--yellow);
@@ -267,9 +269,50 @@ h1 {
 }
 
 .intro {
+  min-width: 0;
   max-width: 660px;
   font-size: clamp(1.08rem, 2vw, 1.35rem);
   font-weight: 700;
+}
+
+.how-to-play-button {
+  --help-button-fill: var(--yellow);
+  --help-button-size: clamp(50px, 6vw, 58px);
+  --help-button-icon-size: clamp(2.25rem, 4vw, 2.75rem);
+  --help-button-border-width: var(--line-medium);
+  --help-button-border-color: var(--ink);
+  --help-button-inline-offset: 0px;
+  --help-button-block-offset: 0px;
+
+  position: relative;
+  inset-block-end: var(--help-button-block-offset);
+  inset-inline-end: var(--help-button-inline-offset);
+  display: grid;
+  align-self: end;
+  justify-self: end;
+  width: var(--help-button-size);
+  min-width: var(--help-button-size);
+  height: var(--help-button-size);
+  min-height: var(--help-button-size);
+  padding: 0;
+  border: var(--help-button-border-width) solid var(--help-button-border-color);
+  border-radius: 51% 47% 52% 46% / 48% 53% 46% 52%;
+  background: var(--help-button-fill);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--help-button-icon-size);
+  line-height: 1;
+  place-items: center;
+}
+
+.how-to-play-icon {
+  display: block;
+  transform: rotate(-4deg) translateY(1px);
+}
+
+.how-to-play-button:focus-visible {
+  z-index: 4;
+  outline-offset: 4px;
 }
 
 .masthead-actions {
@@ -309,6 +352,7 @@ h1 {
   --header-control-fill: var(--blue);
   --header-control-shape: polygon(0 0, 100% 0, 100% 100%, 12px 100%);
 
+  grid-column: 2;
   color: var(--ink);
 }
 

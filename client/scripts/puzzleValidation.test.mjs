@@ -37,6 +37,46 @@ describe('authored puzzle validation', () => {
     expect(validatePuzzleJson(validPuzzle)).toBe(validPuzzle);
   });
 
+  it('accepts an optional doodler credit', () => {
+    const puzzle = { ...validPuzzle, doodledBy: 'purblevibes' };
+
+    expect(validatePuzzleJson(puzzle)).toBe(puzzle);
+  });
+
+  it.each(['', '   ', 42, null])(
+    'rejects an invalid doodler credit %#',
+    (doodledBy) => {
+      expect(() => validatePuzzleJson({
+        ...validPuzzle,
+        doodledBy,
+      })).toThrow('doodledBy must be a non-empty string');
+    },
+  );
+
+  it('accepts optional lyric lines, including an empty list', () => {
+    expect(validatePuzzleJson({
+      ...validPuzzle,
+      lyricLines: ['The dog days are over'],
+    })).toEqual({
+      ...validPuzzle,
+      lyricLines: ['The dog days are over'],
+    });
+    expect(validatePuzzleJson({ ...validPuzzle, lyricLines: [] })).toEqual({
+      ...validPuzzle,
+      lyricLines: [],
+    });
+  });
+
+  it.each([
+    ['a string', 'lyricLines must be an array'],
+    [[''], 'lyricLines[0] must be a non-empty string'],
+  ])('rejects malformed lyric lines %#', (lyricLines, message) => {
+    expect(() => validatePuzzleJson({
+      ...validPuzzle,
+      lyricLines,
+    })).toThrow(message);
+  });
+
   it('reports malformed JSON with its source path', () => {
     expect(() => parsePuzzleJson('{', '/puzzles/bad/puzzle.json')).toThrow(
       'Puzzle contains invalid JSON: /puzzles/bad/puzzle.json',

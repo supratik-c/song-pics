@@ -4,6 +4,7 @@ export type GameElements = {
   artistHint: HTMLElement;
   attemptsCount: HTMLElement;
   date: HTMLElement;
+  doodleCredit: HTMLElement;
   form: HTMLFormElement;
   guessInput: HTMLInputElement;
   guessList: HTMLOListElement;
@@ -25,6 +26,7 @@ export function getGameElements(): GameElements {
     artistHint: getElement<HTMLElement>('#artist-hint'),
     attemptsCount: getElement<HTMLElement>('#attempts-count'),
     date: getElement<HTMLElement>('#puzzle-date'),
+    doodleCredit: getElement<HTMLElement>('#doodle-credit'),
     form: getElement<HTMLFormElement>('#guess-form'),
     guessInput: getElement<HTMLInputElement>('#guess-input'),
     guessList: getElement<HTMLOListElement>('#guess-list'),
