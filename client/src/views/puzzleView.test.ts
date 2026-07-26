@@ -93,7 +93,7 @@ describe('panel lyric rendering', () => {
   });
 
   it.each<GameStatus>(['solved', 'revealed', 'failed'])(
-    'renders ordered lyric sentences for %s games',
+    'renders independent ordered word waves for %s games',
     (status) => {
       const panels = setupPanels(2);
 
@@ -104,19 +104,80 @@ describe('panel lyric rendering', () => {
       );
 
       const captions = panels.querySelectorAll('.panel-lyric');
+      const firstTokens = captions[0].querySelectorAll('.panel-lyric-token');
+      const secondTokens = captions[1].querySelectorAll('.panel-lyric-token');
+      const firstEnding = captions[0].querySelector('.panel-lyric-ending');
 
       expect(captions).toHaveLength(2);
-      expect(captions[0].textContent).toBe('♪  First line  ♪');
-      expect(captions[1].textContent).toBe('♪  Second line  ♪');
-      expect(captions[0].children).toHaveLength(0);
+      expect(panels.children[0].attributes.get('data-panel-number')).toBe('1');
+      expect(panels.children[1].attributes.get('data-panel-number')).toBe('2');
+      expect(firstTokens.map((token) => token.textContent)).toEqual([
+        '♪',
+        'First',
+        'line',
+        '♪',
+      ]);
+      expect(secondTokens.map((token) => token.textContent)).toEqual([
+        '♪',
+        'Second',
+        'line',
+        '♪',
+      ]);
+      expect(tokenIndexes(firstTokens)).toEqual(['0', '1', '2', '3']);
+      expect(tokenIndexes(secondTokens)).toEqual(['0', '1', '2', '3']);
       expect(
-        captions[0].style.getPropertyValue('--lyric-wave-delay'),
-      ).toBe('0ms');
-      expect(
-        captions[1].style.getPropertyValue('--lyric-wave-delay'),
-      ).toBe('140ms');
+        firstEnding?.querySelectorAll('.panel-lyric-token')
+          .map((token) => token.textContent),
+      ).toEqual(['line', '♪']);
     },
   );
+
+  it('keeps a single lyric word and trailing note in one ending group', () => {
+    const panels = setupPanels(1);
+
+    renderPanelLyrics(
+      panels as unknown as HTMLElement,
+      'solved',
+      ['Supercalifragilisticexpialidocious'],
+    );
+
+    const caption = panels.querySelector('.panel-lyric');
+    const ending = caption?.querySelector('.panel-lyric-ending');
+    const endingTokens = ending?.querySelectorAll('.panel-lyric-token');
+
+    expect(endingTokens?.map((token) => token.textContent)).toEqual([
+      'Supercalifragilisticexpialidocious',
+      '♪',
+    ]);
+    expect(endingTokens && tokenIndexes(endingTokens)).toEqual(['1', '2']);
+    expect(caption && renderedText(caption)).toBe(
+      '♪  Supercalifragilisticexpialidocious  ♪',
+    );
+  });
+
+  it('collapses authored whitespace and keeps punctuation with words', () => {
+    const panels = setupPanels(1);
+
+    renderPanelLyrics(
+      panels as unknown as HTMLElement,
+      'solved',
+      ["  Don't   stop,   now!  "],
+    );
+
+    const caption = panels.querySelector('.panel-lyric');
+    const tokens = caption?.querySelectorAll('.panel-lyric-token');
+
+    expect(tokens?.map((token) => token.textContent)).toEqual([
+      '♪',
+      "Don't",
+      'stop,',
+      'now!',
+      '♪',
+    ]);
+    expect(caption && renderedText(caption)).toBe(
+      "♪  Don't stop, now!  ♪",
+    );
+  });
 
   it.each([undefined, []])(
     'renders no captions when lyric lines are %s',
@@ -148,9 +209,15 @@ describe('panel lyric rendering', () => {
     );
 
     const captions = panels.querySelectorAll('.panel-lyric');
+    const tokens = captions[0].querySelectorAll('.panel-lyric-token');
 
     expect(captions).toHaveLength(1);
-    expect(captions[0].textContent).toBe('♪  Updated line  ♪');
+    expect(tokens.map((token) => token.textContent)).toEqual([
+      '♪',
+      'Updated',
+      'line',
+      '♪',
+    ]);
   });
 });
 
@@ -181,6 +248,11 @@ describe('doodler credit rendering', () => {
 function setupPanels(count: number): FakeElement {
   vi.stubGlobal('document', {
     createElement: () => new FakeElement(),
+    createTextNode: (value: string) => {
+      const text = new FakeElement();
+      text.textContent = value;
+      return text;
+    },
   });
 
   const container = new FakeElement();
@@ -192,4 +264,16 @@ function setupPanels(count: number): FakeElement {
   }
 
   return container;
+}
+
+function tokenIndexes(tokens: FakeNodeList): string[] {
+  return tokens.map((token) =>
+    token.style.getPropertyValue('--lyric-wave-token-index')
+  );
+}
+
+function renderedText(element: FakeElement): string {
+  return element.children.length === 0
+    ? element.textContent
+    : element.children.map(renderedText).join('');
 }

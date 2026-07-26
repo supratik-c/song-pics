@@ -276,7 +276,7 @@ h1 {
 }
 
 .how-to-play-button {
-  --help-button-fill: var(--yellow);
+  --help-button-fill: var(--green-light);
   --help-button-size: clamp(50px, 6vw, 58px);
   --help-button-icon-size: clamp(2.25rem, 4vw, 2.75rem);
   --help-button-border-width: var(--line-medium);

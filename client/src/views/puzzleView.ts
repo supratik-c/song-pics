@@ -12,7 +12,8 @@ import type {
 const futurePuzzleMessage = 'Still in development....';
 const futurePuzzleImagePath =
   '/content/misc/double-semiquaver-orange.svg';
-const lyricWaveStaggerMs = 140;
+const lyricNote = '♪';
+const lyricNoteSpacing = '  ';
 let closeExpandedPanel: (() => void) | null = null;
 
 export function renderPuzzle(
@@ -127,7 +128,8 @@ export function renderPanelLyrics(
 ): void {
   const panels = panelsElement.querySelectorAll<HTMLElement>('.panel');
 
-  panels.forEach((panel) => {
+  panels.forEach((panel, index) => {
+    panel.setAttribute('data-panel-number', String(index + 1));
     panel.querySelector('.panel-lyric')?.remove();
   });
 
@@ -142,15 +144,51 @@ export function renderPanelLyrics(
       return;
     }
 
-    const caption = document.createElement('figcaption');
-    caption.className = 'panel-lyric';
-    caption.style.setProperty(
-      '--lyric-wave-delay',
-      `${index * lyricWaveStaggerMs}ms`,
-    );
-    caption.textContent = `♪  ${line}  ♪`;
-    panel.append(caption);
+    panel.append(createLyricCaption(line));
   });
+}
+
+function createLyricCaption(line: string): HTMLElement {
+  const caption = document.createElement('figcaption');
+  const words = line.trim().split(/\s+/);
+
+  caption.className = 'panel-lyric';
+  caption.append(
+    createLyricToken(lyricNote, 0),
+    document.createTextNode(lyricNoteSpacing),
+  );
+
+  words.forEach((word, wordIndex) => {
+    const tokenIndex = wordIndex + 1;
+    const wordToken = createLyricToken(word, tokenIndex);
+    const isLastWord = wordIndex === words.length - 1;
+
+    if (!isLastWord) {
+      caption.append(wordToken, document.createTextNode(' '));
+      return;
+    }
+
+    const ending = document.createElement('span');
+    ending.className = 'panel-lyric-ending';
+    ending.append(
+      wordToken,
+      document.createTextNode(lyricNoteSpacing),
+      createLyricToken(lyricNote, tokenIndex + 1),
+    );
+    caption.append(ending);
+  });
+
+  return caption;
+}
+
+function createLyricToken(text: string, index: number): HTMLElement {
+  const token = document.createElement('span');
+
+  token.className = 'panel-lyric-token';
+  token.style.setProperty('--lyric-wave-token-index', String(index));
+  token.textContent = text;
+
+  return token;
 }
 
 export function renderDoodleCredit(

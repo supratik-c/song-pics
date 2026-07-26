@@ -46,6 +46,14 @@ h2 {
 }
 
 .panels {
+  --lyric-wave-duration: 4s;
+  --lyric-wave-word-stagger: 300ms;
+  --lyric-wave-panel-delay: 0ms;
+  --lyric-wave-rise-offset: -5px;
+  --lyric-wave-dip-offset: 2px;
+  --lyric-wave-easing: ease-in-out;
+  --lyric-wave-iterations: infinite;
+
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
@@ -128,10 +136,34 @@ figure img {
   line-height: 1.3;
   overflow-wrap: anywhere;
   text-align: center;
-  animation: lyric-wave 1.6s ease-in-out var(--lyric-wave-delay, 0ms) infinite;
 }
 
-@keyframes lyric-wave {
+.panel-lyric-token {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  animation-name: lyric-word-wave;
+  animation-duration: var(--lyric-wave-duration);
+  animation-timing-function: var(--lyric-wave-easing);
+  animation-delay: calc(
+    var(--lyric-wave-panel-delay) +
+    var(--lyric-wave-token-index) * var(--lyric-wave-word-stagger)
+  );
+  animation-iteration-count: var(--lyric-wave-iterations);
+}
+
+.panel-lyric-ending {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  max-width: 100%;
+}
+
+.panel-lyric-ending > .panel-lyric-token:first-child {
+  min-width: 0;
+}
+
+@keyframes lyric-word-wave {
   0%,
   55%,
   100% {
@@ -139,11 +171,11 @@ figure img {
   }
 
   15% {
-    transform: translateY(-5px);
+    transform: translateY(var(--lyric-wave-rise-offset));
   }
 
   30% {
-    transform: translateY(2px);
+    transform: translateY(var(--lyric-wave-dip-offset));
   }
 }
 

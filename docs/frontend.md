@@ -86,13 +86,17 @@ announcement. Fatal initialization and load failures are also rendered through
 a view rather than direct writes from `main.ts` or `app.ts`.
 
 Optional lyric captions are created only for terminal states and are semantic
-`figcaption` children of their corresponding panels. Each caption is one plain
-text sentence flanked by music-note characters, without a containing box.
-Captions wrap within the panel width, and each grid row follows its tallest
-caption so later content remains aligned. Terminal captions continuously bob
-in numeric panel order using a staggered, transform-only wave; reduced-motion
-preferences leave them stationary. Panel zoom temporarily hides its caption to
-keep the expanded artwork unobstructed.
+`figcaption` children of their corresponding panels. Each caption is flanked by
+music-note characters and split into inline word tokens, without a containing
+box. Captions wrap within the panel width, and each grid row follows its tallest
+caption so later content remains aligned. Every panel independently loops a
+transform-only wave from its leading note through its words to its trailing
+note. Feature-scoped CSS properties provide shared timing and movement defaults,
+and stable panel-number attributes support selector-based overrides. Reduced-
+motion preferences leave every token stationary. Panel zoom temporarily hides
+its caption to keep the expanded artwork unobstructed. The final word and
+trailing note share an atomic inline ending group, preventing the note from
+wrapping onto a line by itself while retaining their separate animations.
 
 A requested future date renders a friendly future-puzzle state while retaining
 archive access. Unexpected load failures use the general message region and are
