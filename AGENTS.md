@@ -130,7 +130,7 @@ different command ran.
 
 As the product is still in private development, favour hard migrations that delete or remove old behaviour instead of maintaining legacy compatibility. Focus on concise, functional code that can swap out front-end behaviour for backend in future as needed.
 
-Ask clarifying questions when things are ambiguous. 
+Ask clarifying questions when things are ambiguous. Always wait for input to your questions, never time out. Never use the autoResolutionMs value for the request_user_input tool.
 
 You should feel free to think through alternatives that achieve the same desired outcomes when they exist, and raise these as options before finalizing on a plan.
 
