@@ -14,6 +14,7 @@ import {
   type ModalController,
 } from './modal.ts';
 import type { GameStateStore } from './storage.ts';
+import { runAfterTactileActivation } from './tactileAction.ts';
 import {
   createPuzzleShareRequest,
   type PuzzleShareRequestFactory,
@@ -61,7 +62,9 @@ export async function initApp(
   const modal = createModalController(elements.modal);
 
   elements.howToPlayButton.addEventListener('click', () => {
-    void handleHowToPlay(elements, modal, dependencies);
+    runAfterTactileActivation(elements.howToPlayButton, () => {
+      void handleHowToPlay(elements, modal, dependencies);
+    });
   });
 
   try {
@@ -113,14 +116,51 @@ export async function initApp(
       return;
     }
 
-    state = submission.state;
-    dependencies.gameStateStore.save(puzzle.id, state);
-    elements.form.reset();
-    renderState(elements, state, GAME_RULES, puzzle.lyricLines);
+    const applySubmission = (): void => {
+      state = submission.state;
+      dependencies.gameStateStore.save(puzzle.id, state);
+      elements.form.reset();
+      renderState(elements, state, GAME_RULES, puzzle.lyricLines);
 
-    if (state.status === 'playing') {
-      elements.guessInput.focus();
+      if (state.status === 'playing') {
+        elements.guessInput.focus();
+      } else {
+        openResultModal(
+          elements,
+          puzzle,
+          state,
+          modal,
+          shareUrl,
+          getShareRequest,
+          dependencies.shareGateway,
+        );
+      }
+    };
+
+    if (submission.state.status === 'playing') {
+      applySubmission();
     } else {
+      runAfterTactileActivation(elements.submitButton, applySubmission);
+    }
+  });
+
+  elements.revealArtistButton.addEventListener('click', () => {
+    runAfterTactileActivation(elements.revealArtistButton, () => {
+      if (state.status === 'playing') {
+        renderArtistHint(elements, puzzle.artist);
+      }
+    });
+  });
+
+  elements.revealSongButton.addEventListener('click', () => {
+    runAfterTactileActivation(elements.revealSongButton, () => {
+      if (state.status === 'playing') {
+        state = revealSong(state);
+        dependencies.gameStateStore.save(puzzle.id, state);
+        clearGuessValidation(elements);
+        renderState(elements, state, GAME_RULES, puzzle.lyricLines);
+      }
+
       openResultModal(
         elements,
         puzzle,
@@ -130,32 +170,7 @@ export async function initApp(
         getShareRequest,
         dependencies.shareGateway,
       );
-    }
-  });
-
-  elements.revealArtistButton.addEventListener('click', () => {
-    if (state.status === 'playing') {
-      renderArtistHint(elements, puzzle.artist);
-    }
-  });
-
-  elements.revealSongButton.addEventListener('click', () => {
-    if (state.status === 'playing') {
-      state = revealSong(state);
-      dependencies.gameStateStore.save(puzzle.id, state);
-      clearGuessValidation(elements);
-      renderState(elements, state, GAME_RULES, puzzle.lyricLines);
-    }
-
-    openResultModal(
-      elements,
-      puzzle,
-      state,
-      modal,
-      shareUrl,
-      getShareRequest,
-      dependencies.shareGateway,
-    );
+    });
   });
 }
 
@@ -197,30 +212,32 @@ function bindArchiveButton(
   elements.allIssuesButton.disabled = archive.entries.length === 0;
 
   elements.allIssuesButton.addEventListener('click', () => {
-    const viewId = modal.open({
-      title: 'All Issues',
-      content: renderModalMessage('Checking your back catalogue...'),
-      returnFocus: elements.allIssuesButton,
-    });
-
-    void dependencies.completionSource.loadCompletedPuzzleIds(
-      archive.entries.map((entry) => entry.id),
-    ).then((completedPuzzleIds) => {
-      modal.update(viewId, {
-        content: renderArchiveContent(
-          archive,
-          completedPuzzleIds,
-          dependencies.buildPuzzleUrl,
-        ),
+    runAfterTactileActivation(elements.allIssuesButton, () => {
+      const viewId = modal.open({
+        title: 'All Issues',
+        content: renderModalMessage('Checking your back catalogue...'),
+        returnFocus: elements.allIssuesButton,
       });
-    }).catch((error) => {
-      console.error(error);
-      modal.update(viewId, {
-        content: renderArchiveContent(
-          archive,
-          new Set(),
-          dependencies.buildPuzzleUrl,
-        ),
+
+      void dependencies.completionSource.loadCompletedPuzzleIds(
+        archive.entries.map((entry) => entry.id),
+      ).then((completedPuzzleIds) => {
+        modal.update(viewId, {
+          content: renderArchiveContent(
+            archive,
+            completedPuzzleIds,
+            dependencies.buildPuzzleUrl,
+          ),
+        });
+      }).catch((error) => {
+        console.error(error);
+        modal.update(viewId, {
+          content: renderArchiveContent(
+            archive,
+            new Set(),
+            dependencies.buildPuzzleUrl,
+          ),
+        });
       });
     });
   });

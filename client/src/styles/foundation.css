@@ -186,6 +186,36 @@ select:disabled {
     );
 }
 
+.tactile-button.is-tactile-activating:not(:disabled) {
+  animation: tactile-activation 140ms ease-out;
+}
+
+@keyframes tactile-activation {
+  0%,
+  30% {
+    filter: drop-shadow(
+      var(--tactile-pressed-shadow)
+      var(--tactile-pressed-shadow)
+      0
+      var(--ink)
+    );
+    transform: translate(
+      calc(var(--tactile-shadow-x) - var(--tactile-pressed-shadow)),
+      calc(var(--tactile-shadow-y) - var(--tactile-pressed-shadow))
+    );
+  }
+
+  100% {
+    filter: drop-shadow(
+      var(--tactile-shadow-x)
+      var(--tactile-shadow-y)
+      0
+      var(--ink)
+    );
+    transform: translate(0, 0);
+  }
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
