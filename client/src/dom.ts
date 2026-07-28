@@ -15,6 +15,7 @@ export type GameElements = {
   allIssuesButton: HTMLButtonElement;
   revealArtistButton: HTMLButtonElement;
   revealSongButton: HTMLButtonElement;
+  resultRegion: HTMLElement;
   shareRegion: HTMLElement;
   submitButton: HTMLButtonElement;
   songClue: HTMLElement;
@@ -42,6 +43,7 @@ export function getGameElements(): GameElements {
     allIssuesButton: getElement<HTMLButtonElement>('#all-issues-button'),
     revealArtistButton: getElement<HTMLButtonElement>('#reveal-artist-button'),
     revealSongButton: getElement<HTMLButtonElement>('#reveal-song-button'),
+    resultRegion: getElement<HTMLElement>('#result-region'),
     shareRegion: getElement<HTMLElement>('#share-region'),
     submitButton: getElement<HTMLButtonElement>('#guess-form button[type="submit"]'),
     songClue: getElement<HTMLElement>('#puzzle-song-clue'),

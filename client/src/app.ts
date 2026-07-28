@@ -39,7 +39,11 @@ import {
   renderPuzzle,
   renderState,
 } from './views/puzzleView.ts';
-import { renderResultContent } from './views/resultView.ts';
+import {
+  clearResult,
+  focusCompletedResult,
+  renderResult,
+} from './views/resultView.ts';
 import { renderShareControl } from './views/shareView.ts';
 
 export type AppDependencies = {
@@ -99,7 +103,7 @@ export async function initApp(
   elements.shareRegion.replaceChildren(createShareControl());
 
   renderPuzzle(elements, puzzle);
-  renderState(elements, state, GAME_RULES, puzzle.lyricLines);
+  renderGameState(elements, puzzle, state);
   bindArchiveButton(elements, archive, modal, dependencies);
 
   elements.form.addEventListener('submit', (event) => {
@@ -120,20 +124,12 @@ export async function initApp(
       state = submission.state;
       dependencies.gameStateStore.save(puzzle.id, state);
       elements.form.reset();
-      renderState(elements, state, GAME_RULES, puzzle.lyricLines);
+      renderGameState(elements, puzzle, state);
 
       if (state.status === 'playing') {
         elements.guessInput.focus();
       } else {
-        openResultModal(
-          elements,
-          puzzle,
-          state,
-          modal,
-          shareUrl,
-          getShareRequest,
-          dependencies.shareGateway,
-        );
+        focusCompletedResult(elements.resultRegion);
       }
     };
 
@@ -154,24 +150,32 @@ export async function initApp(
 
   elements.revealSongButton.addEventListener('click', () => {
     runAfterTactileActivation(elements.revealSongButton, () => {
-      if (state.status === 'playing') {
-        state = revealSong(state);
-        dependencies.gameStateStore.save(puzzle.id, state);
-        clearGuessValidation(elements);
-        renderState(elements, state, GAME_RULES, puzzle.lyricLines);
+      if (state.status !== 'playing') {
+        return;
       }
 
-      openResultModal(
-        elements,
-        puzzle,
-        state,
-        modal,
-        shareUrl,
-        getShareRequest,
-        dependencies.shareGateway,
-      );
+      state = revealSong(state);
+      dependencies.gameStateStore.save(puzzle.id, state);
+      clearGuessValidation(elements);
+      renderGameState(elements, puzzle, state);
+      focusCompletedResult(elements.resultRegion);
     });
   });
+}
+
+function renderGameState(
+  elements: GameElements,
+  puzzle: Puzzle,
+  state: GameState,
+): void {
+  renderState(elements, state, GAME_RULES, puzzle.lyricLines);
+
+  if (state.status === 'playing') {
+    clearResult(elements.resultRegion);
+    return;
+  }
+
+  renderResult(elements.resultRegion, puzzle, state.status);
 }
 
 async function handleHowToPlay(
@@ -240,37 +244,5 @@ function bindArchiveButton(
         });
       });
     });
-  });
-}
-
-function openResultModal(
-  elements: GameElements,
-  puzzle: Puzzle,
-  state: GameState,
-  modal: ModalController,
-  shareUrl: string,
-  getShareRequest: PuzzleShareRequestFactory,
-  shareGateway: ShareGateway,
-): void {
-  if (state.status === 'playing') {
-    return;
-  }
-
-  const result = renderResultContent(
-    puzzle,
-    state.status,
-    renderShareControl({
-      fallbackUrl: shareUrl,
-      getRequest: getShareRequest,
-      share: shareGateway.share,
-    }),
-  );
-
-  modal.open({
-    title: result.title,
-    content: result.content,
-    returnFocus: elements.revealSongButton,
-    onClose: result.onClose,
-    tone: result.tone,
   });
 }

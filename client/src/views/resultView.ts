@@ -1,59 +1,72 @@
-import type { ModalTone } from '../modal.ts';
 import type { GameStatus, PuzzleSolution } from '../types.ts';
 
-export type RenderedResult = {
-  title: string;
-  content: DocumentFragment;
-  onClose?: () => void;
-  tone: ModalTone;
-};
-
-export function renderResultContent(
+export function renderResult(
+  region: HTMLElement,
   solution: PuzzleSolution,
   status: Exclude<GameStatus, 'playing'>,
-  shareControl?: HTMLElement,
-): RenderedResult {
-  const content = document.createDocumentFragment();
+): void {
+  const title = document.createElement('h3');
+  const body = document.createElement('div');
   const message = document.createElement('p');
   const answer = document.createElement('p');
-  let title: string;
-  const tone = status === 'solved' ? 'success' : 'default';
-  let onClose: (() => void) | undefined;
 
+  title.id = 'puzzle-result-title';
+  title.className = 'result-banner';
+  body.className = 'result-body';
   message.className = 'result-message';
   answer.className = 'result-answer';
   answer.textContent = `${solution.songTitle} by ${solution.artist}`;
 
   if (status === 'solved') {
-    title = 'Correct!';
+    title.textContent = 'Correct!';
     message.textContent = 'You decoded the doodles.';
   } else if (status === 'revealed') {
-    title = 'Song Revealed';
+    title.textContent = 'Song Revealed';
     message.textContent =
       'The scribbles win this round. The song was:';
   } else {
-    title = 'Out of Guesses';
+    title.textContent = 'Out of Guesses';
     message.textContent = 'That was your last guess. The song was:';
   }
 
-  content.append(message, answer);
+  body.append(message, answer);
 
   if (status !== 'failed' && solution.youtubeURL) {
     const video = createYouTubeVideo(solution.youtubeURL);
 
     if (video) {
-      content.append(video);
-      onClose = () => {
-        video.src = 'about:blank';
-      };
+      body.append(video);
     }
   }
 
-  if (shareControl) {
-    content.append(shareControl);
-  }
+  region.dataset.outcome = status;
+  region.replaceChildren(title, body);
+  region.hidden = false;
+}
 
-  return { title, content, tone, onClose };
+export function clearResult(region: HTMLElement): void {
+  region.hidden = true;
+  delete region.dataset.outcome;
+  region.replaceChildren();
+}
+
+export function focusCompletedResult(region: HTMLElement): void {
+  region.focus({ preventScroll: true });
+
+  window.requestAnimationFrame(() => {
+    const scrollHeight = Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight,
+    );
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    const behavior = prefersReducedMotion
+      ? 'auto'
+      : 'smooth';
+
+    window.scrollTo({ top: scrollHeight, behavior });
+  });
 }
 
 export function getYouTubeEmbedUrl(url: string): string | null {

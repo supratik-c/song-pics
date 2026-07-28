@@ -47,29 +47,6 @@
   line-height: 0.94;
 }
 
-.comic-dialog[data-tone='success'] .comic-dialog-header {
-  grid-template-columns:
-    var(--dialog-close-size)
-    minmax(0, 1fr)
-    var(--dialog-close-size);
-  color: var(--cream);
-  background: var(--green-dark);
-}
-
-.comic-dialog[data-tone='success'] .comic-dialog-header::before {
-  grid-column: 1;
-  content: '';
-}
-
-.comic-dialog[data-tone='success'] .comic-dialog-header h2 {
-  grid-column: 2;
-  text-align: center;
-}
-
-.comic-dialog[data-tone='success'] .comic-dialog-close {
-  grid-column: 3;
-}
-
 .comic-dialog-close {
   display: grid;
   place-items: center;
@@ -111,8 +88,7 @@
   background: var(--tomato-light);
 }
 
-.how-to-introduction,
-.result-message {
+.how-to-introduction {
   margin: 0 0 20px;
   font-size: 1.15rem;
   font-weight: 700;
@@ -284,32 +260,5 @@
   margin: 0;
   font-weight: 700;
   text-align: center;
-}
-
-.result-message {
-  text-align: center;
-}
-
-.result-answer {
-  margin: 0;
-  padding: 18px 20px 14px;
-  border: var(--line-heavy) solid var(--ink);
-  background: var(--yellow);
-  box-shadow: 5px 6px 0 var(--ink);
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 6vw, 3.5rem);
-  letter-spacing: 0.025em;
-  line-height: 1;
-  text-align: center;
-}
-
-.result-video {
-  display: block;
-  width: min(100%, 720px);
-  aspect-ratio: 16 / 9;
-  margin: 26px auto 4px;
-  border: var(--line-medium) solid var(--ink);
-  border-radius: 0;
-  box-shadow: 5px 6px 0 var(--ink);
 }
 

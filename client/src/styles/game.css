@@ -393,6 +393,81 @@ input::placeholder {
   padding-top: 22px;
 }
 
+/* Inline puzzle results */
+
+.result-region {
+  min-width: 0;
+  background: var(--cream);
+}
+
+.result-region:focus {
+  outline: 4px solid var(--focus-ring);
+  outline-offset: -8px;
+}
+
+.result-banner {
+  margin: 0;
+  padding: 18px 28px 14px;
+  border-bottom: var(--line-heavy) solid var(--ink);
+  color: var(--ink);
+  background: var(--yellow);
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  font-weight: 400;
+  letter-spacing: 0.035em;
+  line-height: 0.95;
+  text-align: center;
+}
+
+.result-region[data-outcome='solved'] .result-banner {
+  color: var(--cream);
+  background: var(--green-dark);
+}
+
+.result-body {
+  min-width: 0;
+  padding: 24px 28px 30px;
+  background:
+    radial-gradient(
+      circle at 12px 12px,
+      rgba(36, 31, 28, 0.06) 1px,
+      transparent 1.2px
+    ),
+    var(--cream);
+  background-size: 24px 24px;
+}
+
+.result-message {
+  margin: 0 0 20px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.result-answer {
+  margin: 0;
+  padding: 18px 20px 14px;
+  border: var(--line-heavy) solid var(--ink);
+  background: var(--yellow);
+  box-shadow: 5px 6px 0 var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  letter-spacing: 0.025em;
+  line-height: 1;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.result-video {
+  display: block;
+  width: min(100%, 720px);
+  aspect-ratio: 16 / 9;
+  margin: 26px auto 4px;
+  border: var(--line-medium) solid var(--ink);
+  border-radius: 0;
+  box-shadow: 5px 6px 0 var(--ink);
+}
+
 /* Feedback and game states */
 
 .message,

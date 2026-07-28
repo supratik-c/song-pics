@@ -66,6 +66,7 @@ export function renderFuturePuzzle(elements: GameElements): void {
   elements.message.hidden = true;
   elements.validationMessage.hidden = true;
   elements.guessList.hidden = true;
+  hideResultRegion(elements);
   elements.shareRegion.hidden = true;
   renderDoodleCredit(elements.doodleCredit, undefined);
 
@@ -112,11 +113,11 @@ export function renderState(
   );
 
   if (state.status !== 'playing') {
-    setFinished(elements, state.status);
+    setFinished(elements);
     return;
   }
 
-  setRevealSongButtonLabel(elements, 'Reveal Song');
+  elements.form.hidden = false;
   elements.message.textContent =
     state.guesses.length === 0 ? '' : 'Try again.';
 }
@@ -237,6 +238,7 @@ export function clearGuessValidation(elements: GameElements): void {
 
 export function renderLoadError(elements: GameElements): void {
   closeExpandedPanel?.();
+  hideResultRegion(elements);
   elements.shareRegion.hidden = true;
   renderDoodleCredit(elements.doodleCredit, undefined);
   elements.message.textContent =
@@ -304,6 +306,7 @@ function setPlayableView(elements: GameElements): void {
   elements.message.hidden = false;
   elements.validationMessage.hidden = true;
   elements.guessList.hidden = false;
+  hideResultRegion(elements);
   elements.shareRegion.hidden = true;
 
   elements.artistHint.textContent = '';
@@ -315,36 +318,13 @@ function setPlayableView(elements: GameElements): void {
   elements.panels.setAttribute('aria-label', 'Storyboard clue panels');
 }
 
-function setRevealSongButtonLabel(
-  elements: GameElements,
-  label: string,
-): void {
-  const labelElement = elements.revealSongButton.querySelector('span');
-
-  if (labelElement) {
-    labelElement.textContent = label;
-  } else {
-    elements.revealSongButton.textContent = label;
-  }
+function setFinished(elements: GameElements): void {
+  elements.form.hidden = true;
+  elements.message.textContent = '';
 }
 
-function setFinished(
-  elements: GameElements,
-  status: Exclude<GameStatus, 'playing'>,
-): void {
-  elements.message.textContent = '';
-  elements.guessInput.disabled = true;
-  elements.revealArtistButton.disabled = true;
-  elements.revealArtistButton.hidden = true;
-  elements.submitButton.disabled = true;
-  elements.revealSongButton.disabled = false;
-  setRevealSongButtonLabel(elements, 'View Result');
-
-  if (status === 'solved') {
-    elements.attemptsCount.textContent = 'Solved!';
-  } else if (status === 'revealed') {
-    elements.attemptsCount.textContent = 'Song revealed';
-  } else {
-    elements.attemptsCount.textContent = 'Out of guesses';
-  }
+function hideResultRegion(elements: GameElements): void {
+  elements.resultRegion.hidden = true;
+  delete elements.resultRegion.dataset.outcome;
+  elements.resultRegion.replaceChildren();
 }

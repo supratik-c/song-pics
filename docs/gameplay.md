@@ -78,29 +78,31 @@ Game state contains normalized guesses and one status:
 | `revealed` | The player chose to reveal the song | Reveal Song while playing |
 | `failed` | No guesses remain | Fifth incorrect guess |
 
-All terminal states disable further guesses and turn Reveal Song into View
-Result. A solved result reveals the canonical song and artist, uses the success
+All terminal states replace the guess form and action grid with an inline
+result. A solved result reveals the canonical song and artist, uses the success
 treatment, and may embed the configured YouTube video. A manually revealed
 result may also embed the video. A failed result reveals the answer without a
-video. Closing a result removes its content so any embedded video stops.
+video.
 
 When authored lyric lines exist, every terminal state also reveals them beneath
 their corresponding clue panels. They remain absent from the DOM while play is
 active and appear immediately for newly reached and restored terminal states.
 Puzzles without lyric lines retain the same terminal flow without captions.
 
-Terminal results open immediately when reached but do not reopen automatically
-when a saved puzzle is revisited.
+Terminal results render inline immediately when reached and when a saved puzzle
+is revisited. A newly reached result receives keyboard focus and scrolls the
+page to the bottom, using immediate rather than smooth scrolling when reduced
+motion is preferred. Restored results do not move focus or scroll the page.
 
-Every terminal outcome offers the same spoiler-free puzzle invitation at the
-bottom of its result dialog and in the persistent main game region. The
+Every terminal outcome offers the same spoiler-free puzzle invitation in a
+persistent main game region kept separate from the inline result. The
 invitation uses the dated issue URL, whose link preview identifies the first
 clue panel. Solved invitations include the number of recorded attempts with
 singular or plural wording; failed and manually revealed invitations use the
 same playful surrender challenge. They never include the solution, artist, or
 submitted guess text. The share request derives this performance synchronously
 from the latest in-memory state when the control is activated, including for a
-restored terminal state whose result dialog does not reopen automatically.
+restored terminal state.
 
 `getPuzzlePerformance` is a pure terminal read model containing puzzle ID,
 outcome, and recorded attempts. It returns no performance while play continues

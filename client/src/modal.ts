@@ -5,21 +5,15 @@ export type ModalElements = {
   closeButton: HTMLButtonElement;
 };
 
-export type ModalTone = 'default' | 'success';
-
 export type ModalView = {
   title: string;
   content: DocumentFragment;
   returnFocus: HTMLElement;
-  onClose?: () => void;
-  tone?: ModalTone;
 };
 
 type ModalUpdate = {
   title?: string;
   content: DocumentFragment;
-  onClose?: () => void;
-  tone?: ModalTone;
 };
 
 export type ModalController = {
@@ -47,11 +41,8 @@ export function createModalController(
 ): ModalController {
   let activeViewId = 0;
   let returnFocus: HTMLElement | null = null;
-  let onClose: (() => void) | null = null;
 
   const cleanUpContent = (): void => {
-    onClose?.();
-    onClose = null;
     elements.body.replaceChildren();
   };
 
@@ -60,7 +51,6 @@ export function createModalController(
 
     cleanUpContent();
     elements.title.textContent = '';
-    delete elements.dialog.dataset.tone;
     returnFocus = null;
     activeViewId += 1;
 
@@ -79,10 +69,8 @@ export function createModalController(
     cleanUpContent();
 
     elements.title.textContent = view.title;
-    elements.dialog.dataset.tone = view.tone ?? 'default';
     elements.body.append(view.content);
     returnFocus = view.returnFocus;
-    onClose = view.onClose ?? null;
 
     if (!elements.dialog.open) {
       elements.dialog.showModal();
@@ -109,12 +97,7 @@ export function createModalController(
       elements.title.textContent = updateValue.title;
     }
 
-    if (updateValue.tone !== undefined) {
-      elements.dialog.dataset.tone = updateValue.tone;
-    }
-
     elements.body.append(updateValue.content);
-    onClose = updateValue.onClose ?? null;
     return true;
   };
 

@@ -8,9 +8,9 @@ and transient visual implementation details remain canonical in source.
 ## Composition and ownership
 
 `client/index.html` owns the static semantic shell: masthead controls, puzzle
-heading, clue-panel region, guess form, action controls, feedback regions, and
-one native `<dialog>`. `client/src/dom.ts` resolves that shell into typed element
-references and co-locates the `GameElements` contract.
+heading, clue-panel region, guess form, action controls, inline result and
+feedback regions, and one native `<dialog>`. `client/src/dom.ts` resolves that
+shell into typed element references and co-locates the `GameElements` contract.
 
 `client/src/main.ts` performs the deployment check, constructs concrete browser
 dependencies, and starts the app. `client/src/app.ts` owns orchestration and
@@ -24,7 +24,7 @@ DOM output is divided by stable UI responsibility:
 - `views/archiveView.ts` renders archive navigation and pagination using an
   injected puzzle-URL callback;
 - `views/howToPlayView.ts` renders tutorial content;
-- `views/resultView.ts` renders terminal results and optional video;
+- `views/resultView.ts` renders inline terminal results and optional video;
 - `views/shareView.ts` creates reusable terminal share controls and owns their
   busy and feedback rendering.
 
@@ -58,7 +58,7 @@ empty when the field is omitted.
 
 `client/src/modal.ts` owns one reusable native dialog and co-locates its modal
 types. It manages the common title, close action, active-view identity, cleanup,
-optional tone, and focus restoration. Feature renderers return typed
+and focus restoration. Feature renderers return typed
 `DocumentFragment` content rather than branching inside the modal controller.
 Updating an obsolete asynchronous view is ignored, and closing the dialog
 removes its content.
@@ -70,20 +70,21 @@ newest first, paginates in groups of 50, and opens on the page containing the
 selected puzzle. Long lists scroll within the height-constrained dialog.
 Completion lookup failure does not block archive navigation.
 
-Correct, revealed, and failed outcomes share the result dialog. Only correct
-answers use its success treatment. Result content owns any YouTube iframe
-cleanup so closing the dialog stops playback. Each result appends a fresh share
-control after its optional video; the same control factory also populates the
-main terminal-state share region.
+Correct, revealed, and failed outcomes replace the guess form and action grid
+with an inline result. Only correct answers use its success treatment. Solved
+and manually revealed results may include the configured YouTube iframe;
+failed results do not. The reusable dialog remains the surface for How to Play
+and All Issues, while the share control stays in its separate terminal-state
+region below the result and previous guesses.
 
 ## State rendering and errors
 
 The puzzle view owns headings, panels, guesses, attempts, validation, control
-availability, and terminal labels. Invalid input uses a dedicated polite live
-region and does not replace general application errors. Artist and attempt
-feedback use deliberate live regions without making every visual change an
-announcement. Fatal initialization and load failures are also rendered through
-a view rather than direct writes from `main.ts` or `app.ts`.
+availability, and terminal form visibility. Invalid input uses a dedicated
+polite live region and does not replace general application errors. Artist and
+attempt feedback use deliberate live regions without making every visual change
+an announcement. Fatal initialization and load failures are also rendered
+through a view rather than direct writes from `main.ts` or `app.ts`.
 
 Optional lyric captions are created only for terminal states and are semantic
 `figcaption` children of their corresponding panels. Each caption is flanked by
@@ -106,6 +107,11 @@ The main share region is hidden while play is active and in future or load-error
 views. It appears for solved, manually revealed, failed, and restored terminal
 states. Share feedback uses its own polite status region; dismissing the OS
 share sheet is not announced as an error.
+
+Newly reached terminal results receive programmatic focus after replacing the
+form, then scroll the page to the bottom so the completed area is in view.
+Smooth scrolling is used unless reduced motion is preferred. Restored terminal
+states render the same result without moving focus or scroll position.
 
 ## Accessibility and responsive behavior
 

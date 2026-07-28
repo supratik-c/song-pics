@@ -2,7 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   renderDoodleCredit,
   renderPanelLyrics,
+  renderState,
 } from './puzzleView.ts';
+import type { GameElements } from '../dom.ts';
+import { GAME_RULES } from '../gameConfig.ts';
 import type { GameStatus } from '../types.ts';
 
 class FakeElement {
@@ -10,6 +13,7 @@ class FakeElement {
   readonly children: FakeElement[] = [];
   readonly style = new FakeStyle();
   className = '';
+  disabled = false;
   hidden = false;
   parent: FakeElement | null = null;
   textContent = '';
@@ -50,6 +54,14 @@ class FakeElement {
       this.parent.children.splice(index, 1);
     }
     this.parent = null;
+  }
+
+  replaceChildren(...nodes: FakeElement[]): void {
+    this.children.forEach((child) => {
+      child.parent = null;
+    });
+    this.children.splice(0, this.children.length);
+    this.append(...nodes);
   }
 
   setAttribute(name: string, value: string): void {
@@ -245,6 +257,54 @@ describe('doodler credit rendering', () => {
   });
 });
 
+describe('playing and terminal form rendering', () => {
+  it('keeps the interactive form available only while play continues', () => {
+    const { elements, form, shareRegion } = setupStateElements();
+    form.hidden = true;
+
+    renderState(
+      elements,
+      { guesses: ['first guess'], status: 'playing' },
+      GAME_RULES,
+      undefined,
+    );
+
+    expect(form.hidden).toBe(false);
+    expect(shareRegion.hidden).toBe(true);
+    expect(elements.attemptsCount.textContent).toBe('4 guesses left');
+    expect(elements.message.textContent).toBe('Try again.');
+  });
+
+  it.each<Exclude<GameStatus, 'playing'>>([
+    'solved',
+    'revealed',
+    'failed',
+  ])('hides rather than disables the form for %s games', (status) => {
+    const {
+      elements,
+      form,
+      revealSongButton,
+      shareRegion,
+      submitButton,
+    } = setupStateElements();
+    revealSongButton.textContent = 'Reveal Song';
+
+    renderState(
+      elements,
+      { guesses: ['first guess'], status },
+      GAME_RULES,
+      undefined,
+    );
+
+    expect(form.hidden).toBe(true);
+    expect(shareRegion.hidden).toBe(false);
+    expect(submitButton.disabled).toBe(false);
+    expect(revealSongButton.disabled).toBe(false);
+    expect(revealSongButton.textContent).toBe('Reveal Song');
+    expect(elements.message.textContent).toBe('');
+  });
+});
+
 function setupPanels(count: number): FakeElement {
   vi.stubGlobal('document', {
     createElement: () => new FakeElement(),
@@ -264,6 +324,57 @@ function setupPanels(count: number): FakeElement {
   }
 
   return container;
+}
+
+function setupStateElements(): {
+  elements: GameElements;
+  form: FakeElement;
+  revealSongButton: FakeElement;
+  shareRegion: FakeElement;
+  submitButton: FakeElement;
+} {
+  vi.stubGlobal('document', {
+    createElement: () => new FakeElement(),
+  });
+
+  const attemptsCount = new FakeElement();
+  const form = new FakeElement();
+  const guessList = new FakeElement();
+  const message = new FakeElement();
+  const panels = new FakeElement();
+  const revealSongButton = new FakeElement();
+  const shareRegion = new FakeElement();
+  const submitButton = new FakeElement();
+  const unused = new FakeElement();
+  const elements = {
+    artistHint: unused,
+    attemptsCount,
+    date: unused,
+    doodleCredit: unused,
+    form,
+    guessInput: unused,
+    guessList,
+    howToPlayButton: unused,
+    message,
+    modal: unused,
+    panels,
+    allIssuesButton: unused,
+    revealArtistButton: unused,
+    revealSongButton,
+    resultRegion: unused,
+    shareRegion,
+    submitButton,
+    songClue: unused,
+    validationMessage: unused,
+  } as unknown as GameElements;
+
+  return {
+    elements,
+    form,
+    revealSongButton,
+    shareRegion,
+    submitButton,
+  };
 }
 
 function tokenIndexes(tokens: FakeNodeList): string[] {

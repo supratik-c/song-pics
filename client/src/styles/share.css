@@ -15,12 +15,6 @@
   gap: 8px;
 }
 
-.comic-dialog-body .share-control {
-  margin-top: 26px;
-  padding-top: 24px;
-  border-top: var(--line-medium) dashed var(--ink);
-}
-
 .share-button {
   --share-shape: polygon(2% 8%, 98% 0, 100% 88%, 5% 100%, 0 18%);
   --tactile-shadow-x: 5px;
