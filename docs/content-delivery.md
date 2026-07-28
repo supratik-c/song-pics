@@ -48,8 +48,9 @@ to the first displayed panel even when filenames contain gaps.
 Panel filenames may have numeric gaps; their integer values control display
 order. Metadata generation recognizes AVIF, GIF, JPEG, PNG, and WebP. New
 hand-drawn rasters should normally use compressed WebP on an 800 × 600 (4:3)
-canvas. `client/scripts/convert.sh` performs that conversion. Important clue
-content must remain crop-safe because the grid uses a 4:3 frame with
+canvas. `client/scripts/convert.sh` converts PNG and JPEG panels and resizes
+WebP panels that do not already match those dimensions. Important clue content
+must remain crop-safe because the grid uses a 4:3 frame with
 `object-fit: cover`.
 
 Song, artist, and lyric data are spoilers. Pre-solve headings, captions,

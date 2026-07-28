@@ -7,6 +7,11 @@ if ! command -v cwebp >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v webpinfo >/dev/null 2>&1; then
+  echo "Error: webpinfo is not installed or is not on PATH." >&2
+  exit 1
+fi
+
 if (( $# > 1 )); then
   echo "Usage: $0 [YYYY-MM-DD]" >&2
   exit 1
@@ -57,13 +62,32 @@ for puzzle_directory in "${puzzle_directories[@]}"; do
     "$puzzle_directory"/*.png
     "$puzzle_directory"/*.jpg
     "$puzzle_directory"/*.jpeg
+    "$puzzle_directory"/*.webp
   )
 
   for source_file in "${source_files[@]}"; do
     webp_file="${source_file%.*}.webp"
     temporary_file="$webp_file.tmp"
+    source_extension="${source_file##*.}"
 
-    if [[ -e "$webp_file" ]]; then
+    if [[ "$source_extension" == "webp" ]]; then
+      if ! image_info="$(webpinfo -summary "$source_file" 2>/dev/null)"; then
+        echo "Error: could not inspect WebP file: $source_file" >&2
+        exit 1
+      fi
+
+      width="$(awk '/^  Width:/ { print $2; exit }' <<< "$image_info")"
+      height="$(awk '/^  Height:/ { print $2; exit }' <<< "$image_info")"
+
+      if [[ -z "$width" || -z "$height" ]]; then
+        echo "Error: could not determine WebP dimensions: $source_file" >&2
+        exit 1
+      fi
+
+      if [[ "$width" == 800 && "$height" == 600 ]]; then
+        continue
+      fi
+    elif [[ -e "$webp_file" ]]; then
       echo "Error: refusing to overwrite existing file: $webp_file" >&2
       exit 1
     fi
@@ -86,19 +110,40 @@ for puzzle_directory in "${puzzle_directories[@]}"; do
 
     if [[ ! -s "$temporary_file" ]]; then
       rm -f -- "$temporary_file"
-      echo "Error: cwebp produced an empty file; original PNG was kept." >&2
+      echo "Error: cwebp produced an empty file; original source image was kept." >&2
+      exit 1
+    fi
+
+    if ! converted_info="$(webpinfo -summary "$temporary_file" 2>/dev/null)"; then
+      rm -f -- "$temporary_file"
+      echo "Error: converted WebP could not be validated; original source image was kept." >&2
+      exit 1
+    fi
+
+    converted_width="$(awk '/^  Width:/ { print $2; exit }' <<< "$converted_info")"
+    converted_height="$(awk '/^  Height:/ { print $2; exit }' <<< "$converted_info")"
+
+    if [[ "$converted_width" != 800 || "$converted_height" != 600 ]]; then
+      rm -f -- "$temporary_file"
+      echo "Error: converted WebP is not 800x600; original source image was kept." >&2
       exit 1
     fi
 
     mv -- "$temporary_file" "$webp_file"
-    rm -- "$source_file"
+
+    if [[ "$source_file" != "$webp_file" ]]; then
+      rm -- "$source_file"
+      echo "Created $(basename -- "$webp_file") and deleted $(basename -- "$source_file")."
+    else
+      echo "Resized $(basename -- "$source_file") to 800x600."
+    fi
+
     ((converted_count += 1))
-    echo "Created $(basename -- "$webp_file") and deleted $(basename -- "$source_file")."
   done
 done
 
 if (( converted_count == 0 )); then
-  echo "No PNG or JPEG files found."
+  echo "No PNG or JPEG files or non-800x600 WebP files found."
 else
   echo "Converted $converted_count source image file(s)."
 fi
