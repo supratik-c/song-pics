@@ -82,6 +82,7 @@
   --green-light: #cde7b8;
   --yellow: #ffd447;
   --blue: #5fc8f8;
+  --blue-light: #c0e1ed;
   --blue-dark: #15617c;
   --peach: #f2c59e;
   --line-heavy: 4px;
@@ -333,36 +334,14 @@ h1 {
 }
 
 .all-issues-button {
-  --header-button-fill: var(--blue);
+  --header-button-fill: var(--blue-light);
 }
 
 .all-issues-icon {
-  position: relative;
   display: block;
-  width: 25px;
-  height: var(--line-medium);
-  border-radius: 999px;
-  background: currentcolor;
-  transform: rotate(-2deg);
-}
-
-.all-issues-icon::before,
-.all-issues-icon::after {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: var(--line-medium);
-  border-radius: inherit;
-  background: currentcolor;
-  content: '';
-}
-
-.all-issues-icon::before {
-  top: -8px;
-}
-
-.all-issues-icon::after {
-  bottom: -8px;
+  width: 30px;
+  height: 26px;
+  transform: rotate(-3deg);
 }
 
 .how-to-play-button {

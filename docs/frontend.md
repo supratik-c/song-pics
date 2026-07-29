@@ -41,11 +41,11 @@ Controls share tactile hover, focus, and press behavior, while the drawings
 remain the primary visual focus.
 
 The title panel places a compact pair of circular controls beside the
-introduction: a blue hamburger control for All Issues followed by the green
-question-mark control for How to Play. Their accessible names remain “All
-Issues” and “How to Play,” and closing either dialog restores focus to the
-control that opened it. The game area follows the title panel directly across
-the hand-drawn black divider.
+introduction: a pale-blue illustrated open-comic control for All Issues
+followed by the green question-mark control for How to Play. Their accessible
+names remain “All Issues” and “How to Play,” and closing either dialog restores
+focus to the control that opened it. The game area follows the title panel
+directly across the hand-drawn black divider.
 
 The puzzle header stacks the abbreviated issue date above the song clue. The
 visible date uses one `Issue #N · D Mon YY` format everywhere. All Issues is the
