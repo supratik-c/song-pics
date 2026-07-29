@@ -125,6 +125,19 @@ describe('share page HTML', () => {
     expect(page).toContain('content="image/png"');
     expect(page).not.toContain('og:image:secure_url');
   });
+
+  it('preserves the built base-aware licences link in the copied shell', () => {
+    const page = createPuzzleSharePage(
+      '<html><head></head><body><a href="/song-pics/licenses.html">Licences</a></body></html>',
+      {
+        firstPanelUrl: 'https://example.test/a.webp',
+        issueNumber: 3,
+        shareUrl: 'https://example.test/song-pics/share/3/',
+      },
+    );
+
+    expect(page).toContain('href="/song-pics/licenses.html"');
+  });
 });
 
 function writePuzzle(id, panelNames) {

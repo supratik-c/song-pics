@@ -36,7 +36,7 @@
   min-height: 78px;
   padding: 13px 17px 11px 24px;
   border-bottom: var(--line-heavy) solid var(--ink);
-  background: var(--yellow);
+  background: var(--green-light);
 }
 
 .comic-dialog-header h2 {

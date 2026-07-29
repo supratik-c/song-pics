@@ -359,3 +359,31 @@ h1 {
   z-index: 4;
   outline-offset: 4px;
 }
+
+/* Site footer */
+
+.site-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 24px;
+}
+
+.site-footer a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 8px 12px;
+  color: var(--ink);
+  font-weight: 700;
+  text-underline-offset: 0.2em;
+}
+
+.site-footer a:hover {
+  color: var(--tomato);
+}
+
+.site-footer a:focus-visible {
+  border-radius: 4px;
+  outline: 4px solid var(--focus-ring);
+  outline-offset: 3px;
+}
