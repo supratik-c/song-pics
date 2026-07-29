@@ -23,10 +23,11 @@ constructing concrete infrastructure.
 
 Game rules and immutable state transitions live in `game.ts`, with durable
 policy in `gameConfig.ts`. Loaders fetch static content through a shared JSON
-boundary that checks status, disables caching, and validates data before it
-enters the application. Focused modules under `views/` own DOM output. Browser
-persistence is an adapter in `storage.ts`; the independently replaceable
-completion read model lives in `completion.ts`.
+boundary that checks status, defaults to fresh requests, lets
+deployment-versioned content use normal HTTP caching, and validates data before
+it enters the application. Focused modules under `views/` own DOM output.
+Browser persistence is an adapter in `storage.ts`; the independently
+replaceable completion read model lives in `completion.ts`.
 
 Pure functions in `navigation.ts` own puzzle-query parsing and archive URL
 construction. With no `puzzle` query parameter, the latest released puzzle is

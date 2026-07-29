@@ -1,5 +1,9 @@
 export type TypeGuard<Value> = (value: unknown) => value is Value;
 
+export type FetchStaticJsonOptions = {
+  cache?: RequestCache;
+};
+
 export function isRecord(
   value: unknown,
 ): value is Record<string, unknown> {
@@ -24,8 +28,11 @@ export async function fetchStaticJson<Value>(
   url: string | URL,
   description: string,
   guard: TypeGuard<Value>,
+  options: FetchStaticJsonOptions = {},
 ): Promise<Value> {
-  const response = await fetch(url, { cache: 'no-store' });
+  const response = await fetch(url, {
+    cache: options.cache ?? 'no-store',
+  });
 
   if (!response.ok) {
     throw new Error(

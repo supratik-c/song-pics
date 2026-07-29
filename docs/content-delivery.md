@@ -103,11 +103,22 @@ HTML is a build artifact and is not committed; images remain only under
 The browser fetches the generated archive, selected puzzle JSON, inferred
 panels, How to Play manifest, and build-version manifest as runtime content.
 Loaders resolve same-origin paths through `resolvePublicPath`, then use a small
-`fetchStaticJson` boundary that applies `no-store`, handles unsuccessful status
-codes, and accepts a complete type guard. Reusable primitives such as record
-and non-empty-string checks live in `validation.ts`; puzzle JSON, panel
-manifests, tutorial data, archive data, and build-version data are validated
-before entering application code.
+`fetchStaticJson` boundary that defaults to `no-store`, handles unsuccessful
+status codes, and accepts a complete type guard. Archive, panel, puzzle, and
+tutorial JSON opt into normal HTTP caching because their resolved URLs include
+the current build identifier. The unversioned build manifest retains
+`no-store`. Reusable primitives such as record and non-empty-string checks live
+in `validation.ts`; puzzle JSON, panel manifests, tutorial data, archive data,
+and build-version data are validated before entering application code.
+
+After the deployment check, puzzle loading starts the archive index first. A
+future request awaits only that index so it can render archive navigation
+without requesting future puzzle or panel data. Other requests load the panel
+manifest alongside the index. A valid non-future archive ID also starts its
+puzzle JSON speculatively; if the index does not contain that ID, the unused
+result is ignored and the resolved latest puzzle is loaded instead. No or
+invalid ID waits for the index to select the latest puzzle before requesting
+its JSON.
 
 Source puzzle JSON uses the single authored shape documented above. Runtime
 types distinguish `PuzzleClue` from `PuzzleSolution` and combine them as
@@ -178,8 +189,9 @@ mismatch triggers one reload carrying a temporary `_deployment` query value;
 other query parameters are preserved. The temporary value is removed after the
 new build loads. Failure or invalid version data does not block the game.
 
-Runtime content URLs include the build ID so browsers and GitHub Pages do not
-reuse stale puzzle JSON or images after replacement under the same filename.
+Runtime content URLs include the build ID. Browsers can reuse cached JSON and
+images within one deployment, while a new build ID creates new cache keys so
+replaced content is not reused across deployments.
 
 `VITE_PUBLIC_SITE_URL` supplies the absolute canonical base used in social
 metadata. GitHub Pages builds derive it from the repository owner and name. The

@@ -25,6 +25,9 @@ const PUZZLE_DIRECTORY = '/content/puzzles';
 const PUZZLE_FILE_NAME = 'puzzle.json';
 const PUZZLE_INDEX_PATH = `${PUZZLE_DIRECTORY}/index.json`;
 const PUZZLE_PANELS_PATH = `${PUZZLE_DIRECTORY}/panels.json`;
+type SettledResult<Value> =
+  | { status: 'fulfilled'; value: Value }
+  | { status: 'rejected'; reason: unknown };
 const puzzleJsonFields = new Set([
   'songClue',
   'songTitle',
@@ -38,15 +41,17 @@ const puzzleJsonFields = new Set([
 export async function loadPuzzle(
   requestedPuzzleId: string | null,
 ): Promise<LoadedPuzzle> {
-  const archiveEntries = await loadReleasedArchiveEntries();
-  const latestPuzzleId = archiveEntries[0].id;
   const requestedPuzzleIsValid =
     requestedPuzzleId !== null && isPuzzleDateId(requestedPuzzleId);
+  const archiveEntriesPromise = loadReleasedArchiveEntries();
 
   if (
     requestedPuzzleIsValid &&
     isFuturePuzzleDateId(requestedPuzzleId)
   ) {
+    const archiveEntries = await archiveEntriesPromise;
+    const latestPuzzleId = archiveEntries[0].id;
+
     throw new FuturePuzzleError(requestedPuzzleId, {
       entries: archiveEntries,
       latestPuzzleId,
@@ -54,6 +59,15 @@ export async function loadPuzzle(
     });
   }
 
+  const panelsManifestPromise = loadPuzzlePanelsManifest();
+  const requestedPuzzleResultPromise = requestedPuzzleIsValid
+    ? settle(loadPuzzleSource(requestedPuzzleId))
+    : null;
+  const [archiveEntries, panelsManifest] = await Promise.all([
+    archiveEntriesPromise,
+    panelsManifestPromise,
+  ]);
+  const latestPuzzleId = archiveEntries[0].id;
   const selectedPuzzleId = resolveSelectedPuzzleId(
     requestedPuzzleId,
     archiveEntries,
@@ -66,9 +80,28 @@ export async function loadPuzzle(
     throw new Error(`Puzzle is missing from archive: ${selectedPuzzleId}`);
   }
 
-  const puzzle = await loadPuzzleJson(
+  let puzzleSource: PuzzleJson;
+
+  if (
+    requestedPuzzleResultPromise &&
+    selectedPuzzleId === requestedPuzzleId
+  ) {
+    const requestedPuzzleResult = await requestedPuzzleResultPromise;
+
+    if (requestedPuzzleResult.status === 'rejected') {
+      throw requestedPuzzleResult.reason;
+    }
+
+    puzzleSource = requestedPuzzleResult.value;
+  } else {
+    puzzleSource = await loadPuzzleSource(selectedPuzzleId);
+  }
+
+  const puzzle = assemblePuzzle(
     selectedPuzzleId,
     selectedEntry.issueNumber,
+    puzzleSource,
+    selectPuzzlePanels(panelsManifest, selectedPuzzleId),
   );
 
   return {
@@ -132,6 +165,7 @@ async function loadReleasedArchiveEntries(): Promise<PuzzleArchiveEntry[]> {
     resolvePublicPath(PUZZLE_INDEX_PATH),
     'puzzle list',
     isPuzzleIndex,
+    { cache: 'default' },
   );
   const entries = result
     .filter((entry) => !isFuturePuzzleDateId(entry.id))
@@ -177,19 +211,48 @@ function resolveSelectedPuzzleId(
   return archiveEntries[0].id;
 }
 
-async function loadPuzzleJson(
+async function loadPuzzleSource(
   puzzleId: string,
-  issueNumber: number,
-): Promise<Puzzle> {
+): Promise<PuzzleJson> {
   const puzzlePath =
     `${PUZZLE_DIRECTORY}/${puzzleId}/${PUZZLE_FILE_NAME}`;
-  const puzzleJson = await fetchStaticJson(
+
+  return fetchStaticJson(
     resolvePublicPath(puzzlePath),
     'puzzle',
     isPuzzleJson,
+    { cache: 'default' },
   );
-  const panels = await loadPuzzlePanels(puzzleId);
+}
 
+async function loadPuzzlePanelsManifest(): Promise<PuzzlePanelsManifest> {
+  return fetchStaticJson(
+    resolvePublicPath(PUZZLE_PANELS_PATH),
+    'puzzle panels',
+    isPuzzlePanelsManifest,
+    { cache: 'default' },
+  );
+}
+
+function selectPuzzlePanels(
+  manifest: PuzzlePanelsManifest,
+  puzzleId: string,
+): PuzzlePanel[] {
+  const panels = manifest[puzzleId];
+
+  if (!panels) {
+    throw new Error(`Puzzle has no generated panels: ${puzzleId}`);
+  }
+
+  return panels;
+}
+
+function assemblePuzzle(
+  puzzleId: string,
+  issueNumber: number,
+  puzzleJson: PuzzleJson,
+  panels: PuzzlePanel[],
+): Puzzle {
   if (
     puzzleJson.lyricLines &&
     puzzleJson.lyricLines.length > 0 &&
@@ -209,17 +272,11 @@ async function loadPuzzleJson(
   };
 }
 
-async function loadPuzzlePanels(puzzleId: string): Promise<PuzzlePanel[]> {
-  const manifest = await fetchStaticJson(
-    resolvePublicPath(PUZZLE_PANELS_PATH),
-    'puzzle panels',
-    isPuzzlePanelsManifest,
+function settle<Value>(
+  promise: Promise<Value>,
+): Promise<SettledResult<Value>> {
+  return promise.then(
+    (value) => ({ status: 'fulfilled', value }),
+    (reason: unknown) => ({ status: 'rejected', reason }),
   );
-  const panels = manifest[puzzleId];
-
-  if (!panels) {
-    throw new Error(`Puzzle has no generated panels: ${puzzleId}`);
-  }
-
-  return panels;
 }

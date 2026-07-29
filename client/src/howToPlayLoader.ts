@@ -44,6 +44,7 @@ export function loadHowToPlayManifest(): Promise<HowToPlayManifest> {
     resolvePublicPath(HOW_TO_PLAY_MANIFEST_PATH),
     'How to Play content',
     isHowToPlayManifest,
+    { cache: 'default' },
   ).catch((error: unknown) => {
     manifestPromise = null;
     throw error;
