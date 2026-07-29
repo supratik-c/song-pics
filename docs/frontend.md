@@ -9,8 +9,10 @@ and transient visual implementation details remain canonical in source.
 
 `client/index.html` owns the static semantic shell: masthead controls, puzzle
 heading, clue-panel region, guess form, action controls, inline result and
-feedback regions, and one native `<dialog>`. `client/src/dom.ts` resolves that
-shell into typed element references and co-locates the `GameElements` contract.
+feedback regions, a small site footer, and one native `<dialog>`. The footer
+links to the separate Font licences page. `client/src/dom.ts` resolves the
+interactive shell into typed element references and co-locates the
+`GameElements` contract.
 
 `client/src/main.ts` performs the deployment check, constructs concrete browser
 dependencies, and starts the app. `client/src/app.ts` owns orchestration and
@@ -39,6 +41,11 @@ language is warm graph paper, ink-dark outlines, cream surfaces, hard offset
 shadows, bold accents, informal typography, and deliberately rough clue art.
 Controls share tactile hover, focus, and press behavior, while the drawings
 remain the primary visual focus.
+
+The standalone Font licences page reuses those foundations without loading the
+game. It presents the exact Bangers and Kalam OFL notices as readable text and
+download links. A single base-aware `Licences` link beneath the comic page makes
+the notices available from the main shell and every generated share shell.
 
 The title panel places a compact pair of circular controls beside the
 introduction: a pale-blue illustrated open-comic control for All Issues
@@ -159,6 +166,10 @@ stylesheet:
 4. `styles/share.css` owns the reusable main and dialog share control;
 5. `styles/responsive.css` owns ordered breakpoint, motion, and forced-color
    overrides.
+
+`client/src/licenses.css` is the separate entry for the Font licences page. It
+imports the shared foundation before its page-specific legal styles, avoiding
+game, dialog, and share rules that the static page does not use.
 
 The import order is part of the cascade contract. Exact measurements, font
 ratios, wrapping choices, shadows, and breakpoint values remain canonical in

@@ -105,6 +105,7 @@ concern the task touches:
 | Guess rules, states, results, persistence, issue numbering, or completion | [Gameplay](gameplay.md) |
 | HTML, rendering, dialogs, accessibility, responsive layout, or visual behavior | [Frontend](frontend.md) |
 | Puzzle authoring, assets, manifests, runtime paths, builds, caching, or deployment | [Content delivery](content-delivery.md) |
+| Commercialisation, intellectual property, tips, privacy, or third-party services | [Commercialisation](commercial.md) |
 
 Keep exact style values and short-lived implementation detail in source code.
 Use a small decision record only when a future architectural choice has

@@ -69,6 +69,11 @@ handled by Vite. Within that directory, reusable logo art, decorative line art,
 and raster surfaces belong in `branding/`, `doodles/`, and `textures/` when
 introduced. Locally hosted fonts and licenses live in `fonts/`.
 
+Each locally hosted font directory includes its upstream licence notice. The
+Font licences page imports each notice as readable source text and as a Vite
+asset URL, so production emits the exact `OFL.txt` content alongside the font
+files instead of relying on source-repository access.
+
 ## Generated metadata
 
 `client/scripts/generatePuzzleIndex.mjs` scans dated puzzle directories. It
@@ -138,6 +143,11 @@ start selecting a newer daily puzzle.
 This path boundary is required for both domain-root hosting and GitHub Pages
 project hosting. Imported JavaScript, CSS, and UI assets use Vite's normal
 content-hashed paths instead.
+
+The build has two HTML entries: the game at `index.html` and the static font
+notices at `licenses.html`. Their navigation and notice URLs use Vite's public
+base, including when the built game shell is copied into a dated share
+directory, so the links remain valid at `/` and beneath `/song-pics/`.
 
 ## Production release boundary
 
