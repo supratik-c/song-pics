@@ -90,7 +90,6 @@
   --hard-shadow: 7px 8px 0 var(--ink);
   --small-shadow: 3px 4px 0 var(--ink);
   --focus-ring: var(--blue-dark);
-  --header-control-font-max: 1.7rem;
 }
 
 /* Foundations */
@@ -305,34 +304,71 @@ h1 {
   font-weight: 700;
 }
 
-.how-to-play-button {
-  --help-button-fill: var(--green-light);
-  --help-button-size: clamp(50px, 6vw, 58px);
-  --help-button-icon-size: clamp(2.25rem, 4vw, 2.75rem);
-  --help-button-border-width: var(--line-medium);
-  --help-button-border-color: var(--ink);
-  --help-button-inline-offset: 0px;
-  --help-button-block-offset: 0px;
-
-  position: relative;
-  inset-block-end: var(--help-button-block-offset);
-  inset-inline-end: var(--help-button-inline-offset);
-  display: grid;
+.header-controls {
+  display: flex;
   align-self: end;
   justify-self: end;
-  width: var(--help-button-size);
-  min-width: var(--help-button-size);
-  height: var(--help-button-size);
-  min-height: var(--help-button-size);
+  gap: 14px;
+}
+
+.header-icon-button {
+  --header-button-fill: var(--green-light);
+  --header-button-size: clamp(50px, 6vw, 58px);
+
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  width: var(--header-button-size);
+  min-width: var(--header-button-size);
+  height: var(--header-button-size);
+  min-height: var(--header-button-size);
   padding: 0;
-  border: var(--help-button-border-width) solid var(--help-button-border-color);
+  border: var(--line-medium) solid var(--ink);
   border-radius: 51% 47% 52% 46% / 48% 53% 46% 52%;
-  background: var(--help-button-fill);
+  background: var(--header-button-fill);
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: var(--help-button-icon-size);
   line-height: 1;
   place-items: center;
+}
+
+.all-issues-button {
+  --header-button-fill: var(--blue);
+}
+
+.all-issues-icon {
+  position: relative;
+  display: block;
+  width: 25px;
+  height: var(--line-medium);
+  border-radius: 999px;
+  background: currentcolor;
+  transform: rotate(-2deg);
+}
+
+.all-issues-icon::before,
+.all-issues-icon::after {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: var(--line-medium);
+  border-radius: inherit;
+  background: currentcolor;
+  content: '';
+}
+
+.all-issues-icon::before {
+  top: -8px;
+}
+
+.all-issues-icon::after {
+  bottom: -8px;
+}
+
+.how-to-play-button {
+  --header-button-fill: var(--green-light);
+
+  font-size: clamp(2.25rem, 4vw, 2.75rem);
 }
 
 .how-to-play-icon {
@@ -340,73 +376,7 @@ h1 {
   transform: rotate(-4deg) translateY(1px);
 }
 
-.how-to-play-button:focus-visible {
-  z-index: 4;
-  outline-offset: 4px;
-}
-
-.masthead-actions {
-  display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  gap: 14px;
-  padding: 17px 20px 21px;
-  border-bottom: var(--line-heavy) solid var(--ink);
-  background: var(--cream);
-}
-
-.masthead-action {
-  width: 100%;
-  height: 100%;
-  min-height: 82px;
-  padding: 18px 24px 14px;
-  border: 0;
-  border-radius: 0;
-  color: var(--ink);
-  box-shadow: none;
-  font-weight: 700;
-  line-height: 1.15;
-  text-align: center;
-}
-
-.masthead-action {
-  --header-control-fill: var(--yellow);
-  --header-control-shape: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%);
-
-  position: relative;
-  isolation: isolate;
-  background: transparent;
-  font-size: clamp(1.25rem, 2.5vw, var(--header-control-font-max));
-}
-
-.all-issues-button {
-  --header-control-fill: var(--blue);
-  --header-control-shape: polygon(0 0, 100% 0, 100% 100%, 12px 100%);
-
-  grid-column: 2;
-  color: var(--ink);
-}
-
-.masthead-action::before,
-.masthead-action::after {
-  position: absolute;
-  content: '';
-  clip-path: var(--header-control-shape);
-}
-
-.masthead-action::before {
-  z-index: -2;
-  inset: 0;
-  background: var(--ink);
-}
-
-.masthead-action::after {
-  z-index: -1;
-  inset: var(--line-medium);
-  background: var(--header-control-fill);
-}
-
-.masthead-action:focus-visible {
-  position: relative;
+.header-icon-button:focus-visible {
   z-index: 4;
   outline-offset: 4px;
 }

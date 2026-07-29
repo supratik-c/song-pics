@@ -27,21 +27,6 @@
       8px 8px 0 var(--tomato);
   }
 
-  .masthead-actions {
-    grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
-    gap: 10px;
-    padding: 13px 12px 17px;
-  }
-
-  .masthead-action {
-    min-height: 74px;
-    padding: 14px 12px 10px;
-  }
-
-  .masthead-action {
-    font-size: clamp(1.05rem, 5vw, var(--header-control-font-max));
-  }
-
   .game-header {
     gap: 16px;
     padding: 9px 15px 2px;
@@ -210,13 +195,8 @@
     font-size: 1rem;
   }
 
-  .masthead-actions {
-    grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
-  }
-
-  .masthead-action {
-    padding-right: 8px;
-    padding-left: 8px;
+  .header-controls {
+    gap: 8px;
   }
 
   .comic-dialog-header {
@@ -327,12 +307,10 @@
   }
 
   .title-panel::after,
-  .masthead-action::before,
   .share-button::before {
     background: CanvasText;
   }
 
-  .masthead-action::after,
   .share-button::after {
     background: Canvas;
   }
