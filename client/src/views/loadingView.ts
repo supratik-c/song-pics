@@ -9,7 +9,7 @@ export type LoadingIndicatorOptions = {
 const defaultNoteStaggerMs = 180;
 
 export function renderLoadingIndicator({
-  label = 'Loading...',
+  label = 'Scribbling...',
   size = 'medium',
   noteStaggerMs = defaultNoteStaggerMs,
 }: LoadingIndicatorOptions = {}): DocumentFragment {

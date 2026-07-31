@@ -47,7 +47,7 @@ describe('loading indicator', () => {
     expect(indicator.attributes.get('role')).toBe('status');
     expect(indicator.attributes.get('aria-live')).toBe('polite');
     expect(indicator.attributes.get('aria-atomic')).toBe('true');
-    expect(label.textContent).toBe('Loading...');
+    expect(label.textContent).toBe('Scribbling...');
     expect(leadingNote.textContent).toBe('♪');
     expect(trailingNote.textContent).toBe('♪');
     expect(leadingNote.attributes.get('aria-hidden')).toBe('true');
