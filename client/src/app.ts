@@ -108,9 +108,9 @@ export async function initApp(
 
   elements.shareRegion.replaceChildren(createShareControl());
 
-  renderPuzzle(elements, puzzle);
-  renderGameState(elements, puzzle, state, dependencies.youtubeConsentStore);
   bindArchiveButton(elements, archive, modal, dependencies);
+  await renderPuzzle(elements, puzzle);
+  renderGameState(elements, puzzle, state, dependencies.youtubeConsentStore);
 
   elements.form.addEventListener('submit', (event) => {
     event.preventDefault();

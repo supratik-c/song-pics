@@ -8,6 +8,7 @@ import type {
   PuzzleClue,
   PuzzleSolution,
 } from '../types.ts';
+import { renderLoadingIndicator } from './loadingView.ts';
 
 const futurePuzzleMessage = 'Still in development....';
 const futurePuzzleImagePath =
@@ -16,41 +17,51 @@ const lyricNote = '♪';
 const lyricNoteSpacing = '  ';
 let closeExpandedPanel: (() => void) | null = null;
 
-export function renderPuzzle(
+export async function renderPuzzle(
   elements: GameElements,
   puzzle: PuzzleClue,
-): void {
+): Promise<void> {
   closeExpandedPanel?.();
-  setPlayableView(elements);
+  setPuzzleLoadingView(elements);
 
   elements.date.textContent =
     `Issue #${puzzle.issueNumber} · ${puzzle.displayDate}`;
   elements.songClue.textContent = puzzle.songClue;
   renderDoodleCredit(elements.doodleCredit, puzzle.doodledBy);
+  const renderedPanels = puzzle.panels.map((panel, index) => {
+    const figure = document.createElement('figure');
+    const zoomButton = document.createElement('button');
+    const image = document.createElement('img');
+    const panelNumber = index + 1;
+    const ready = loadPanelImage(image, resolvePublicPath(panel.src));
+
+    figure.className = 'panel';
+    zoomButton.type = 'button';
+    zoomButton.className = 'panel-zoom-button';
+    zoomButton.setAttribute('aria-expanded', 'false');
+    zoomButton.setAttribute(
+      'aria-label',
+      `Enlarge clue panel ${panelNumber}`,
+    );
+    image.alt = `Panel from ${puzzle.songClue}`;
+
+    zoomButton.append(image);
+    figure.append(zoomButton);
+    configurePanelZoom(figure, zoomButton, panelNumber);
+    return { figure, ready };
+  });
+
   elements.panels.replaceChildren(
-    ...puzzle.panels.map((panel, index) => {
-      const figure = document.createElement('figure');
-      const zoomButton = document.createElement('button');
-      const image = document.createElement('img');
-      const panelNumber = index + 1;
-
-      figure.className = 'panel';
-      zoomButton.type = 'button';
-      zoomButton.className = 'panel-zoom-button';
-      zoomButton.setAttribute('aria-expanded', 'false');
-      zoomButton.setAttribute(
-        'aria-label',
-        `Enlarge clue panel ${panelNumber}`,
-      );
-      image.src = resolvePublicPath(panel.src);
-      image.alt = `Panel from ${puzzle.songClue}`;
-
-      zoomButton.append(image);
-      figure.append(zoomButton);
-      configurePanelZoom(figure, zoomButton, panelNumber);
-      return figure;
-    }),
+    ...renderedPanels.map(({ figure }) => figure),
+    renderLoadingIndicator({ size: 'large' }),
   );
+
+  await Promise.all(renderedPanels.map(({ ready }) => ready));
+
+  elements.panels.replaceChildren(
+    ...renderedPanels.map(({ figure }) => figure),
+  );
+  setPlayableView(elements);
 }
 
 export function renderFuturePuzzle(elements: GameElements): void {
@@ -77,6 +88,8 @@ export function renderFuturePuzzle(elements: GameElements): void {
   elements.message.textContent = '';
   elements.validationMessage.textContent = '';
   elements.guessList.replaceChildren();
+  elements.panels.classList.remove('is-loading');
+  elements.panels.removeAttribute('aria-busy');
 
   const image = document.createElement('img');
   image.src = resolvePublicPath(futurePuzzleImagePath);
@@ -239,10 +252,87 @@ export function clearGuessValidation(elements: GameElements): void {
 export function renderLoadError(elements: GameElements): void {
   closeExpandedPanel?.();
   hideResultRegion(elements);
+  elements.form.hidden = true;
+  elements.artistHint.hidden = true;
+  elements.attemptsCount.hidden = true;
+  elements.validationMessage.hidden = true;
+  elements.guessList.hidden = true;
   elements.shareRegion.hidden = true;
   renderDoodleCredit(elements.doodleCredit, undefined);
+  elements.panels.classList.remove('is-loading');
+  elements.panels.removeAttribute('aria-busy');
+  elements.panels.setAttribute('aria-label', 'Puzzle loading error');
+  elements.panels.replaceChildren();
+  elements.message.hidden = false;
   elements.message.textContent =
     'The puzzle could not be loaded. Please refresh the page and try again.';
+}
+
+function loadPanelImage(
+  image: HTMLImageElement,
+  src: string,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+
+    const cleanUp = (): void => {
+      image.removeEventListener('load', handleLoad);
+      image.removeEventListener('error', handleError);
+    };
+
+    const fail = (): void => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      cleanUp();
+      reject(new Error('A clue panel image could not be loaded.'));
+    };
+
+    const finish = (): void => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      cleanUp();
+
+      if (typeof image.decode !== 'function') {
+        resolve();
+        return;
+      }
+
+      void image.decode().then(resolve, () => {
+        reject(new Error('A clue panel image could not be decoded.'));
+      });
+    };
+
+    const handleLoad = (): void => {
+      if (image.naturalWidth === 0) {
+        fail();
+        return;
+      }
+
+      finish();
+    };
+
+    const handleError = (): void => {
+      fail();
+    };
+
+    image.addEventListener('load', handleLoad);
+    image.addEventListener('error', handleError);
+    image.src = src;
+
+    if (image.complete) {
+      if (image.naturalWidth === 0) {
+        fail();
+      } else {
+        finish();
+      }
+    }
+  });
 }
 
 function configurePanelZoom(
@@ -316,6 +406,27 @@ function setPlayableView(elements: GameElements): void {
   elements.revealArtistButton.hidden = false;
   elements.submitButton.disabled = false;
   elements.panels.setAttribute('aria-label', 'Storyboard clue panels');
+  elements.panels.classList.remove('is-loading');
+  elements.panels.removeAttribute('aria-busy');
+}
+
+function setPuzzleLoadingView(elements: GameElements): void {
+  const game = elements.form.closest<HTMLElement>('.game');
+
+  game?.classList.remove('future-puzzle');
+  elements.date.hidden = false;
+  elements.songClue.hidden = false;
+  elements.artistHint.hidden = true;
+  elements.attemptsCount.hidden = true;
+  elements.form.hidden = true;
+  elements.message.hidden = true;
+  elements.validationMessage.hidden = true;
+  elements.guessList.hidden = true;
+  hideResultRegion(elements);
+  elements.shareRegion.hidden = true;
+  elements.panels.classList.add('is-loading');
+  elements.panels.setAttribute('aria-label', 'Loading clue panels');
+  elements.panels.setAttribute('aria-busy', 'true');
 }
 
 function setFinished(elements: GameElements): void {

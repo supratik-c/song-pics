@@ -49,6 +49,10 @@
     padding: 10px 15px;
   }
 
+  .panels.is-loading > .loading-indicator {
+    inset: 10px 15px;
+  }
+
   .clue-panel-area {
     padding-bottom: 10px;
   }
@@ -235,6 +239,11 @@
     gap: 9px;
     padding-right: 11px;
     padding-left: 11px;
+  }
+
+  .panels.is-loading > .loading-indicator {
+    right: 11px;
+    left: 11px;
   }
 
   .doodle-credit {

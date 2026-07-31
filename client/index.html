@@ -43,16 +43,39 @@
 
         <section class="game" aria-labelledby="puzzle-song-clue">
           <div class="game-header">
-            <p class="eyebrow" id="puzzle-date">Loading...</p>
+            <p class="eyebrow" id="puzzle-date"></p>
             <h2 id="puzzle-song-clue"></h2>
           </div>
 
           <div class="clue-panel-area">
-            <div class="panels" id="panels" aria-label="Storyboard clue panels"></div>
+            <div
+              class="panels is-loading"
+              id="panels"
+              aria-label="Loading clue panels"
+              aria-busy="true"
+            >
+              <p
+                class="loading-indicator loading-indicator-large"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                style="--loading-note-stagger: 180ms"
+              >
+                <span
+                  class="loading-indicator-note loading-indicator-note-leading"
+                  aria-hidden="true"
+                >♪</span>
+                <span class="loading-indicator-label">Loading...</span>
+                <span
+                  class="loading-indicator-note loading-indicator-note-trailing"
+                  aria-hidden="true"
+                >♪</span>
+              </p>
+            </div>
             <p class="doodle-credit" id="doodle-credit" hidden></p>
           </div>
 
-          <form class="guess-form" id="guess-form" novalidate>
+          <form class="guess-form" id="guess-form" novalidate hidden>
             <div class="guess-entry-panel">
               <label for="guess-input">What's the song?</label>
               <input

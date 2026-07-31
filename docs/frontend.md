@@ -22,7 +22,7 @@ calls focused view functions. It does not write DOM output directly.
 DOM output is divided by stable UI responsibility:
 
 - `views/puzzleView.ts` renders the puzzle, active state, validation, artist
-  hint, future state, load errors, and panel zoom;
+  hint, initial panel loading, future state, load errors, and panel zoom;
 - `views/archiveView.ts` renders archive navigation and pagination using an
   injected puzzle-URL callback and reports ordinary same-tab selections to the
   application before navigation;
@@ -114,6 +114,14 @@ attempt feedback use deliberate live regions without making every visual change
 an announcement. Fatal initialization and load failures are also rendered
 through a view rather than direct writes from `main.ts` or `app.ts`.
 
+The static game shell places the reusable loading status in the clue-panel area
+so it is visible before JavaScript downloads. Puzzle metadata may replace the
+empty issue heading while clue images load, but gameplay controls remain hidden.
+The puzzle view builds the final responsive grid invisibly to reserve its
+layout, waits for every clue image to load and decode, and then reveals all
+panels and gameplay together. A failed image or decode is a puzzle load failure;
+the loader and busy state are cleared before the friendly error is shown.
+
 Optional lyric captions are created only for terminal states and are semantic
 `figcaption` children of their corresponding panels. Each caption is flanked by
 music-note characters and split into inline word tokens, without a containing
@@ -148,7 +156,8 @@ Every input has a visible label; controls have accessible names; actions remain
 keyboard-operable; and focus indicators are preserved. Hover and color are not
 the only state signals. Modal close returns focus to the control that opened it.
 
-Puzzle media reserves a 4:3 area to avoid layout shifts. Panel alt text must
+Puzzle media reserves a 4:3 area to avoid layout shifts. The panel region is
+marked busy while its accessible loading status is present. Panel alt text must
 remain neutral unless content can describe the clue usefully without revealing
 the answer. Playable puzzles keep two equal-width panels per full row; when the
 panel count is odd, the final panel is centered at that same width. Embedded

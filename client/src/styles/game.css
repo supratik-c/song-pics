@@ -61,6 +61,23 @@ h2 {
   background: var(--white);
 }
 
+.panels.is-loading {
+  position: relative;
+  min-height: clamp(180px, 38vw, 400px);
+}
+
+.panels.is-loading > .panel {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.panels.is-loading > .loading-indicator {
+  position: absolute;
+  z-index: 1;
+  inset: 12px 28px 16px;
+  min-height: 0;
+}
+
 .doodle-credit {
   min-width: 0;
   margin: 0;
