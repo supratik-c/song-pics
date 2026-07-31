@@ -4,7 +4,9 @@ import {
 } from './completion.ts';
 import {
   createLocalGameStateStore,
+  createSessionYouTubeConsentStore,
   storageKey,
+  YOUTUBE_CONSENT_STORAGE_KEY,
   type GameStateStore,
 } from './storage.ts';
 import type { GameState } from './types.ts';
@@ -221,6 +223,62 @@ describe('local game-state storage', () => {
       guesses: [],
       status: 'playing',
     });
+  });
+});
+
+describe('session YouTube consent storage', () => {
+  it('starts without consent and grants it for the browser session', () => {
+    const storage = createMemoryStorage();
+    const store = createSessionYouTubeConsentStore(() => storage);
+
+    expect(store.hasConsent()).toBe(false);
+
+    store.grant();
+
+    expect(store.hasConsent()).toBe(true);
+    expect(storage.setItem).toHaveBeenCalledWith(
+      YOUTUBE_CONSENT_STORAGE_KEY,
+      'granted',
+    );
+  });
+
+  it('shares granted consent with a new store in the same session', () => {
+    const storage = createMemoryStorage();
+
+    createSessionYouTubeConsentStore(() => storage).grant();
+
+    const nextStore = createSessionYouTubeConsentStore(() => storage);
+
+    expect(nextStore.hasConsent()).toBe(true);
+  });
+
+  it('rejects and removes an unknown stored value', () => {
+    const storage = createMemoryStorage({
+      [YOUTUBE_CONSENT_STORAGE_KEY]: 'yes',
+    });
+    const store = createSessionYouTubeConsentStore(() => storage);
+
+    expect(store.hasConsent()).toBe(false);
+    expect(storage.removeItem).toHaveBeenCalledWith(
+      YOUTUBE_CONSENT_STORAGE_KEY,
+    );
+  });
+
+  it('falls back to page memory when session storage is unavailable', () => {
+    const store = createSessionYouTubeConsentStore(() => {
+      throw new Error('SecurityError');
+    });
+
+    expect(store.hasConsent()).toBe(false);
+
+    store.grant();
+
+    expect(store.hasConsent()).toBe(true);
+    expect(
+      createSessionYouTubeConsentStore(() => {
+        throw new Error('SecurityError');
+      }).hasConsent(),
+    ).toBe(false);
   });
 });
 

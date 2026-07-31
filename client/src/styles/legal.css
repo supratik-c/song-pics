@@ -21,7 +21,7 @@
 }
 
 .legal-back-link,
-.notice-download {
+.legal-link {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
@@ -30,14 +30,38 @@
   text-underline-offset: 0.2em;
 }
 
-.legal-back-link:hover,
-.notice-download:hover {
+.legal-link:hover {
   color: var(--tomato);
 }
 
+.legal-back-link {
+  --tactile-shadow-x: 4px;
+  --tactile-shadow-y: 5px;
+
+  gap: 8px;
+  width: fit-content;
+  padding: 7px 15px 6px;
+  border: var(--line-medium) solid var(--ink);
+  border-radius: 13px 10px 12px 9px;
+  background: #ffeda2;
+  line-height: 1.1;
+  text-decoration: none;
+}
+
+.legal-back-link:hover {
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+.legal-back-icon {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 0.8;
+  transform: rotate(-5deg);
+}
+
 .legal-back-link:focus-visible,
-.notice-download:focus-visible,
-.license-card pre:focus-visible {
+.legal-link:focus-visible {
   border-radius: 4px;
   outline: 4px solid var(--focus-ring);
   outline-offset: 3px;
@@ -71,13 +95,13 @@
   font-weight: 700;
 }
 
-.license-list {
+.legal-sections {
   display: grid;
   gap: 26px;
   padding: 30px 34px 38px;
 }
 
-.license-card {
+.legal-section {
   min-width: 0;
   padding: 22px;
   border: var(--line-medium) solid var(--ink);
@@ -85,11 +109,12 @@
   box-shadow: var(--small-shadow);
 }
 
-.license-card:nth-child(even) {
+.legal-section:nth-child(even) {
   background: var(--green-light);
 }
 
-.license-card h2 {
+.legal-section h2 {
+  margin: 0;
   font-family: var(--font-display);
   font-size: clamp(2.2rem, 6vw, 3.25rem);
   font-weight: 400;
@@ -97,23 +122,18 @@
   line-height: 1;
 }
 
-.notice-download {
-  margin-top: 5px;
+.legal-section p {
+  max-width: 680px;
+  margin: 14px 0 0;
 }
 
-.license-card pre {
-  max-height: 32rem;
-  margin: 14px 0 0;
-  padding: 18px;
-  overflow: auto;
-  border: var(--line-light) solid var(--ink);
-  background: var(--white);
-  box-shadow: 2px 3px 0 var(--ink);
-  font-family: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', monospace;
-  font-size: 0.78rem;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
+.font-license-list {
+  margin: 10px 0 0;
+  padding-left: 1.4rem;
+}
+
+.font-license-list li + li {
+  margin-top: 4px;
 }
 
 @media (max-width: 760px) {
@@ -136,18 +156,13 @@
     font-size: clamp(2.8rem, 15vw, 4.7rem);
   }
 
-  .license-list {
+  .legal-sections {
     gap: 22px;
     padding: 22px 18px 30px;
   }
 
-  .license-card {
+  .legal-section {
     padding: 16px;
-  }
-
-  .license-card pre {
-    padding: 13px;
-    font-size: 0.72rem;
   }
 }
 
@@ -157,24 +172,30 @@
   }
 
   .legal-header,
-  .license-list {
+  .legal-sections {
     padding-right: 13px;
     padding-left: 13px;
   }
 
-  .license-card {
+  .legal-section {
     padding: 12px;
   }
+}
 
-  .license-card pre {
-    padding: 10px;
+@media (prefers-reduced-motion: reduce) {
+  .legal-back-link {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .legal-back-link:hover {
+    transform: none;
   }
 }
 
 @media (forced-colors: active) {
   .legal-page,
-  .license-card,
-  .license-card pre {
+  .legal-section {
     box-shadow: none;
   }
 

@@ -13,7 +13,10 @@ import {
   renderModalMessage,
   type ModalController,
 } from './modal.ts';
-import type { GameStateStore } from './storage.ts';
+import type {
+  GameStateStore,
+  YouTubeConsentStore,
+} from './storage.ts';
 import { runAfterTactileActivation } from './tactileAction.ts';
 import {
   createPuzzleShareRequest,
@@ -50,6 +53,7 @@ export type AppDependencies = {
   loadPuzzle: (requestedPuzzleId: string | null) => Promise<LoadedPuzzle>;
   loadHowToPlay: () => Promise<HowToPlayManifest>;
   gameStateStore: GameStateStore;
+  youtubeConsentStore: YouTubeConsentStore;
   completionSource: CompletionSource;
   buildPuzzleUrl: BuildPuzzleUrl;
   buildPuzzleShareUrl: (puzzleId: string) => string;
@@ -103,7 +107,7 @@ export async function initApp(
   elements.shareRegion.replaceChildren(createShareControl());
 
   renderPuzzle(elements, puzzle);
-  renderGameState(elements, puzzle, state);
+  renderGameState(elements, puzzle, state, dependencies.youtubeConsentStore);
   bindArchiveButton(elements, archive, modal, dependencies);
 
   elements.form.addEventListener('submit', (event) => {
@@ -124,7 +128,12 @@ export async function initApp(
       state = submission.state;
       dependencies.gameStateStore.save(puzzle.id, state);
       elements.form.reset();
-      renderGameState(elements, puzzle, state);
+      renderGameState(
+        elements,
+        puzzle,
+        state,
+        dependencies.youtubeConsentStore,
+      );
 
       if (state.status === 'playing') {
         elements.guessInput.focus();
@@ -157,7 +166,12 @@ export async function initApp(
       state = revealSong(state);
       dependencies.gameStateStore.save(puzzle.id, state);
       clearGuessValidation(elements);
-      renderGameState(elements, puzzle, state);
+      renderGameState(
+        elements,
+        puzzle,
+        state,
+        dependencies.youtubeConsentStore,
+      );
       focusCompletedResult(elements.resultRegion);
     });
   });
@@ -167,6 +181,7 @@ function renderGameState(
   elements: GameElements,
   puzzle: Puzzle,
   state: GameState,
+  youtubeConsentStore: YouTubeConsentStore,
 ): void {
   renderState(elements, state, GAME_RULES, puzzle.lyricLines);
 
@@ -175,7 +190,10 @@ function renderGameState(
     return;
   }
 
-  renderResult(elements.resultRegion, puzzle, state.status);
+  renderResult(elements.resultRegion, puzzle, state.status, {
+    hasConsent: youtubeConsentStore.hasConsent(),
+    grantConsent: youtubeConsentStore.grant,
+  });
 }
 
 async function handleHowToPlay(

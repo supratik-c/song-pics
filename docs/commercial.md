@@ -34,8 +34,8 @@ Scribble Bops locally hosts Bangers and Kalam. Their source licence files state
 that they use the SIL Open Font License 1.1 (OFL). The OFL permits commercial
 use, embedding, bundling, and redistribution, but redistributed font software
 must retain its copyright and licence notices. The deployed site therefore
-publishes the exact notices on its Font licences page and emits each original
-`OFL.txt` as a downloadable build asset. See the [SIL OFL
+links from “The Legal Stuff” page to each exact notice and emits each original
+`OFL.txt` as a build asset. See the [SIL OFL
 FAQ](https://openfontlicense.org/ofl-faq/) for the licence owner's guidance.
 
 Do not sell either font by itself, imply that its authors endorse Scribble
@@ -290,14 +290,20 @@ guidance](https://commission.europa.eu/law/law-topic/data-protection/rules-busin
   until site/browser data is cleared. Development starts clean and does not
   persist progress. Explain browser clearing steps and that the operator cannot
   remotely access, correct, export, or erase local-only values.
+- **YouTube session choice:** activating `Watch YouTube Video` stores a
+  versioned consent value in `sessionStorage`. It enables automatic YouTube
+  loading for later solved or revealed results in the same tab session and
+  normally ends when that tab session closes. If session storage is unavailable,
+  the choice lasts only in page memory.
 - **Hosting:** GitHub Pages receives ordinary web requests and may process IP
   addresses, request times, paths, user-agent information, and security/logging
   data under its own role and terms. Add equivalent detail before enabling a
   CDN, custom host, or Cloudflare analytics.
-- **YouTube:** under the proposed privacy improvement, YouTube is contacted
-  only after the player activates `Load YouTube video`. Explain likely
-  IP/device, cookie, storage, and viewing-data processing and link to Google's
-  applicable privacy information.
+- **YouTube:** without session consent, YouTube is contacted only after the
+  player activates `Watch YouTube Video`. Later eligible results in the same
+  tab session contact YouTube automatically. The unloaded control includes a
+  linked `Subject to Google's Privacy Policy` notice. Explain likely IP/device,
+  cookie, storage, and viewing-data processing in the published privacy notice.
 - **Ko-fi and payments:** following an external support link lets Ko-fi and its
   connected payment processors process payment details and may make supporter
   names, email addresses, messages, and transaction information available to
@@ -312,9 +318,10 @@ guidance](https://commission.europa.eu/law/law-topic/data-protection/rules-busin
   does not perform.
 - **Storage access:** assess and document whether saved-progress
   `localStorage` is strictly necessary to provide the user-requested persistence
-  feature under PECR/ePrivacy. Even storage that qualifies for an exception
-  must be explained. Use the ICO's current [storage and access technology
-  guidance](https://cy.ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guidance-on-the-use-of-storage-and-access-technologies).
+  feature under PECR/ePrivacy, and assess the non-essential YouTube
+  `sessionStorage` preference as part of the consent flow. Even storage that
+  qualifies for an exception must be explained. Use the ICO's current [storage
+  and access technology guidance](https://cy.ico.org.uk/for-organisations/direct-marketing-and-privacy-and-electronic-communications/guidance-on-the-use-of-storage-and-access-technologies).
 - **Recipients and transfers:** identify hosts, media/payment providers, their
   locations or transfer mechanisms, and links to their policies. Do not promise
   UK/EU-only processing unless contracts and infrastructure establish it.
@@ -335,33 +342,34 @@ Perform a new privacy, consent, and data-flow review before adding analytics,
 accounts, a backend, newsletters, advertisements, embedded payment widgets,
 personalised content, or any new third-party script.
 
-## YouTube privacy backlog
+## YouTube privacy flow
 
-The current terminal result inserts a normal `youtube.com` iframe immediately
-for solved and manually revealed puzzles. This creates third-party requests
-without a separate player choice. Implement one of these designs before
-commercial launch:
+Without consent in the current tab session, solved and manually revealed
+results render a local 16:9 play area with a `Watch YouTube Video` control and a
+short `Subject to Google's Privacy Policy` notice whose policy name links to
+Google's policy in a new tab. It contains no iframe, remote image, or
+third-party script. Activating the control stores session consent and creates
+an iframe using
+`https://www.youtube-nocookie.com/embed/{videoId}`.
 
-1. **Recommended inline player:** render a local placeholder, a `Load YouTube
-   video` button, and concise text explaining that activating it contacts
-   YouTube. Only then create an iframe using
-   `https://www.youtube-nocookie.com/embed/{videoId}`. Do not fetch a YouTube
-   thumbnail before activation and do not remember the choice initially.
-   Provide a separate `Watch on YouTube` external link.
-2. **Maximum privacy:** omit the iframe completely and provide only the external
-   `Watch on YouTube` link.
-
-The inline implementation must use a descriptive iframe title, minimal
-permissions, keyboard-operable controls, visible focus, a failed-load or
-invalid-URL fallback, and responsive sizing. Restored solved/revealed states
-must return to the unloaded placeholder rather than contacting YouTube
-automatically. Failed games continue to show no video.
+Later solved or revealed results in that tab session create the iframe
+automatically without moving focus. The iframe uses a descriptive title,
+minimal permissions, visible focus, responsive sizing, no autoplay, and the
+referrer policy YouTube recommends for player identification. At the same time,
+the result reveals a separate red `Watch on YouTube` external link with a white
+play icon, which remains usable if embedding fails. Invalid URLs receive a
+local unavailable message, and failed games show no video. Closing the tab ends
+the saved preference; there is no separate in-session withdrawal control.
 
 Follow YouTube's [privacy-enhanced embedding
 guidance](https://support.google.com/youtube/answer/171780?hl=en) and test:
 
-- no iframe or YouTube-hosted image exists before activation;
-- activation creates only the privacy-enhanced embed URL;
+- no iframe or YouTube-hosted image exists before first-session activation;
+- the initial privacy link targets Google's policy without preloading it;
+- activation records session consent and creates only the privacy-enhanced
+  embed URL;
+- later eligible results in the same session auto-load without moving focus;
+- a new tab session returns to the unloaded control and notice;
 - the external watch link remains usable if embedding fails;
 - solved, manually revealed, restored, failed, and invalid-URL states;
 - keyboard use, focus indication, screen-reader names, 320 px layout, and wide

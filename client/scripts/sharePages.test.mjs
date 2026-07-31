@@ -126,9 +126,9 @@ describe('share page HTML', () => {
     expect(page).not.toContain('og:image:secure_url');
   });
 
-  it('preserves the built base-aware licences link in the copied shell', () => {
+  it('preserves the built base-aware legal link in the copied shell', () => {
     const page = createPuzzleSharePage(
-      '<html><head></head><body><a href="/song-pics/licenses.html">Licences</a></body></html>',
+      '<html><head></head><body><a href="/song-pics/legal.html">The Legal Stuff</a></body></html>',
       {
         firstPanelUrl: 'https://example.test/a.webp',
         issueNumber: 3,
@@ -136,7 +136,8 @@ describe('share page HTML', () => {
       },
     );
 
-    expect(page).toContain('href="/song-pics/licenses.html"');
+    expect(page).toContain('href="/song-pics/legal.html"');
+    expect(page).toContain('>The Legal Stuff</a>');
   });
 });
 

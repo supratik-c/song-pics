@@ -127,6 +127,8 @@ describe('YouTube URL validation', () => {
     'https://youtu.be/iWOyfLBYtuU',
     'https://youtube.com/watch?v=iWOyfLBYtuU',
     'https://www.youtube.com/embed/iWOyfLBYtuU',
+    'https://youtube-nocookie.com/embed/iWOyfLBYtuU',
+    'https://www.youtube-nocookie.com/embed/iWOyfLBYtuU?start=30',
   ])('accepts %s', (url) => {
     expect(isSupportedYouTubeUrl(url)).toBe(true);
   });
@@ -134,7 +136,12 @@ describe('YouTube URL validation', () => {
   it.each([
     'not a URL',
     'https://example.com/watch?v=iWOyfLBYtuU',
+    'https://youtube.com.evil.invalid/watch?v=iWOyfLBYtuU',
+    'https://youtube-nocookie.com.evil.invalid/embed/iWOyfLBYtuU',
     'https://youtube.com/watch',
+    'https://youtube.com/other?v=iWOyfLBYtuU',
+    'https://youtube-nocookie.com/watch?v=iWOyfLBYtuU',
+    'https://youtube-nocookie.com/embed/iWOyfLBYtuU/extra',
     'https://youtu.be/',
   ])('rejects %s', (url) => {
     expect(isSupportedYouTubeUrl(url)).toBe(false);

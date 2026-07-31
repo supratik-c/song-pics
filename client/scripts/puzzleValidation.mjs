@@ -2,6 +2,16 @@ const supportedYouTubeHosts = new Set([
   'youtube.com',
   'www.youtube.com',
   'youtu.be',
+  'youtube-nocookie.com',
+  'www.youtube-nocookie.com',
+]);
+const standardYouTubeHosts = new Set([
+  'youtube.com',
+  'www.youtube.com',
+]);
+const noCookieYouTubeHosts = new Set([
+  'youtube-nocookie.com',
+  'www.youtube-nocookie.com',
 ]);
 const puzzleJsonFields = new Set([
   'songClue',
@@ -71,7 +81,7 @@ export function validatePuzzleJson(value, sourcePath = 'puzzle.json') {
     if (!isSupportedYouTubeUrl(value.youtubeURL)) {
       throw invalidPuzzle(
         sourcePath,
-        'youtubeURL must identify a video on youtube.com, www.youtube.com, or youtu.be',
+        'youtubeURL must identify a video on youtube.com, youtu.be, or youtube-nocookie.com',
       );
     }
   }
@@ -178,13 +188,21 @@ function getYouTubeVideoId(url) {
       : null;
   }
 
-  const queryVideoId = url.searchParams.get('v');
+  if (standardYouTubeHosts.has(url.hostname) && url.pathname === '/watch') {
+    const queryVideoId = url.searchParams.get('v');
 
-  if (queryVideoId && isValidVideoId(queryVideoId)) {
-    return queryVideoId;
+    return queryVideoId && isValidVideoId(queryVideoId)
+      ? queryVideoId
+      : null;
   }
 
-  if (url.pathname.startsWith('/embed/')) {
+  if (
+    (
+      standardYouTubeHosts.has(url.hostname) ||
+      noCookieYouTubeHosts.has(url.hostname)
+    ) &&
+    url.pathname.startsWith('/embed/')
+  ) {
     const pathParts = url.pathname.split('/').filter(Boolean);
 
     return pathParts.length === 2 &&

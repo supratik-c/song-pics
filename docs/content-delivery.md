@@ -30,10 +30,14 @@ Puzzle JSON has this source shape:
 Required strings and `acceptedAnswers` must be non-empty. The canonical title
 must have a matching accepted answer after normalization, and accepted answers
 must not contain normalized duplicates. `youtubeURL` is optional and must use a
-supported `youtube.com`, `www.youtube.com`, or `youtu.be` video form. The ID,
-formatted date, issue number, and panels are runtime-derived fields and do not
-belong in source JSON. Any unknown field is rejected. Panel metadata is always
-generated from the files in the puzzle directory.
+supported `youtube.com` or `youtu.be` watch/embed form, or an exact
+`youtube-nocookie.com` embed form, with or without the `www` host prefix. The
+client extracts the validated video ID and always constructs a canonical
+`youtube-nocookie.com` iframe URL and `youtube.com` watch URL; authored query
+parameters are not carried into either output. The ID, formatted date, issue
+number, and panels are runtime-derived fields and do not belong in source JSON.
+Any unknown field is rejected. Panel metadata is always generated from the
+files in the puzzle directory.
 
 `doodledBy` is an optional non-empty panel artist name or handle. It is
 non-spoiler clue metadata displayed beneath the panels and is not included in
@@ -69,10 +73,10 @@ handled by Vite. Within that directory, reusable logo art, decorative line art,
 and raster surfaces belong in `branding/`, `doodles/`, and `textures/` when
 introduced. Locally hosted fonts and licenses live in `fonts/`.
 
-Each locally hosted font directory includes its upstream licence notice. The
-Font licences page imports each notice as readable source text and as a Vite
-asset URL, so production emits the exact `OFL.txt` content alongside the font
-files instead of relying on source-repository access.
+Each locally hosted font directory includes its upstream licence notice. “The
+Legal Stuff” page links to each notice through a Vite asset URL, so
+production emits the exact `OFL.txt` content alongside the font files without
+embedding the full text in the page or relying on source-repository access.
 
 ## Generated metadata
 
@@ -144,9 +148,9 @@ This path boundary is required for both domain-root hosting and GitHub Pages
 project hosting. Imported JavaScript, CSS, and UI assets use Vite's normal
 content-hashed paths instead.
 
-The build has two HTML entries: the game at `index.html` and the static font
-notices at `licenses.html`. Their navigation and notice URLs use Vite's public
-base, including when the built game shell is copied into a dated share
+The build has two HTML entries: the game at `index.html` and the static legal
+information at `legal.html`. Their navigation and font-notice URLs use Vite's
+public base, including when the built game shell is copied into a dated share
 directory, so the links remain valid at `/` and beneath `/song-pics/`.
 
 ## Production release boundary

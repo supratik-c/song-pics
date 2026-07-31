@@ -26,8 +26,9 @@ policy in `gameConfig.ts`. Loaders fetch static content through a shared JSON
 boundary that checks status, defaults to fresh requests, lets
 deployment-versioned content use normal HTTP caching, and validates data before
 it enters the application. Focused modules under `views/` own DOM output.
-Browser persistence is an adapter in `storage.ts`; the independently
-replaceable completion read model lives in `completion.ts`.
+Browser persistence adapters for puzzle progress and session-scoped YouTube
+consent live in `storage.ts`; the independently replaceable completion read
+model lives in `completion.ts`.
 
 Pure functions in `navigation.ts` own puzzle-query parsing and archive URL
 construction. With no `puzzle` query parameter, the latest released puzzle is
@@ -88,8 +89,9 @@ carry the same build identifier; compiled assets use Vite's content hashes.
 - `client/src/types.ts` and `validation.ts`: domain/content contracts and
   reusable runtime validation primitives.
 - Loaders: static content selection, fetching, and complete boundary validation.
-- `client/src/storage.ts` and `completion.ts`: replaceable state-store and
-  completion-read-model boundaries with local implementations.
+- `client/src/storage.ts` and `completion.ts`: replaceable progress,
+  session-consent, and completion-read-model boundaries with browser-local
+  implementations.
 - `client/src/views/`, `modal.ts`, and `styles/`: focused DOM output, dialog
   lifecycle, and the visual system.
 - `client/scripts/` and `client/vite.config.js`: authoring validation, generated

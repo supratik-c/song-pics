@@ -10,6 +10,15 @@ export type GameStateStore = {
   save: (puzzleId: string, state: GameState) => void;
 };
 
+export type YouTubeConsentStore = {
+  hasConsent: () => boolean;
+  grant: () => void;
+};
+
+export const YOUTUBE_CONSENT_STORAGE_KEY =
+  'scribble-bops:youtube-consent:v1';
+const YOUTUBE_CONSENT_GRANTED_VALUE = 'granted';
+
 export type LocalGameStateStoreOptions = {
   shouldPersist: boolean;
   getStorage?: () => StorageAdapter;
@@ -59,6 +68,43 @@ export function createLocalGameStateStore({
 
       tryStorage(getStorage, (storage) => {
         storage.setItem(storageKey(puzzleId), JSON.stringify(state));
+      });
+    },
+  };
+}
+
+export function createSessionYouTubeConsentStore(
+  getStorage: () => StorageAdapter = () => sessionStorage,
+): YouTubeConsentStore {
+  let memoryConsent = false;
+
+  return {
+    hasConsent: () => {
+      const stored = tryStorage(
+        getStorage,
+        (storage) => storage.getItem(YOUTUBE_CONSENT_STORAGE_KEY),
+      );
+
+      if (stored === YOUTUBE_CONSENT_GRANTED_VALUE) {
+        memoryConsent = true;
+        return true;
+      }
+
+      if (stored !== null && stored !== undefined) {
+        tryStorage(getStorage, (storage) => {
+          storage.removeItem(YOUTUBE_CONSENT_STORAGE_KEY);
+        });
+      }
+
+      return memoryConsent;
+    },
+    grant: () => {
+      memoryConsent = true;
+      tryStorage(getStorage, (storage) => {
+        storage.setItem(
+          YOUTUBE_CONSENT_STORAGE_KEY,
+          YOUTUBE_CONSENT_GRANTED_VALUE,
+        );
       });
     },
   };

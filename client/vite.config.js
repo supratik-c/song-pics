@@ -65,7 +65,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(projectRoot, 'index.html'),
-        licenses: resolve(projectRoot, 'licenses.html'),
+        legal: resolve(projectRoot, 'legal.html'),
       },
     },
   },

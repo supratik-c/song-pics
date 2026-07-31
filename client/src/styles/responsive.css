@@ -277,6 +277,18 @@
     padding-right: 12px;
     padding-left: 12px;
   }
+
+  .youtube-load-button,
+  .youtube-watch-link {
+    gap: 9px;
+    padding-right: 14px;
+    padding-left: 14px;
+    font-size: 0.94rem;
+  }
+
+  .youtube-privacy-notice {
+    font-size: 0.78rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -322,7 +334,10 @@
   .result-region,
   .result-banner,
   .result-answer,
+  .result-video-frame,
   .result-video,
+  .youtube-load-button,
+  .youtube-watch-link,
   dialog,
   .comic-page,
   figure img {

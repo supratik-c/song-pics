@@ -10,7 +10,7 @@ and transient visual implementation details remain canonical in source.
 `client/index.html` owns the static semantic shell: masthead controls, puzzle
 heading, clue-panel region, guess form, action controls, inline result and
 feedback regions, a small site footer, and one native `<dialog>`. The footer
-links to the separate Font licences page. `client/src/dom.ts` resolves the
+links to the separate “The Legal Stuff” page. `client/src/dom.ts` resolves the
 interactive shell into typed element references and co-locates the
 `GameElements` contract.
 
@@ -26,7 +26,8 @@ DOM output is divided by stable UI responsibility:
 - `views/archiveView.ts` renders archive navigation and pagination using an
   injected puzzle-URL callback;
 - `views/howToPlayView.ts` renders tutorial content;
-- `views/resultView.ts` renders inline terminal results and optional video;
+- `views/resultView.ts` renders inline terminal results, the optional YouTube
+  load control and privacy-policy link, and the activated player;
 - `views/shareView.ts` creates reusable terminal share controls and owns their
   busy and feedback rendering.
 
@@ -42,10 +43,13 @@ shadows, bold accents, informal typography, and deliberately rough clue art.
 Controls share tactile hover, focus, and press behavior, while the drawings
 remain the primary visual focus.
 
-The standalone Font licences page reuses those foundations without loading the
-game. It presents the exact Bangers and Kalam OFL notices as readable text and
-download links. A single base-aware `Licences` link beneath the comic page makes
-the notices available from the main shell and every generated share shell.
+The standalone “The Legal Stuff” page reuses those foundations without loading
+the game. Legal content is edited directly in `client/legal.html`, where
+semantic HTML groups privacy, copyright, font licence, and other notices under
+reusable section headings. A minimal script renders links to the exact Bangers
+and Kalam OFL assets without embedding their full text. A single base-aware
+`The Legal Stuff` link beneath the comic page makes the page available from the
+main shell and every generated share shell.
 
 The title panel places a compact pair of circular controls beside the
 introduction: a pale-blue illustrated open-comic control for All Issues
@@ -81,10 +85,14 @@ Completion lookup failure does not block archive navigation.
 
 Correct, revealed, and failed outcomes replace the guess form and action grid
 with an inline result. Only correct answers use its success treatment. Solved
-and manually revealed results may include the configured YouTube iframe;
-failed results do not. The reusable dialog remains the surface for How to Play
-and All Issues, while the share control stays in its separate terminal-state
-region below the result and previous guesses.
+and manually revealed results may include a local `Watch YouTube Video`
+control with a short linked Google privacy notice; failed results do not.
+Activating that control grants consent for the current tab session, creates the
+configured privacy-enhanced iframe, and reveals a separate red
+`Watch on YouTube` fallback link with the same play icon. Later eligible results
+in that session create the iframe immediately. The reusable dialog remains the
+surface for How to Play and All Issues, while the share control stays in its
+separate terminal-state region below the result and previous guesses.
 
 ## State rendering and errors
 
@@ -133,6 +141,13 @@ Puzzle media reserves a 4:3 area to avoid layout shifts. Panel alt text must
 remain neutral unless content can describe the clue usefully without revealing
 the answer. Embedded media stays responsive.
 
+Without session consent, the initial YouTube control and `Subject to Google's
+Privacy Policy` notice use only local DOM and CSS and contain no remote
+thumbnail or iframe. Activating the control replaces the reserved 16:9 area
+with the iframe, moves focus to the player, reveals the external fallback link,
+and records consent in `sessionStorage`. A later automatic load does not move
+focus. Closing the tab ends consent; a later tab session starts unloaded.
+
 The layout is mobile-first down to 320 px and also supports wide desktop
 viewports. Controls must not overflow and primary targets should remain roughly
 44 px or larger. If motion is added, it must honor `prefers-reduced-motion`.
@@ -167,7 +182,7 @@ stylesheet:
 5. `styles/responsive.css` owns ordered breakpoint, motion, and forced-color
    overrides.
 
-`client/src/licenses.css` is the separate entry for the Font licences page. It
+`client/src/legal.css` is the separate entry for The Legal Stuff page. It
 imports the shared foundation before its page-specific legal styles, avoiding
 game, dialog, and share rules that the static page does not use.
 

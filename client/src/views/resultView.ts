@@ -1,9 +1,26 @@
 import type { GameStatus, PuzzleSolution } from '../types.ts';
 
+const standardYouTubeHosts = new Set(['youtube.com', 'www.youtube.com']);
+const noCookieYouTubeHosts = new Set([
+  'youtube-nocookie.com',
+  'www.youtube-nocookie.com',
+]);
+
+export type YouTubeVideoUrls = {
+  embedUrl: string;
+  watchUrl: string;
+};
+
+export type YouTubeConsent = {
+  hasConsent: boolean;
+  grantConsent: () => void;
+};
+
 export function renderResult(
   region: HTMLElement,
   solution: PuzzleSolution,
   status: Exclude<GameStatus, 'playing'>,
+  youtubeConsent: YouTubeConsent,
 ): void {
   const title = document.createElement('h3');
   const body = document.createElement('div');
@@ -32,11 +49,11 @@ export function renderResult(
   body.append(message, answer);
 
   if (status !== 'failed' && solution.youtubeURL) {
-    const video = createYouTubeVideo(solution.youtubeURL);
-
-    if (video) {
-      body.append(video);
-    }
+    body.append(createYouTubeControl(
+      solution.youtubeURL,
+      solution,
+      youtubeConsent,
+    ));
   }
 
   region.dataset.outcome = status;
@@ -69,7 +86,7 @@ export function focusCompletedResult(region: HTMLElement): void {
   });
 }
 
-export function getYouTubeEmbedUrl(url: string): string | null {
+export function getYouTubeVideoUrls(url: string): YouTubeVideoUrls | null {
   try {
     const parsedUrl = new URL(url);
     let videoId: string | null = null;
@@ -82,48 +99,145 @@ export function getYouTubeEmbedUrl(url: string): string | null {
       const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
 
       videoId = pathParts.length === 1 ? pathParts[0] : null;
-    } else if (
-      parsedUrl.hostname === 'youtube.com' ||
-      parsedUrl.hostname === 'www.youtube.com'
-    ) {
-      videoId = parsedUrl.searchParams.get('v');
-
-      if (!videoId && parsedUrl.pathname.startsWith('/embed/')) {
-        const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
-
-        videoId = pathParts.length === 2 && pathParts[0] === 'embed'
-          ? pathParts[1]
-          : null;
-      }
+    } else if (standardYouTubeHosts.has(parsedUrl.hostname)) {
+      videoId = parsedUrl.pathname === '/watch'
+        ? parsedUrl.searchParams.get('v')
+        : getEmbedVideoId(parsedUrl.pathname);
+    } else if (noCookieYouTubeHosts.has(parsedUrl.hostname)) {
+      videoId = getEmbedVideoId(parsedUrl.pathname);
     }
 
     if (!videoId || !/^[A-Za-z0-9_-]+$/.test(videoId)) {
       return null;
     }
 
-    return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
+    const encodedVideoId = encodeURIComponent(videoId);
+
+    return {
+      embedUrl: `https://www.youtube-nocookie.com/embed/${encodedVideoId}`,
+      watchUrl: `https://www.youtube.com/watch?v=${encodedVideoId}`,
+    };
   } catch {
     return null;
   }
 }
 
-function createYouTubeVideo(
+function createYouTubeControl(
   youtubeUrl: string,
-): HTMLIFrameElement | null {
-  const embedUrl = getYouTubeEmbedUrl(youtubeUrl);
+  solution: PuzzleSolution,
+  youtubeConsent: YouTubeConsent,
+): HTMLElement {
+  const urls = getYouTubeVideoUrls(youtubeUrl);
 
-  if (!embedUrl) {
-    console.error(`Invalid YouTube URL: ${youtubeUrl}`);
-    return null;
+  if (!urls) {
+    const unavailable = document.createElement('p');
+
+    unavailable.className = 'result-video-unavailable';
+    unavailable.textContent = 'The YouTube video is unavailable.';
+    console.error('Invalid YouTube URL for terminal result.');
+    return unavailable;
   }
 
+  const control = document.createElement('div');
+  const frame = document.createElement('div');
+  let loaded = false;
+
+  control.className = 'result-video-control';
+  frame.className = 'result-video-frame';
+  control.append(frame);
+
+  const loadVideo = (shouldFocus: boolean): void => {
+    if (loaded) {
+      return;
+    }
+
+    loaded = true;
+    const iframe = createYouTubeVideo(urls.embedUrl, solution);
+    const watchLink = createYouTubeWatchLink(urls.watchUrl);
+
+    frame.replaceChildren(iframe);
+    control.append(watchLink);
+
+    if (shouldFocus) {
+      iframe.focus();
+    }
+  };
+
+  if (youtubeConsent.hasConsent) {
+    loadVideo(false);
+    return control;
+  }
+
+  const prompt = document.createElement('div');
+  const loadButton = document.createElement('button');
+  const label = document.createElement('span');
+  const privacy = document.createElement('p');
+  const privacyPrefix = document.createElement('span');
+  const privacyLink = document.createElement('a');
+
+  prompt.className = 'youtube-load-prompt';
+  loadButton.type = 'button';
+  loadButton.className = 'youtube-load-button tactile-button';
+  label.textContent = 'Watch YouTube Video';
+  privacy.className = 'youtube-privacy-notice';
+  privacyPrefix.textContent = 'Subject to ';
+  privacyLink.href = 'https://policies.google.com/privacy';
+  privacyLink.target = '_blank';
+  privacyLink.rel = 'noopener noreferrer';
+  privacyLink.textContent = "Google's Privacy Policy";
+  loadButton.append(createYouTubePlayIcon(), label);
+  privacy.append(privacyPrefix, privacyLink);
+  prompt.append(loadButton, privacy);
+  frame.append(prompt);
+
+  loadButton.addEventListener('click', () => {
+    youtubeConsent.grantConsent();
+    loadVideo(true);
+  });
+
+  return control;
+}
+
+function createYouTubeVideo(
+  embedUrl: string,
+  solution: PuzzleSolution,
+): HTMLIFrameElement {
   const iframe = document.createElement('iframe');
+
   iframe.className = 'result-video';
   iframe.src = embedUrl;
-  iframe.title = 'Song video';
-  iframe.allow =
-    'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+  iframe.title =
+    `YouTube video player: ${solution.songTitle} by ${solution.artist}`;
+  iframe.allow = 'encrypted-media; picture-in-picture';
   iframe.allowFullscreen = true;
   iframe.loading = 'lazy';
+  iframe.referrerPolicy = 'strict-origin-when-cross-origin';
   return iframe;
+}
+
+function createYouTubeWatchLink(watchUrl: string): HTMLAnchorElement {
+  const link = document.createElement('a');
+  const label = document.createElement('span');
+
+  link.className = 'youtube-watch-link tactile-button';
+  link.href = watchUrl;
+  label.textContent = 'Watch on YouTube';
+  link.append(createYouTubePlayIcon(), label);
+  return link;
+}
+
+function createYouTubePlayIcon(): HTMLSpanElement {
+  const icon = document.createElement('span');
+
+  icon.className = 'youtube-play-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  return icon;
+}
+
+function getEmbedVideoId(pathname: string): string | null {
+  const pathParts = pathname.split('/').filter(Boolean);
+
+  return pathParts.length === 2 && pathParts[0] === 'embed'
+    ? pathParts[1]
+    : null;
 }

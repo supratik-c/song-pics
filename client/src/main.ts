@@ -12,7 +12,10 @@ import {
   getSharePuzzleId,
 } from './navigation.ts';
 import { loadPuzzle } from './puzzleLoader.ts';
-import { createLocalGameStateStore } from './storage.ts';
+import {
+  createLocalGameStateStore,
+  createSessionYouTubeConsentStore,
+} from './storage.ts';
 import { renderLoadError } from './views/puzzleView.ts';
 
 async function start(): Promise<void> {
@@ -47,6 +50,7 @@ async function start(): Promise<void> {
     loadPuzzle,
     loadHowToPlay: loadHowToPlayManifest,
     gameStateStore,
+    youtubeConsentStore: createSessionYouTubeConsentStore(),
     completionSource: createLocalCompletionSource(gameStateStore),
     shareGateway: createBrowserShareGateway(),
     buildPuzzleUrl: (puzzleId, latestPuzzleId) =>

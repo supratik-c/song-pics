@@ -80,9 +80,13 @@ Game state contains normalized guesses and one status:
 
 All terminal states replace the guess form and action grid with an inline
 result. A solved result reveals the canonical song and artist, uses the success
-treatment, and may embed the configured YouTube video. A manually revealed
-result may also embed the video. A failed result reveals the answer without a
-video.
+treatment, and may offer the configured YouTube video. A manually revealed
+result may also offer it. The initial control and linked privacy notice are
+local and create no third-party media request. Activating
+`Watch YouTube Video` creates the privacy-enhanced player and external YouTube
+fallback link and grants consent for the current browser-tab session. Later
+solved or revealed results in that session load the player automatically. A
+failed result reveals the answer without a video control regardless of consent.
 
 When authored lyric lines exist, every terminal state also reveals them beneath
 their corresponding clue panels. They remain absent from the DOM while play is
@@ -93,6 +97,10 @@ Terminal results render inline immediately when reached and when a saved puzzle
 is revisited. A newly reached result receives keyboard focus and scrolls the
 page to the bottom, using immediate rather than smooth scrolling when reduced
 motion is preferred. Restored results do not move focus or scroll the page.
+YouTube consent is not game state. A restored solved or revealed result loads
+the player automatically when the current tab session has consent and otherwise
+returns to the unloaded local control and notice. Automatic loading does not
+move focus.
 
 Every terminal outcome offers the same spoiler-free puzzle invitation in a
 persistent main game region kept separate from the inline result. The
@@ -117,6 +125,13 @@ uses `localStorage` under a key derived from the puzzle ID in production; Vite
 development deliberately disables persistence and starts clean. Unavailable
 storage, access failures, and quota errors degrade to in-memory gameplay rather
 than breaking the game.
+
+`YouTubeConsentStore` is a separate synchronous browser preference boundary.
+The first video activation records the versioned value `granted` in
+`sessionStorage` under `scribble-bops:youtube-consent:v1`. The preference is
+shared across navigation and reloads in the same tab and ends with that tab
+session; it is not copied into puzzle progress or `localStorage`. Unavailable
+session storage falls back to memory for the current page only.
 
 Stored data is untrusted and must match the current `{ guesses, status }`
 contract exactly. Guesses must be unique, non-empty normalized strings within
