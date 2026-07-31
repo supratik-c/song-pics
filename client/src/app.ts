@@ -34,6 +34,7 @@ import {
   renderArchiveContent,
 } from './views/archiveView.ts';
 import { renderHowToPlayContent } from './views/howToPlayView.ts';
+import { renderLoadingIndicator } from './views/loadingView.ts';
 import {
   clearGuessValidation,
   renderArtistHint,
@@ -58,6 +59,7 @@ export type AppDependencies = {
   buildPuzzleUrl: BuildPuzzleUrl;
   buildPuzzleShareUrl: (puzzleId: string) => string;
   shareGateway: ShareGateway;
+  navigateToPuzzle: (url: string) => void;
 };
 
 export async function initApp(
@@ -203,8 +205,9 @@ async function handleHowToPlay(
 ): Promise<void> {
   const viewId = modal.open({
     title: 'How to Play',
-    content: renderModalMessage('Sharpening the crayons...'),
+    content: renderLoadingIndicator(),
     returnFocus: elements.howToPlayButton,
+    busy: true,
   });
 
   try {
@@ -213,6 +216,7 @@ async function handleHowToPlay(
     modal.update(viewId, {
       title: manifest.title,
       content: renderHowToPlayContent(manifest),
+      busy: false,
     });
   } catch (error) {
     console.error(error);
@@ -221,6 +225,7 @@ async function handleHowToPlay(
         'The instructions have wandered off. Please close this box and try again.',
         'error',
       ),
+      busy: false,
     });
   }
 }
@@ -237,9 +242,24 @@ function bindArchiveButton(
     runAfterTactileActivation(elements.allIssuesButton, () => {
       const viewId = modal.open({
         title: 'All Issues',
-        content: renderModalMessage('Checking your back catalogue...'),
+        content: renderLoadingIndicator(),
         returnFocus: elements.allIssuesButton,
+        busy: true,
       });
+
+      const selectPuzzle = (url: string): void => {
+        if (!modal.update(viewId, {
+          content: renderLoadingIndicator(),
+          busy: true,
+        })) {
+          return;
+        }
+
+        window.addEventListener('pagehide', () => modal.close(), {
+          once: true,
+        });
+        dependencies.navigateToPuzzle(url);
+      };
 
       void dependencies.completionSource.loadCompletedPuzzleIds(
         archive.entries.map((entry) => entry.id),
@@ -249,7 +269,9 @@ function bindArchiveButton(
             archive,
             completedPuzzleIds,
             dependencies.buildPuzzleUrl,
+            selectPuzzle,
           ),
+          busy: false,
         });
       }).catch((error) => {
         console.error(error);
@@ -258,7 +280,9 @@ function bindArchiveButton(
             archive,
             new Set(),
             dependencies.buildPuzzleUrl,
+            selectPuzzle,
           ),
+          busy: false,
         });
       });
     });

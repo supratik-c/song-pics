@@ -7,6 +7,7 @@ export function renderArchiveContent(
   archive: PuzzleArchive,
   completedPuzzleIds: ReadonlySet<string>,
   buildPuzzleUrl: BuildPuzzleUrl,
+  selectPuzzle: (url: string) => void,
 ): DocumentFragment {
   const content = document.createDocumentFragment();
   const archiveView = document.createElement('div');
@@ -26,6 +27,7 @@ export function renderArchiveContent(
     1,
   );
   let currentPage = Math.floor(selectedIndex / ARCHIVE_PAGE_SIZE);
+  let isNavigating = false;
 
   archiveView.className = 'archive-view';
   list.className = 'archive-list';
@@ -58,6 +60,20 @@ export function renderArchiveContent(
         item.className = 'archive-list-item';
         link.className = 'archive-link';
         link.href = buildPuzzleUrl(entry.id, archive.latestPuzzleId);
+        link.addEventListener('click', (event) => {
+          if (!isCurrentPageNavigation(event, link)) {
+            return;
+          }
+
+          event.preventDefault();
+
+          if (isNavigating) {
+            return;
+          }
+
+          isNavigating = true;
+          selectPuzzle(link.href);
+        });
         issueTitle.className = 'archive-issue-title';
         issueTitle.textContent =
           `Issue #${entry.issueNumber} - ${entry.songClue}`;
@@ -108,6 +124,19 @@ export function renderArchiveContent(
   content.append(archiveView);
   renderPage();
   return content;
+}
+
+function isCurrentPageNavigation(
+  event: MouseEvent,
+  link: HTMLAnchorElement,
+): boolean {
+  return !event.defaultPrevented &&
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey &&
+    (!link.target || link.target === '_self');
 }
 
 function createBadge(label: string, extraClass?: string): HTMLSpanElement {

@@ -53,6 +53,7 @@ async function start(): Promise<void> {
     youtubeConsentStore: createSessionYouTubeConsentStore(),
     completionSource: createLocalCompletionSource(gameStateStore),
     shareGateway: createBrowserShareGateway(),
+    navigateToPuzzle: (url) => window.location.assign(url),
     buildPuzzleUrl: (puzzleId, latestPuzzleId) =>
       buildPuzzleUrlFromLocation(
         window.location.href,

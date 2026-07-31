@@ -309,6 +309,11 @@
     animation: none;
     transform: none;
   }
+
+  .loading-indicator-note {
+    animation: none;
+    transform: none;
+  }
 }
 
 @media (forced-colors: active) {

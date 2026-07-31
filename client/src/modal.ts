@@ -9,11 +9,13 @@ export type ModalView = {
   title: string;
   content: DocumentFragment;
   returnFocus: HTMLElement;
+  busy?: boolean;
 };
 
 type ModalUpdate = {
   title?: string;
   content: DocumentFragment;
+  busy?: boolean;
 };
 
 export type ModalController = {
@@ -44,6 +46,15 @@ export function createModalController(
 
   const cleanUpContent = (): void => {
     elements.body.replaceChildren();
+    elements.body.removeAttribute('aria-busy');
+  };
+
+  const renderContent = (
+    content: DocumentFragment,
+    busy = false,
+  ): void => {
+    elements.body.append(content);
+    elements.body.toggleAttribute('aria-busy', busy);
   };
 
   const finishClose = (): void => {
@@ -69,7 +80,7 @@ export function createModalController(
     cleanUpContent();
 
     elements.title.textContent = view.title;
-    elements.body.append(view.content);
+    renderContent(view.content, view.busy);
     returnFocus = view.returnFocus;
 
     if (!elements.dialog.open) {
@@ -97,7 +108,7 @@ export function createModalController(
       elements.title.textContent = updateValue.title;
     }
 
-    elements.body.append(updateValue.content);
+    renderContent(updateValue.content, updateValue.busy);
     return true;
   };
 

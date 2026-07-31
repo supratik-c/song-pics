@@ -1,0 +1,54 @@
+/* Reusable loading status */
+
+.loading-indicator {
+  --loading-indicator-font-size: 1.25rem;
+  --loading-indicator-min-height: 96px;
+  --loading-note-stagger: 180ms;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+  min-height: var(--loading-indicator-min-height);
+  margin: 0;
+  padding: 1em;
+  border: var(--line-medium) solid var(--ink);
+  color: var(--ink);
+  background: var(--white);
+  font-size: var(--loading-indicator-font-size);
+  font-weight: 700;
+  text-align: center;
+}
+
+.loading-indicator-small {
+  --loading-indicator-font-size: 1rem;
+  --loading-indicator-min-height: 64px;
+}
+
+.loading-indicator-large {
+  --loading-indicator-font-size: clamp(1.5rem, 5vw, 2.25rem);
+  --loading-indicator-min-height: 128px;
+}
+
+.loading-indicator-note {
+  display: inline-block;
+  font-family: var(--font-hand);
+  font-size: 1.35em;
+  line-height: 1;
+  animation: loading-note-bounce 800ms ease-in-out infinite;
+}
+
+.loading-indicator-note-trailing {
+  animation-delay: var(--loading-note-stagger);
+}
+
+@keyframes loading-note-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-0.28em);
+  }
+}

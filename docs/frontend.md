@@ -24,8 +24,11 @@ DOM output is divided by stable UI responsibility:
 - `views/puzzleView.ts` renders the puzzle, active state, validation, artist
   hint, future state, load errors, and panel zoom;
 - `views/archiveView.ts` renders archive navigation and pagination using an
-  injected puzzle-URL callback;
+  injected puzzle-URL callback and reports ordinary same-tab selections to the
+  application before navigation;
 - `views/howToPlayView.ts` renders tutorial content;
+- `views/loadingView.ts` creates reusable, scalable loading statuses with
+  accessible text and decorative motion;
 - `views/resultView.ts` renders inline terminal results, the optional YouTube
   load control and privacy-policy link, and the activated player;
 - `views/shareView.ts` creates reusable terminal share controls and owns their
@@ -77,11 +80,19 @@ Updating an obsolete asynchronous view is ignored, and closing the dialog
 removes its content.
 
 How to Play types stay with its loader. The feature loads its validated content
-manifest lazily and shows a recoverable error if loading fails. All Issues
-loads completion asynchronously each time it opens, orders released puzzles
-newest first, paginates in groups of 50, and opens on the page containing the
-selected puzzle. Long lists scroll within the height-constrained dialog.
-Completion lookup failure does not block archive navigation.
+manifest lazily and shows a recoverable error if loading fails. Async modal
+content uses the reusable loading status and marks the modal body busy until
+content or an error replaces it. All Issues loads completion asynchronously
+each time it opens, orders released puzzles newest first, paginates in groups
+of 50, and opens on the page containing the selected puzzle. Long lists scroll
+within the height-constrained dialog. Completion lookup failure does not block
+archive navigation.
+
+Selecting an archive issue through an ordinary same-tab activation replaces
+the archive with the loading status before full-page navigation begins.
+Modified activations and links targeting another browsing context retain native
+anchor behavior. The modal closes during page exit so a back-forward-cache
+restore does not leave a stale loading status open.
 
 Correct, revealed, and failed outcomes replace the guess form and action grid
 with an inline result. Only correct answers use its success treatment. Solved
@@ -139,7 +150,9 @@ the only state signals. Modal close returns focus to the control that opened it.
 
 Puzzle media reserves a 4:3 area to avoid layout shifts. Panel alt text must
 remain neutral unless content can describe the clue usefully without revealing
-the answer. Embedded media stays responsive.
+the answer. Playable puzzles keep two equal-width panels per full row; when the
+panel count is odd, the final panel is centered at that same width. Embedded
+media stays responsive.
 
 Without session consent, the initial YouTube control and `Subject to Google's
 Privacy Policy` notice use only local DOM and CSS and contain no remote
@@ -176,10 +189,11 @@ imports and rebases nested asset URLs, so production still emits one bundled
 stylesheet:
 
 1. `styles/foundation.css` owns fonts, tokens, reset, page shell, and masthead;
-2. `styles/game.css` owns panels, controls, feedback, and the future state;
-3. `styles/dialog.css` owns the dialog, tutorial, archive, and results;
-4. `styles/share.css` owns the reusable main and dialog share control;
-5. `styles/responsive.css` owns ordered breakpoint, motion, and forced-color
+2. `styles/loading.css` owns the reusable loading status and its motion;
+3. `styles/game.css` owns panels, controls, feedback, and the future state;
+4. `styles/dialog.css` owns the dialog, tutorial, archive, and results;
+5. `styles/share.css` owns the reusable main and dialog share control;
+6. `styles/responsive.css` owns ordered breakpoint, motion, and forced-color
    overrides.
 
 `client/src/legal.css` is the separate entry for The Legal Stuff page. It
