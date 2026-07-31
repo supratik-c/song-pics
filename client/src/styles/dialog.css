@@ -75,6 +75,26 @@
   overscroll-behavior: contain;
 }
 
+.comic-dialog-body-has-busy-overlay {
+  position: relative;
+  overflow: hidden;
+}
+
+.comic-dialog-busy-overlay {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  inset: 0;
+  padding: inherit;
+  pointer-events: auto;
+}
+
+.comic-dialog-busy-overlay > .loading-indicator {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
 .dialog-message {
   margin: 0;
   padding: 18px;
@@ -261,4 +281,3 @@
   font-weight: 700;
   text-align: center;
 }
-

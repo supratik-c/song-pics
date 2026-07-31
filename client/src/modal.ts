@@ -21,8 +21,11 @@ type ModalUpdate = {
 export type ModalController = {
   open: (view: ModalView) => number;
   update: (viewId: number, update: ModalUpdate) => boolean;
+  showBusyOverlay: (viewId: number, content: DocumentFragment) => boolean;
   close: () => void;
 };
+
+const busyOverlayClass = 'comic-dialog-body-has-busy-overlay';
 
 export function renderModalMessage(
   message: string,
@@ -46,6 +49,7 @@ export function createModalController(
 
   const cleanUpContent = (): void => {
     elements.body.replaceChildren();
+    elements.body.classList.remove(busyOverlayClass);
     elements.body.removeAttribute('aria-busy');
   };
 
@@ -112,9 +116,40 @@ export function createModalController(
     return true;
   };
 
+  const showBusyOverlay = (
+    viewId: number,
+    content: DocumentFragment,
+  ): boolean => {
+    if (
+      viewId !== activeViewId ||
+      !elements.dialog.open ||
+      elements.body.classList.contains(busyOverlayClass)
+    ) {
+      return false;
+    }
+
+    const existingContent = Array.from(elements.body.children);
+    const overlay = document.createElement('div');
+
+    elements.closeButton.focus();
+    existingContent.forEach((element) => {
+      const htmlElement = element as HTMLElement;
+
+      htmlElement.inert = true;
+      htmlElement.setAttribute('aria-hidden', 'true');
+    });
+    overlay.className = 'comic-dialog-busy-overlay';
+    overlay.append(content);
+    elements.body.classList.add(busyOverlayClass);
+    elements.body.setAttribute('aria-busy', 'true');
+    elements.body.append(overlay);
+    return true;
+  };
+
   return {
     open,
     update,
+    showBusyOverlay,
     close: () => {
       if (elements.dialog.open) {
         elements.dialog.close();

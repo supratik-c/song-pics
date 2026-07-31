@@ -61,7 +61,7 @@ export async function renderPuzzle(
   elements.panels.replaceChildren(
     ...renderedPanels.map(({ figure }) => figure),
   );
-  setPlayableView(elements);
+  setPanelsReady(elements);
 }
 
 export function renderFuturePuzzle(elements: GameElements): void {
@@ -74,6 +74,7 @@ export function renderFuturePuzzle(elements: GameElements): void {
   elements.artistHint.hidden = true;
   elements.attemptsCount.hidden = true;
   elements.form.hidden = true;
+  setFormUnavailable(elements, false);
   elements.message.hidden = true;
   elements.validationMessage.hidden = true;
   elements.guessList.hidden = true;
@@ -130,7 +131,7 @@ export function renderState(
     return;
   }
 
-  elements.form.hidden = false;
+  setPlayingForm(elements);
   elements.message.textContent =
     state.guesses.length === 0 ? '' : 'Try again.';
 }
@@ -253,6 +254,7 @@ export function renderLoadError(elements: GameElements): void {
   closeExpandedPanel?.();
   hideResultRegion(elements);
   elements.form.hidden = true;
+  setFormUnavailable(elements, false);
   elements.artistHint.hidden = true;
   elements.attemptsCount.hidden = true;
   elements.validationMessage.hidden = true;
@@ -384,27 +386,15 @@ function configurePanelZoom(
   });
 }
 
-function setPlayableView(elements: GameElements): void {
+function setPanelsReady(elements: GameElements): void {
   const game = elements.form.closest<HTMLElement>('.game');
 
   game?.classList.remove('future-puzzle');
   elements.date.hidden = false;
   elements.songClue.hidden = false;
-  elements.artistHint.hidden = true;
-  elements.attemptsCount.hidden = false;
-  elements.form.hidden = false;
   elements.message.hidden = false;
   elements.validationMessage.hidden = true;
   elements.guessList.hidden = false;
-  hideResultRegion(elements);
-  elements.shareRegion.hidden = true;
-
-  elements.artistHint.textContent = '';
-  elements.validationMessage.textContent = '';
-  elements.guessInput.disabled = false;
-  elements.revealArtistButton.disabled = false;
-  elements.revealArtistButton.hidden = false;
-  elements.submitButton.disabled = false;
   elements.panels.setAttribute('aria-label', 'Storyboard clue panels');
   elements.panels.classList.remove('is-loading');
   elements.panels.removeAttribute('aria-busy');
@@ -417,21 +407,51 @@ function setPuzzleLoadingView(elements: GameElements): void {
   elements.date.hidden = false;
   elements.songClue.hidden = false;
   elements.artistHint.hidden = true;
-  elements.attemptsCount.hidden = true;
-  elements.form.hidden = true;
+  elements.revealArtistButton.hidden = false;
+  elements.attemptsCount.hidden = false;
+  elements.form.hidden = false;
   elements.message.hidden = true;
   elements.validationMessage.hidden = true;
   elements.guessList.hidden = true;
   hideResultRegion(elements);
   elements.shareRegion.hidden = true;
+  elements.artistHint.textContent = '';
+  elements.attemptsCount.textContent = 'Guesses left';
+  elements.validationMessage.textContent = '';
+  setFormUnavailable(elements, false);
   elements.panels.classList.add('is-loading');
   elements.panels.setAttribute('aria-label', 'Loading clue panels');
   elements.panels.setAttribute('aria-busy', 'true');
 }
 
 function setFinished(elements: GameElements): void {
-  elements.form.hidden = true;
+  elements.form.hidden = false;
+  setFormUnavailable(elements, true);
   elements.message.textContent = '';
+}
+
+function setPlayingForm(elements: GameElements): void {
+  elements.form.hidden = false;
+  elements.form.classList.remove('is-layout-placeholder');
+  elements.form.inert = false;
+  elements.form.removeAttribute('aria-hidden');
+  elements.guessInput.disabled = false;
+  elements.revealArtistButton.disabled = false;
+  elements.revealSongButton.disabled = false;
+  elements.submitButton.disabled = false;
+}
+
+function setFormUnavailable(
+  elements: GameElements,
+  preserveLayout: boolean,
+): void {
+  elements.form.classList.toggle('is-layout-placeholder', preserveLayout);
+  elements.form.inert = true;
+  elements.form.setAttribute('aria-hidden', 'true');
+  elements.guessInput.disabled = true;
+  elements.revealArtistButton.disabled = true;
+  elements.revealSongButton.disabled = true;
+  elements.submitButton.disabled = true;
 }
 
 function hideResultRegion(elements: GameElements): void {

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { GameElements } from '../dom.ts';
 import type { PuzzleClue } from '../types.ts';
 import {
+  renderFuturePuzzle,
   renderLoadError,
   renderPuzzle,
 } from './puzzleView.ts';
@@ -19,6 +20,14 @@ class FakeClassList {
 
   remove(value: string): void {
     this.values.delete(value);
+  }
+
+  toggle(value: string, force: boolean): void {
+    if (force) {
+      this.add(value);
+    } else {
+      this.remove(value);
+    }
   }
 }
 
@@ -40,6 +49,7 @@ class FakeElement extends EventTarget {
   closestElement: FakeElement | null = null;
   disabled = false;
   hidden = false;
+  inert = false;
   parent: FakeElement | null = null;
   textContent = '';
   type = '';
@@ -149,7 +159,12 @@ describe('puzzle panel loading', () => {
     stubDocument(images);
     const rendering = renderPuzzle(elements, puzzle);
 
-    expect(elements.form.hidden).toBe(true);
+    expect(elements.form.hidden).toBe(false);
+    expect(elements.form.inert).toBe(true);
+    expect(elements.guessInput.disabled).toBe(true);
+    expect(elements.revealArtistButton.disabled).toBe(true);
+    expect(elements.revealSongButton.disabled).toBe(true);
+    expect(elements.submitButton.disabled).toBe(true);
     expect(fake(elements.panels).attributes.get('aria-busy')).toBe('true');
     expect(
       fake(elements.panels).classList.contains('is-loading'),
@@ -161,7 +176,7 @@ describe('puzzle panel loading', () => {
     await Promise.resolve();
 
     expect(fake(elements.panels).findByClass('loading-indicator')).toHaveLength(1);
-    expect(elements.form.hidden).toBe(true);
+    expect(elements.form.hidden).toBe(false);
 
     images[1].finishLoading();
     await rendering;
@@ -175,6 +190,8 @@ describe('puzzle panel loading', () => {
       fake(elements.panels).classList.contains('is-loading'),
     ).toBe(false);
     expect(elements.form.hidden).toBe(false);
+    expect(elements.form.inert).toBe(true);
+    expect(elements.submitButton.disabled).toBe(true);
   });
 
   it('reveals cached images after decoding them', async () => {
@@ -190,12 +207,15 @@ describe('puzzle panel loading', () => {
     expect(images.every((image) => image.decode.mock.calls.length === 1)).toBe(true);
     expect(elements.panels.hasAttribute('aria-busy')).toBe(false);
     expect(elements.form.hidden).toBe(false);
+    expect(elements.form.inert).toBe(true);
+    expect(elements.submitButton.disabled).toBe(true);
   });
 
   it('rejects an image request failure and clears loading in the error view', async () => {
     const images = [new FakeImage(), new FakeImage()];
     const elements = createElements();
 
+    fake(elements.form).classList.add('is-layout-placeholder');
     stubDocument(images);
     const rendering = renderPuzzle(elements, puzzle);
     images[0].failLoading();
@@ -209,6 +229,10 @@ describe('puzzle panel loading', () => {
     expect(fake(elements.panels).findByClass('loading-indicator')).toHaveLength(0);
     expect(elements.panels.hasAttribute('aria-busy')).toBe(false);
     expect(elements.form.hidden).toBe(true);
+    expect(
+      fake(elements.form).classList.contains('is-layout-placeholder'),
+    ).toBe(false);
+    expect(elements.form.inert).toBe(true);
     expect(elements.message.hidden).toBe(false);
   });
 
@@ -224,6 +248,20 @@ describe('puzzle panel loading', () => {
     await expect(rendering).rejects.toThrow(
       'A clue panel image could not be decoded.',
     );
+  });
+
+  it('removes the interaction reservation for a future puzzle', () => {
+    const elements = createElements();
+
+    fake(elements.form).classList.add('is-layout-placeholder');
+    stubDocument([new FakeImage()]);
+    renderFuturePuzzle(elements);
+
+    expect(elements.form.hidden).toBe(true);
+    expect(
+      fake(elements.form).classList.contains('is-layout-placeholder'),
+    ).toBe(false);
+    expect(elements.form.inert).toBe(true);
   });
 });
 
@@ -254,7 +292,7 @@ function createElements(): GameElements {
   };
 
   form.closestElement = game;
-  form.hidden = true;
+  form.inert = true;
   panels.classList.add('is-loading');
   panels.setAttribute('aria-busy', 'true');
   return elements as unknown as GameElements;

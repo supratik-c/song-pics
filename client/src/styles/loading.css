@@ -3,6 +3,7 @@
 .loading-indicator {
   --loading-indicator-font-size: 1.25rem;
   --loading-indicator-min-height: 96px;
+  --loading-indicator-reveal-delay: 250ms;
   --loading-note-stagger: 180ms;
 
   display: flex;
@@ -17,7 +18,10 @@
   background: var(--white);
   font-size: var(--loading-indicator-font-size);
   font-weight: 700;
+  opacity: 1;
   text-align: center;
+  animation: loading-indicator-reveal 0s linear
+    var(--loading-indicator-reveal-delay) backwards;
 }
 
 .loading-indicator-small {
@@ -36,10 +40,23 @@
   font-size: 1.35em;
   line-height: 1;
   animation: loading-note-bounce 800ms ease-in-out infinite;
+  animation-delay: var(--loading-indicator-reveal-delay);
 }
 
 .loading-indicator-note-trailing {
-  animation-delay: var(--loading-note-stagger);
+  animation-delay: calc(
+    var(--loading-indicator-reveal-delay) + var(--loading-note-stagger)
+  );
+}
+
+@keyframes loading-indicator-reveal {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes loading-note-bounce {

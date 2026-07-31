@@ -47,6 +47,9 @@ describe('loading indicator', () => {
     expect(indicator.attributes.get('role')).toBe('status');
     expect(indicator.attributes.get('aria-live')).toBe('polite');
     expect(indicator.attributes.get('aria-atomic')).toBe('true');
+    expect(
+      indicator.style.getPropertyValue('--loading-indicator-reveal-delay'),
+    ).toBe('250ms');
     expect(label.textContent).toBe('Scribbling...');
     expect(leadingNote.textContent).toBe('♪');
     expect(trailingNote.textContent).toBe('♪');
@@ -63,6 +66,7 @@ describe('loading indicator', () => {
         label: 'Fetching clues...',
         size,
         noteStaggerMs: 320,
+        revealDelayMs: 400,
       }) as unknown as FakeElement;
       const indicator = content.children[0];
 
@@ -71,6 +75,38 @@ describe('loading indicator', () => {
       expect(
         indicator.style.getPropertyValue('--loading-note-stagger'),
       ).toBe('320ms');
+      expect(
+        indicator.style.getPropertyValue('--loading-indicator-reveal-delay'),
+      ).toBe('400ms');
+    },
+  );
+
+  it('supports revealing immediately', () => {
+    stubDocument();
+
+    const content = renderLoadingIndicator({
+      revealDelayMs: 0,
+    }) as unknown as FakeElement;
+    const indicator = content.children[0];
+
+    expect(
+      indicator.style.getPropertyValue('--loading-indicator-reveal-delay'),
+    ).toBe('0ms');
+  });
+
+  it.each([-1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'uses the default reveal delay for an invalid value of %s',
+    (revealDelayMs) => {
+      stubDocument();
+
+      const content = renderLoadingIndicator({
+        revealDelayMs,
+      }) as unknown as FakeElement;
+      const indicator = content.children[0];
+
+      expect(
+        indicator.style.getPropertyValue('--loading-indicator-reveal-delay'),
+      ).toBe('250ms');
     },
   );
 });

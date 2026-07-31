@@ -82,17 +82,22 @@ removes its content.
 How to Play types stay with its loader. The feature loads its validated content
 manifest lazily and shows a recoverable error if loading fails. Async modal
 content uses the reusable loading status and marks the modal body busy until
-content or an error replaces it. All Issues loads completion asynchronously
-each time it opens, orders released puzzles newest first, paginates in groups
-of 50, and opens on the page containing the selected puzzle. Long lists scroll
-within the height-constrained dialog. Completion lookup failure does not block
-archive navigation.
+content or an error replaces it. The status defers only its visual appearance
+through a short shared threshold, so fast operations do not flash and ready
+content is never held back. All Issues loads completion asynchronously each
+time it opens, orders released puzzles newest first, paginates in groups of 50,
+and opens on the page containing the selected puzzle. Long lists scroll within
+the height-constrained dialog. Completion lookup failure does not block archive
+navigation.
 
-Selecting an archive issue through an ordinary same-tab activation replaces
-the archive with the loading status before full-page navigation begins.
-Modified activations and links targeting another browsing context retain native
-anchor behavior. The modal closes during page exit so a back-forward-cache
-restore does not leave a stale loading status open.
+Selecting an archive issue through an ordinary same-tab activation covers the
+interactive archive with an in-place busy overlay before full-page navigation
+begins. The existing archive stays in the DOM to preserve the dialog's
+dimensions, becomes inert, and remains visible unless the delayed loading
+status appears over it. The dialog close action remains available.
+Modified activations and links targeting another browsing context retain
+native anchor behavior. The modal closes during page exit so a back-forward-
+cache restore does not leave a stale loading overlay open.
 
 Correct, revealed, and failed outcomes replace the guess form and action grid
 with an inline result. Only correct answers use its success treatment. Solved
@@ -115,12 +120,26 @@ an announcement. Fatal initialization and load failures are also rendered
 through a view rather than direct writes from `main.ts` or `app.ts`.
 
 The static game shell places the reusable loading status in the clue-panel area
-so it is visible before JavaScript downloads. Puzzle metadata may replace the
-empty issue heading while clue images load, but gameplay controls remain hidden.
-The puzzle view builds the final responsive grid invisibly to reserve its
-layout, waits for every clue image to load and decode, and then reveals all
-panels and gameplay together. A failed image or decode is a puzzle load failure;
-the loader and busy state are cleared before the friendly error is shown.
+so it can appear before JavaScript downloads. It reserves the loading layout and
+remains available to assistive technology immediately, while a short visual
+threshold prevents it flashing during fast or cached loads. The initial clue
+area reserves one line each for the issue and clue heading plus the common
+two-row panel footprint. Longer clues can still expand naturally when they
+wrap. The real guess form and action layout are also present from first paint,
+visibly disabled and inert, with neutral attempts copy until the selected state
+is known. Puzzle metadata may replace the empty issue heading while clue images
+load. The puzzle view builds the final responsive grid invisibly, waits for
+every clue image to load and decode, and then reveals all panels together
+without waiting for the loading status to finish.
+
+After panel readiness, application state either enables the form for active
+play or displays the saved terminal result over an invisible, inert form that
+continues reserving the normal interaction height. Results therefore replace
+the controls visually without collapsing their layout area. Less common puzzles
+with more than two panel rows still expand to fit their complete grid. Future
+and load-error views remove the interaction reservation. A failed image or
+decode is a puzzle load failure; the loader and busy state are cleared before
+the friendly error is shown.
 
 Optional lyric captions are created only for terminal states and are semantic
 `figcaption` children of their corresponding panels. Each caption is flanked by
@@ -161,7 +180,9 @@ marked busy while its accessible loading status is present. Panel alt text must
 remain neutral unless content can describe the clue usefully without revealing
 the answer. Playable puzzles keep two equal-width panels per full row; when the
 panel count is odd, the final panel is centered at that same width. Embedded
-media stays responsive.
+media stays responsive. Loading controls remain disabled, inert, and hidden
+from assistive technology until the panels are ready and the puzzle is known to
+be playable.
 
 Without session consent, the initial YouTube control and `Subject to Google's
 Privacy Policy` notice use only local DOM and CSS and contain no remote

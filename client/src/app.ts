@@ -248,10 +248,7 @@ function bindArchiveButton(
       });
 
       const selectPuzzle = (url: string): void => {
-        if (!modal.update(viewId, {
-          content: renderLoadingIndicator(),
-          busy: true,
-        })) {
+        if (!modal.showBusyOverlay(viewId, renderLoadingIndicator())) {
           return;
         }
 

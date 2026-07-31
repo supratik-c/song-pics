@@ -4,14 +4,17 @@ export type LoadingIndicatorOptions = {
   label?: string;
   size?: LoadingIndicatorSize;
   noteStaggerMs?: number;
+  revealDelayMs?: number;
 };
 
 const defaultNoteStaggerMs = 180;
+const defaultRevealDelayMs = 250;
 
 export function renderLoadingIndicator({
   label = 'Scribbling...',
   size = 'medium',
   noteStaggerMs = defaultNoteStaggerMs,
+  revealDelayMs = defaultRevealDelayMs,
 }: LoadingIndicatorOptions = {}): DocumentFragment {
   const content = document.createDocumentFragment();
   const indicator = document.createElement('p');
@@ -21,6 +24,9 @@ export function renderLoadingIndicator({
   const safeNoteStaggerMs = Number.isFinite(noteStaggerMs) && noteStaggerMs >= 0
     ? noteStaggerMs
     : defaultNoteStaggerMs;
+  const safeRevealDelayMs = Number.isFinite(revealDelayMs) && revealDelayMs >= 0
+    ? revealDelayMs
+    : defaultRevealDelayMs;
 
   indicator.className = `loading-indicator loading-indicator-${size}`;
   indicator.setAttribute('role', 'status');
@@ -29,6 +35,10 @@ export function renderLoadingIndicator({
   indicator.style.setProperty(
     '--loading-note-stagger',
     `${safeNoteStaggerMs}ms`,
+  );
+  indicator.style.setProperty(
+    '--loading-indicator-reveal-delay',
+    `${safeRevealDelayMs}ms`,
   );
   text.className = 'loading-indicator-label';
   text.textContent = label;

@@ -59,7 +59,7 @@
                 role="status"
                 aria-live="polite"
                 aria-atomic="true"
-                style="--loading-note-stagger: 180ms"
+                style="--loading-indicator-reveal-delay: 250ms; --loading-note-stagger: 180ms"
               >
                 <span
                   class="loading-indicator-note loading-indicator-note-leading"
@@ -75,62 +75,77 @@
             <p class="doodle-credit" id="doodle-credit" hidden></p>
           </div>
 
-          <form class="guess-form" id="guess-form" novalidate hidden>
-            <div class="guess-entry-panel">
-              <label for="guess-input">What's the song?</label>
-              <input
-                id="guess-input"
-                name="guess"
-                type="text"
-                autocomplete="off"
-                placeholder="Type your guess"
-                required
-              />
-            </div>
-
-            <p
-              class="validation-message"
-              id="validation-message"
-              role="status"
-              aria-live="polite"
-              hidden
-            ></p>
-
-            <div class="action-grid">
-              <button class="comic-action tactile-button guess-button" type="submit">
-                <span>Guess</span>
-              </button>
-
-              <div class="artist-action-cell">
-                <button
-                  class="comic-action tactile-button artist-reveal-button"
-                  id="reveal-artist-button"
-                  type="button"
-                >
-                  <span>Reveal Artist</span>
-                </button>
-                <p class="artist-hint" id="artist-hint" aria-live="polite" hidden></p>
+          <div class="interaction-region">
+            <form
+              class="guess-form"
+              id="guess-form"
+              novalidate
+              inert
+              aria-hidden="true"
+            >
+              <div class="guess-entry-panel">
+                <label for="guess-input">What's the song?</label>
+                <input
+                  id="guess-input"
+                  name="guess"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Type your guess"
+                  required
+                  disabled
+                />
               </div>
 
-              <p class="attempts" id="attempts-count" aria-live="polite"></p>
+              <p
+                class="validation-message"
+                id="validation-message"
+                role="status"
+                aria-live="polite"
+                hidden
+              ></p>
 
-              <button
-                class="comic-action tactile-button reveal-song-button"
-                id="reveal-song-button"
-                type="button"
-              >
-                <span>Reveal Song</span>
-              </button>
-            </div>
-          </form>
+              <div class="action-grid">
+                <button
+                  class="comic-action tactile-button guess-button"
+                  type="submit"
+                  disabled
+                >
+                  <span>Guess</span>
+                </button>
 
-          <section
-            class="result-region"
-            id="result-region"
-            aria-labelledby="puzzle-result-title"
-            tabindex="-1"
-            hidden
-          ></section>
+                <div class="artist-action-cell">
+                  <button
+                    class="comic-action tactile-button artist-reveal-button"
+                    id="reveal-artist-button"
+                    type="button"
+                    disabled
+                  >
+                    <span>Reveal Artist</span>
+                  </button>
+                  <p class="artist-hint" id="artist-hint" aria-live="polite" hidden></p>
+                </div>
+
+                <p class="attempts" id="attempts-count" aria-live="polite">Guesses left</p>
+
+                <button
+                  class="comic-action tactile-button reveal-song-button"
+                  id="reveal-song-button"
+                  type="button"
+                  disabled
+                >
+                  <span>Reveal Song</span>
+                </button>
+              </div>
+            </form>
+
+            <section
+              class="result-region"
+              id="result-region"
+              aria-labelledby="puzzle-result-title"
+              tabindex="-1"
+              hidden
+            ></section>
+          </div>
 
           <p class="message" id="message" aria-live="polite"></p>
           <ol class="guess-list" id="guess-list" aria-label="Previous guesses"></ol>

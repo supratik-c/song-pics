@@ -8,13 +8,39 @@ import type { GameElements } from '../dom.ts';
 import { GAME_RULES } from '../gameConfig.ts';
 import type { GameStatus } from '../types.ts';
 
+class FakeClassList {
+  private readonly values = new Set<string>();
+
+  add(value: string): void {
+    this.values.add(value);
+  }
+
+  contains(value: string): boolean {
+    return this.values.has(value);
+  }
+
+  remove(value: string): void {
+    this.values.delete(value);
+  }
+
+  toggle(value: string, force: boolean): void {
+    if (force) {
+      this.add(value);
+    } else {
+      this.remove(value);
+    }
+  }
+}
+
 class FakeElement {
   readonly attributes = new Map<string, string>();
   readonly children: FakeElement[] = [];
+  readonly classList = new FakeClassList();
   readonly style = new FakeStyle();
   className = '';
   disabled = false;
   hidden = false;
+  inert = false;
   parent: FakeElement | null = null;
   textContent = '';
 
@@ -62,6 +88,10 @@ class FakeElement {
     });
     this.children.splice(0, this.children.length);
     this.append(...nodes);
+  }
+
+  removeAttribute(name: string): void {
+    this.attributes.delete(name);
   }
 
   setAttribute(name: string, value: string): void {
@@ -259,8 +289,22 @@ describe('doodler credit rendering', () => {
 
 describe('playing and terminal form rendering', () => {
   it('keeps the interactive form available only while play continues', () => {
-    const { elements, form, shareRegion } = setupStateElements();
+    const {
+      elements,
+      form,
+      guessInput,
+      revealArtistButton,
+      revealSongButton,
+      shareRegion,
+      submitButton,
+    } = setupStateElements();
     form.hidden = true;
+    form.inert = true;
+    form.setAttribute('aria-hidden', 'true');
+    guessInput.disabled = true;
+    revealArtistButton.disabled = true;
+    submitButton.disabled = true;
+    revealSongButton.disabled = true;
 
     renderState(
       elements,
@@ -270,6 +314,13 @@ describe('playing and terminal form rendering', () => {
     );
 
     expect(form.hidden).toBe(false);
+    expect(form.inert).toBe(false);
+    expect(form.attributes.has('aria-hidden')).toBe(false);
+    expect(form.classList.contains('is-layout-placeholder')).toBe(false);
+    expect(guessInput.disabled).toBe(false);
+    expect(revealArtistButton.disabled).toBe(false);
+    expect(submitButton.disabled).toBe(false);
+    expect(revealSongButton.disabled).toBe(false);
     expect(shareRegion.hidden).toBe(true);
     expect(elements.attemptsCount.textContent).toBe('4 guesses left');
     expect(elements.message.textContent).toBe('Try again.');
@@ -279,10 +330,12 @@ describe('playing and terminal form rendering', () => {
     'solved',
     'revealed',
     'failed',
-  ])('hides rather than disables the form for %s games', (status) => {
+  ])('keeps an inert form placeholder behind the %s result', (status) => {
     const {
       elements,
       form,
+      guessInput,
+      revealArtistButton,
       revealSongButton,
       shareRegion,
       submitButton,
@@ -296,10 +349,15 @@ describe('playing and terminal form rendering', () => {
       undefined,
     );
 
-    expect(form.hidden).toBe(true);
+    expect(form.hidden).toBe(false);
+    expect(form.inert).toBe(true);
+    expect(form.attributes.get('aria-hidden')).toBe('true');
+    expect(form.classList.contains('is-layout-placeholder')).toBe(true);
     expect(shareRegion.hidden).toBe(false);
-    expect(submitButton.disabled).toBe(false);
-    expect(revealSongButton.disabled).toBe(false);
+    expect(guessInput.disabled).toBe(true);
+    expect(revealArtistButton.disabled).toBe(true);
+    expect(submitButton.disabled).toBe(true);
+    expect(revealSongButton.disabled).toBe(true);
     expect(revealSongButton.textContent).toBe('Reveal Song');
     expect(elements.message.textContent).toBe('');
   });
@@ -329,6 +387,8 @@ function setupPanels(count: number): FakeElement {
 function setupStateElements(): {
   elements: GameElements;
   form: FakeElement;
+  guessInput: FakeElement;
+  revealArtistButton: FakeElement;
   revealSongButton: FakeElement;
   shareRegion: FakeElement;
   submitButton: FakeElement;
@@ -339,9 +399,11 @@ function setupStateElements(): {
 
   const attemptsCount = new FakeElement();
   const form = new FakeElement();
+  const guessInput = new FakeElement();
   const guessList = new FakeElement();
   const message = new FakeElement();
   const panels = new FakeElement();
+  const revealArtistButton = new FakeElement();
   const revealSongButton = new FakeElement();
   const shareRegion = new FakeElement();
   const submitButton = new FakeElement();
@@ -352,14 +414,14 @@ function setupStateElements(): {
     date: unused,
     doodleCredit: unused,
     form,
-    guessInput: unused,
+    guessInput,
     guessList,
     howToPlayButton: unused,
     message,
     modal: unused,
     panels,
     allIssuesButton: unused,
-    revealArtistButton: unused,
+    revealArtistButton,
     revealSongButton,
     resultRegion: unused,
     shareRegion,
@@ -371,6 +433,8 @@ function setupStateElements(): {
   return {
     elements,
     form,
+    guessInput,
+    revealArtistButton,
     revealSongButton,
     shareRegion,
     submitButton,

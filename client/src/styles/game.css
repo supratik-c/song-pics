@@ -13,6 +13,11 @@
   background: var(--white);
 }
 
+.game-header > .eyebrow,
+.game-header > h2 {
+  min-block-size: 1lh;
+}
+
 .eyebrow,
 .attempts {
   margin: 0;
@@ -63,6 +68,7 @@ h2 {
 
 .panels.is-loading {
   position: relative;
+  aspect-ratio: 4 / 3;
   min-height: clamp(180px, 38vw, 400px);
 }
 
@@ -244,11 +250,26 @@ figure img {
 
 /* Guess entry and comic actions */
 
+.interaction-region {
+  display: grid;
+  min-width: 0;
+}
+
+.interaction-region > .guess-form,
+.interaction-region > .result-region {
+  grid-area: 1 / 1;
+}
+
 .guess-form {
   display: grid;
   background:
     linear-gradient(102deg, transparent 60%, rgba(116, 192, 227, 0.12) 60.2%, transparent 60.5%),
     var(--paper);
+}
+
+.guess-form.is-layout-placeholder {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .guess-entry-panel {
