@@ -285,8 +285,10 @@ guidance](https://commission.europa.eu/law/law-topic/data-protection/rules-busin
   child-directed processing unless the product and controls are redesigned for
   it.
 - **No application collection:** no Scribble Bops account, backend database,
-  operator analytics, advertising tracker, newsletter, or contact form. The
-  operator does not receive the player's guesses from the game.
+  advertising tracker, newsletter, or contact form. The operator does not
+  receive the player's guesses from the game. Cloudflare Web Analytics is the
+  one exception to "no operator analytics" — see the Hosting and analytics
+  bullet below.
 - **Saved progress:** production uses browser `localStorage` keyed by puzzle ID
   for normalized guesses and completion status. It remains on that device
   until site/browser data is cleared. Development starts clean and does not
@@ -297,10 +299,15 @@ guidance](https://commission.europa.eu/law/law-topic/data-protection/rules-busin
   loading for later solved or revealed results in the same tab session and
   normally ends when that tab session closes. If session storage is unavailable,
   the choice lasts only in page memory.
-- **Hosting:** GitHub Pages receives ordinary web requests and may process IP
-  addresses, request times, paths, user-agent information, and security/logging
-  data under its own role and terms. Add equivalent detail before enabling a
-  CDN, custom host, or Cloudflare analytics.
+- **Hosting and analytics:** Cloudflare receives ordinary web requests and may
+  process IP addresses, request times, paths, user-agent information, and
+  security/logging data under its own role and terms. Cloudflare Web Analytics
+  is enabled (cookieless, no personal-data collection, edge-injected beacon) —
+  see the published privacy policy in `client/legal.html` for the
+  player-facing explanation. GitHub Pages remains a warm standby host under the
+  same disclosure. Perform a new review before adding any analytics tool that
+  behaves differently (uses cookies, cross-site tracking, or building
+  individual profiles).
 - **YouTube:** without session consent, YouTube is contacted only after the
   player activates `Watch YouTube Video`. Later eligible results in the same
   tab session contact YouTube automatically. The unloaded control includes a

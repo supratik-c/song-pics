@@ -9,10 +9,25 @@
     "not_found_handling": "404-page"
   },
 
-  // After buying the final domain and adding it to Cloudflare, add the
-  // canonical hostname here. Configure the other hostname (normally www) as a
-  // redirect in Cloudflare rather than serving two canonical addresses.
-  // "routes": [
-  //   { "pattern": "example.com", "custom_domain": true }
-  // ]
+  // www.scribblebops.com redirects to this canonical hostname via a
+  // Cloudflare Single Redirect rule (dashboard config, not repo config)
+  // rather than serving two canonical addresses.
+  "routes": [{ "pattern": "scribblebops.com", "custom_domain": true }],
+
+  "env": {
+    // Private preview deployed from pull requests. `assets` and
+    // `compatibility_date` are inheritable, so only identity and routing
+    // differ from production.
+    "dev": {
+      "name": "scribble-bops-dev",
+
+      // SECURITY: both must stay false. Cloudflare Access protects
+      // dev.scribblebops.com at the edge, but a *.workers.dev address or a
+      // Preview URL reaches the same Worker without passing that policy.
+      "workers_dev": false,
+      "preview_urls": false,
+
+      "routes": [{ "pattern": "dev.scribblebops.com", "custom_domain": true }]
+    }
+  }
 }

@@ -77,7 +77,8 @@ main.ts       composition root — the only place that constructs browser adapte
 the two stylesheets/`assets/` cannot move into a layer folder — `index.html` and
 `legal.html` reference them by literal path and `tsc` cannot check an HTML attribute.
 
-Two Vite HTML entries: `index.html` -> `src/main.ts`, `legal.html` -> `src/legal.ts`.
+Three Vite HTML entries: `index.html` -> `src/main.ts`, `legal.html` ->
+`src/legal.ts`, and a static `404.html` (no script) served for unmatched paths.
 No router — navigation is full page loads driven by `?puzzle=YYYY-MM-DD`, parsed by
 pure functions in [client/src/domain/navigation.ts](client/src/domain/navigation.ts).
 No `puzzle` query selects the latest release. State is one `let state` in the
@@ -122,9 +123,11 @@ through untouched. The deliberate exception is
 [client/src/platform/deploymentVersion.ts](client/src/platform/deploymentVersion.ts),
 which builds its own uncached URL so it can detect a *newer* build.
 
-Three asset classes, three base-path mechanisms: runtime content uses
-`resolvePublicPath`; bundled JS/CSS/fonts/UI icons use Vite `base` + content hashing;
-static HTML links use the `%BASE_URL%` token.
+Four asset classes, four mechanisms: runtime content uses `resolvePublicPath`;
+bundled JS/CSS/fonts/UI icons use Vite `base` + content hashing; static HTML
+links use the `%BASE_URL%` token; `client/public/_headers` (copied verbatim by
+Vite's default `publicDir`) sets Cloudflare Workers Static Assets cache
+headers and is inert on GitHub Pages.
 
 All external JSON goes through `fetchStaticJson` in
 [client/src/content/validation.ts](client/src/content/validation.ts), which checks
@@ -158,10 +161,23 @@ All external JSON goes through `fetchStaticJson` in
 
 ## Deployment
 
-[.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) is the active
-path: on push to `main` under `client/**`, it runs `npm ci`, `npm run typecheck`,
-`npm test`, `bash scripts/convert.sh`, then `npm run build` with the Pages base path,
-and publishes `client/dist`.
-[.github/workflows/deploy-cloudflare.yml](.github/workflows/deploy-cloudflare.yml) is a
-dormant scaffold — manual dispatch only, gated on a `confirm_deploy` checkbox. GitHub
-Pages remains production.
+`https://scribblebops.com` is production.
+[.github/workflows/deploy-cloudflare.yml](.github/workflows/deploy-cloudflare.yml)
+deploys it: on push to `main` under `client/**` (or manual dispatch), it runs
+`npm ci`, `npm run typecheck`, `npm test`, `bash scripts/convert.sh`, builds
+with `/` as the Vite base and `VITE_PUBLIC_SITE_URL=https://scribblebops.com/`,
+and deploys `client/dist` to Cloudflare Workers Static Assets via
+`wrangler deploy`. Cache headers live in `client/public/_headers`; the custom
+domain route is in `client/wrangler.jsonc`.
+
+`https://dev.scribblebops.com` is a private, Cloudflare-Access-gated preview.
+[.github/workflows/deploy-cloudflare-dev.yml](.github/workflows/deploy-cloudflare-dev.yml)
+deploys it on every same-repo pull request under `client/**`, via
+`wrangler deploy --env dev` against the `dev` environment in
+`client/wrangler.jsonc` (separate Worker, `workers_dev` and `preview_urls`
+both off). See [docs/cloudflare-migration.md](docs/cloudflare-migration.md)
+for the full Cloudflare setup, including the Access application.
+
+[.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) keeps
+building the same source to GitHub Pages in parallel as a warm standby, with
+the same `VITE_PUBLIC_SITE_URL` so its share metadata points at the real site.

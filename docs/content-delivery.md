@@ -148,10 +148,19 @@ This path boundary is required for both domain-root hosting and GitHub Pages
 project hosting. Imported JavaScript, CSS, and UI assets use Vite's normal
 content-hashed paths instead.
 
-The build has two HTML entries: the game at `index.html` and the static legal
-information at `legal.html`. Their navigation and font-notice URLs use Vite's
-public base, including when the built game shell is copied into a dated share
-directory, so the links remain valid at `/` and beneath `/song-pics/`.
+The build has three HTML entries: the game at `index.html`, the static legal
+information at `legal.html`, and a static `404.html` served for unmatched
+paths. Their navigation and font-notice URLs use Vite's public base, including
+when the built game shell is copied into a dated share directory, so the
+links remain valid at `/` and beneath `/song-pics/`.
+
+`client/public/` is copied verbatim into `dist/` by Vite's default `publicDir`
+behavior. It currently holds only `_headers`, a Cloudflare Workers Static
+Assets header-rule file (see
+[Deployment and cache coherence](#deployment-and-cache-coherence)); it is a
+fourth asset mechanism alongside runtime content (`resolvePublicPath`),
+content-hashed bundles (Vite `base`), and static HTML links (`%BASE_URL%`).
+`_headers` is inert on GitHub Pages.
 
 ## Production release boundary
 
@@ -176,41 +185,73 @@ the build machine or CI timezone.
 
 ## Deployment and cache coherence
 
-Vite builds to `client/dist/`. The GitHub Actions workflow installs with
-`npm ci`, runs tests, typechecks, builds with a repository base path, and
-deploys that directory to GitHub Pages.
+Vite builds to `client/dist/`. Three independent pipelines build the same
+source; see [cloudflare-migration.md](cloudflare-migration.md) for the
+one-time Cloudflare dashboard setup each depends on.
 
-A second workflow scaffolds a future deployment of the same artifact to
-Cloudflare Workers Static Assets. It is deliberately manual-only and skips its
-job unless the dispatcher explicitly confirms deployment. It builds with `/`
-as the Vite base, fixes the release-filter timezone to UTC to match the current
-GitHub Actions environment, and deploys only the static `dist` directory; it
-does not introduce a Worker script, function, backend, or runtime binding.
+`scribblebops.com` on Cloudflare Workers Static Assets is production,
+deployed by [deploy-cloudflare.yml](../.github/workflows/deploy-cloudflare.yml)
+on every push to `main` under `client/**` (and by manual dispatch). It
+installs with `npm ci`, runs tests, typechecks, converts panel images with
+`scripts/convert.sh`, builds with `/` as the Vite base, and deploys the static
+`dist` directory with `wrangler deploy`; it introduces no Worker script,
+function, backend, or runtime binding — `client/wrangler.jsonc` declares only
+an `assets` directory. The job fixes the release-filter timezone to `TZ: UTC`
+so the release-date boundary matches the previous GitHub Actions default.
 
-The Cloudflare workflow requires `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` GitHub Actions secrets. The Worker uses the canonical
-`scribble-bops` product slug in `client/wrangler.jsonc`. The token must use the
-narrowly scoped Workers edit permission for the target account. Custom-domain
-DNS, the canonical-host redirect, and Web Analytics remain later Cloudflare
-dashboard configuration rather than repository secrets. GitHub Pages remains
-the production host until the Workers preview, root asset paths,
-released-content filtering, and final-domain redirects have all been verified.
+`dev.scribblebops.com` is a private preview, deployed by
+[deploy-cloudflare-dev.yml](../.github/workflows/deploy-cloudflare-dev.yml) on
+every same-repo pull request under `client/**` (forked PRs cannot see the
+deploy secrets and are skipped). It runs the identical build and test steps
+and deploys with `wrangler deploy --env dev`, which selects the `dev`
+environment in `client/wrangler.jsonc` — a separate Worker
+(`scribble-bops-dev`) that inherits `assets` and `compatibility_date` from the
+top level but overrides `name`, `routes`, and disables both `workers_dev` and
+`preview_urls`, so the only way to reach it is the custom domain. That domain
+is gated by Cloudflare Access (email allowlist), configured entirely in the
+dashboard — there is no repository-side authentication. The dev preview
+deploys **released content only**: it reuses the same build (no content or
+future-puzzle filter is bypassed), so it shows exactly what production shows,
+not an authoring preview of unreleased puzzles.
+
+`deploy-pages.yml` keeps building the same content to GitHub Pages in parallel
+as a warm standby, in case Cloudflare or the domain has an incident. All three
+workflows watch the same `client/**` paths and run independently; only the
+Cloudflare ones require secrets.
+
+Both Cloudflare workflows require `CLOUDFLARE_API_TOKEN` and
+`CLOUDFLARE_ACCOUNT_ID` GitHub Actions secrets. The production Worker uses the
+canonical `scribble-bops` product slug in `client/wrangler.jsonc`, which also
+declares the `scribblebops.com` custom-domain route. The token must use the
+narrowly scoped Workers edit permission for the target account. DNS, the
+`www` → apex redirect, Web Analytics, and the dev Access policy are Cloudflare
+dashboard configuration rather than repository secrets or files — except
+cache headers, which live in `client/public/_headers` because Cloudflare
+reads that file from the deployed assets directory and applies it to both
+Workers. That file sets long, immutable caching on `/assets/*`
+(content-hashed) and `/content/*` (every runtime URL carries `?v=<buildId>`
+via `resolvePublicPath`), and deliberately leaves `build-version.json` and
+HTML documents on Cloudflare's default revalidate-always behavior.
 
 Each build emits `build-version.json`. CI derives `VITE_BUILD_ID` from the
 commit and workflow run; local builds use `local`. Before starting the game, a
 production client requests the version file with a unique non-cached URL. A
 mismatch triggers one reload carrying a temporary `_deployment` query value;
 other query parameters are preserved. The temporary value is removed after the
-new build loads. Failure or invalid version data does not block the game.
+new build loads. Failure or invalid version data does not block the game. This
+is why `build-version.json` must never receive long-lived caching from
+`_headers` or a CDN rule.
 
 Runtime content URLs include the build ID. Browsers can reuse cached JSON and
 images within one deployment, while a new build ID creates new cache keys so
 replaced content is not reused across deployments.
 
 `VITE_PUBLIC_SITE_URL` supplies the absolute canonical base used in social
-metadata. GitHub Pages builds derive it from the repository owner and name. The
-manual Cloudflare preview continues pointing metadata at the GitHub Pages
-canonical site until the documented domain cutover.
+metadata. It is `https://scribblebops.com/` for both the Cloudflare production
+build and the GitHub Pages standby build, so the standby mirror's OG and
+canonical tags point at the real site rather than at itself. The dev preview
+build is the one exception: it sets `https://dev.scribblebops.com/` so its own
+generated share pages are self-consistent and actually testable there.
 
 ## Cross-runtime fixtures
 

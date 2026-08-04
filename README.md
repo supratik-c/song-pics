@@ -57,43 +57,45 @@ npm run preview
 
 ## Deploy
 
-The public site deploys to GitHub Pages from `client/dist` using GitHub Actions.
-GitHub Pages remains the production host until a Cloudflare migration is
-explicitly completed.
+`https://scribblebops.com` is production, deployed from `client/dist` to
+Cloudflare Workers Static Assets by
+[deploy-cloudflare.yml](.github/workflows/deploy-cloudflare.yml) on every push
+to `main` under `client/**` (or by manual dispatch). It builds with `/` as the
+Vite base and `VITE_PUBLIC_SITE_URL` set to `https://scribblebops.com/`, used
+by the generated per-puzzle social-share metadata. The Worker uses the
+canonical `scribble-bops` slug and the `scribblebops.com` custom-domain route,
+both configured in [client/wrangler.jsonc](client/wrangler.jsonc); cache
+headers for content-hashed bundles and versioned puzzle content live in
+[client/public/_headers](client/public/_headers), which Cloudflare reads
+directly from the deployed assets.
 
-In GitHub, open the repository settings and set `Pages -> Build and deployment -> Source` to `GitHub Actions`. Push to `main`, then open:
+The workflow needs `CLOUDFLARE_API_TOKEN` (an `Edit Cloudflare Workers`
+scoped token) and `CLOUDFLARE_ACCOUNT_ID` as GitHub Actions repository
+secrets. DNS (including the `www` → apex redirect) and Web Analytics are
+Cloudflare dashboard configuration, not deployment secrets.
 
-```text
-https://<your-github-user>.github.io/song-pics/
-```
+`https://dev.scribblebops.com` is a private preview, deployed by
+[deploy-cloudflare-dev.yml](.github/workflows/deploy-cloudflare-dev.yml) on
+every same-repo pull request touching `client/**` (or by manual dispatch). It
+deploys to the `dev` environment in
+[client/wrangler.jsonc](client/wrangler.jsonc) — a separate Worker with its
+own custom domain, `workers_dev` and `preview_urls` both disabled. The domain
+itself is gated by Cloudflare Access (Zero Trust, free for up to 50 users) with
+an email allowlist, configured entirely in the dashboard. It shows released
+content only, exactly like production. See
+[docs/cloudflare-migration.md](docs/cloudflare-migration.md) for the full
+one-time setup checklist for both `scribblebops.com` and
+`dev.scribblebops.com`, including the Cloudflare Access application.
 
-The workflow sets `VITE_BASE_PATH` from the GitHub repository name so Vite assets and copied puzzle content resolve correctly from the GitHub Pages project URL.
-It also sets `VITE_PUBLIC_SITE_URL` to the absolute Pages address used by the
-generated per-puzzle social-share metadata. Local builds fall back to a
+`https://supratik-c.github.io/song-pics/` keeps building in parallel from the
+same source via [deploy-pages.yml](.github/workflows/deploy-pages.yml) as a
+warm standby, in case Cloudflare or the domain has an incident. Its workflow
+sets `VITE_BASE_PATH` from the GitHub repository name so Vite assets and
+copied puzzle content resolve correctly from the GitHub Pages project URL, but
+its `VITE_PUBLIC_SITE_URL` still points at `https://scribblebops.com/` so its
+share metadata references the real site. Local builds fall back to a
 base-aware localhost URL; set the variable explicitly when inspecting a
 production-like share artifact.
-
-An inactive Cloudflare Workers Static Assets deployment is scaffolded in
-`.github/workflows/deploy-cloudflare.yml`. It has no push or schedule trigger:
-it can only be started manually, and its job remains skipped unless the
-`confirm_deploy` checkbox is selected. Its Worker name uses the canonical
-`scribble-bops` slug. Before using it:
-
-1. Create a Cloudflare API token from the `Edit Cloudflare Workers` template
-   and scope it to only the target account.
-2. Find that account's Cloudflare account ID.
-3. Add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as GitHub Actions
-   repository secrets. Never commit either value.
-4. Manually run `Deploy Cloudflare (manual only)`, select `confirm_deploy`, and
-   validate the resulting `*.workers.dev` site.
-5. After buying the final domain, attach its canonical hostname and configure
-   the alternate hostname as a redirect. Cloudflare DNS and Web Analytics are
-   dashboard configuration, not deployment secrets.
-
-Do not disable GitHub Pages until the Cloudflare site has been checked for
-domain-root asset paths, released-only puzzle content, and canonical-domain
-redirects. Automatic Cloudflare deployment should only be enabled after that
-cutover is complete.
 
 ## Architecture
 

@@ -66,6 +66,7 @@ export default defineConfig({
       input: {
         main: resolve(projectRoot, 'index.html'),
         legal: resolve(projectRoot, 'legal.html'),
+        notFound: resolve(projectRoot, '404.html'),
       },
     },
   },

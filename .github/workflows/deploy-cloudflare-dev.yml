@@ -1,24 +1,27 @@
-name: Deploy Cloudflare
+name: Deploy Cloudflare (dev preview)
 
-# scribblebops.com is served by this workflow. GitHub Pages (deploy-pages.yml)
-# keeps building in parallel as a warm standby.
+# dev.scribblebops.com is a private preview behind Cloudflare Access, built
+# from pull requests so changes are checkable before they merge to main.
+# scribblebops.com production (deploy-cloudflare.yml) only deploys from main.
 on:
-  push:
-    branches: [main]
+  pull_request:
     paths:
     - 'client/**'
-    - '.github/workflows/deploy-cloudflare.yml'
+    - '.github/workflows/deploy-cloudflare-dev.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: cloudflare-production
-  cancel-in-progress: false
+  group: cloudflare-dev
+  # A newer push to the same PR supersedes its own in-flight preview.
+  cancel-in-progress: true
 
 jobs:
   deploy:
+    # Fork PRs cannot read repository secrets; skip rather than fail confusingly.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -56,27 +59,23 @@ jobs:
         working-directory: client
         run: bash scripts/convert.sh
 
-      - name: Build for a domain-root deployment
+      - name: Build for the dev preview
         working-directory: client
         env:
           VITE_BASE_PATH: /
-          VITE_BUILD_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          VITE_PUBLIC_SITE_URL: https://scribblebops.com/
+          VITE_BUILD_ID: ${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          VITE_PUBLIC_SITE_URL: https://dev.scribblebops.com/
         run: npm run build
 
-      # Before running this workflow, create these GitHub Actions secrets:
-      # - CLOUDFLARE_API_TOKEN: a narrowly scoped "Edit Cloudflare Workers" token.
-      # - CLOUDFLARE_ACCOUNT_ID: the account ID shown in the Cloudflare dashboard.
-      # The canonical Worker name is configured in client/wrangler.jsonc.
-      #
-      # --env "" targets the top-level (production) environment explicitly.
-      # Wrangler otherwise warns that the target is ambiguous now that
-      # client/wrangler.jsonc also defines a "dev" environment.
-      - name: Deploy static assets to Cloudflare
+      # Same secrets as deploy-cloudflare.yml; --env dev selects the
+      # scribble-bops-dev Worker and dev.scribblebops.com route from
+      # client/wrangler.jsonc. Access to dev.scribblebops.com is Cloudflare
+      # dashboard configuration (Zero Trust Access), not a repository secret.
+      - name: Deploy static assets to the Cloudflare dev preview
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: client
           wranglerVersion: "4.81.0"
-          command: deploy --env ""
+          command: deploy --env dev
