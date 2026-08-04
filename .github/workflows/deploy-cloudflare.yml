@@ -1,13 +1,13 @@
 name: Deploy Cloudflare
 
 # scribblebops.com is served by this workflow. GitHub Pages (deploy-pages.yml)
-# keeps building in parallel as a warm standby.
+# keeps building in parallel as a warm standby. Currently disabled awaiting setting up a Cloudflare account.
 on:
-  push:
-    branches: [main]
-    paths:
-    - 'client/**'
-    - '.github/workflows/deploy-cloudflare.yml'
+  # push:
+  #   branches: [main]
+  #   paths:
+  #   - 'client/**'
+  #   - '.github/workflows/deploy-cloudflare.yml'
   workflow_dispatch:
 
 permissions:
