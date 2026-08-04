@@ -3,6 +3,11 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { resolve } from 'node:path';
+import {
+  dateKey,
+  isValidPuzzleDateParts,
+  parsePuzzleDateParts,
+} from '../shared/puzzleDateMath.mjs';
 
 export const CONTENT_DIRECTORY_NAME = 'content';
 export const PUZZLES_DIRECTORY_NAME = 'puzzles';
@@ -11,7 +16,6 @@ export const PUZZLE_INDEX_FILE_NAME = 'index.json';
 export const PUZZLE_PANELS_FILE_NAME = 'panels.json';
 export const PUBLIC_PUZZLE_DIRECTORY = `/${CONTENT_DIRECTORY_NAME}/${PUZZLES_DIRECTORY_NAME}`;
 
-const puzzleDateIdPattern = /^(\d{4})-(\d{2})-(\d{2})$/;
 const panelImagePattern = /^(\d+)\.(?:avif|gif|jpe?g|png|webp)$/i;
 
 export function getPuzzleDirectory(rootDirectory = process.cwd()) {
@@ -36,31 +40,21 @@ export function isPuzzleManifestFileName(fileName) {
 }
 
 export function isPuzzleDateId(value) {
-  const parts = getPuzzleDateParts(value);
-
-  if (!parts) {
-    return false;
-  }
-
-  const { year, month, day } = parts;
-
-  return year >= 1 &&
-    month >= 1 &&
-    month <= 12 &&
-    day >= 1 &&
-    day <= getDaysInMonth(year, month);
+  return isValidPuzzleDateParts(parsePuzzleDateParts(value));
 }
 
 export function isFuturePuzzleDateId(value, today = new Date()) {
-  const parts = getPuzzleDateParts(value);
+  const parts = parsePuzzleDateParts(value);
 
-  if (!parts || !isPuzzleDateId(value)) {
+  if (!isValidPuzzleDateParts(parts)) {
     return false;
   }
 
-  const { year, month, day } = parts;
-
-  return dateKey(year, month, day) > todayKey(today);
+  return dateKey(parts.year, parts.month, parts.day) > dateKey(
+    today.getFullYear(),
+    today.getMonth() + 1,
+    today.getDate(),
+  );
 }
 
 export function getPanelImageNumber(fileName) {
@@ -86,43 +80,4 @@ export function writePuzzleMetadataFiles(
     getPuzzlePanelsPath(puzzleDirectory),
     `${JSON.stringify(puzzlePanels, null, 2)}\n`,
   );
-}
-
-function todayKey(today) {
-  return dateKey(
-    today.getFullYear(),
-    today.getMonth() + 1,
-    today.getDate(),
-  );
-}
-
-function dateKey(year, month, day) {
-  return year * 10000 + month * 100 + day;
-}
-
-function getPuzzleDateParts(value) {
-  const match = puzzleDateIdPattern.exec(value);
-
-  if (!match) {
-    return null;
-  }
-
-  return {
-    year: Number(match[1]),
-    month: Number(match[2]),
-    day: Number(match[3]),
-  };
-}
-
-function getDaysInMonth(year, month) {
-  if (month === 2) {
-    return isLeapYear(year) ? 29 : 28;
-  }
-
-  return [4, 6, 9, 11].includes(month) ? 30 : 31;
-}
-
-function isLeapYear(year) {
-  return year % 4 === 0 &&
-    (year % 100 !== 0 || year % 400 === 0);
 }

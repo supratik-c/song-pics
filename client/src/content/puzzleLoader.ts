@@ -1,9 +1,8 @@
-import { resolvePublicPath } from './publicPath.ts';
 import {
   formatPuzzleDisplayDate,
   isFuturePuzzleDateId,
   isPuzzleDateId,
-} from './puzzleDates.ts';
+} from '../domain/puzzleDates.ts';
 import {
   FuturePuzzleError,
   type LoadedPuzzle,
@@ -13,7 +12,8 @@ import {
   type PuzzleJson,
   type PuzzlePanel,
   type PuzzlePanelsManifest,
-} from './types.ts';
+} from '../domain/types.ts';
+import { resolvePublicPath } from './publicPath.ts';
 import {
   fetchStaticJson,
   isNonEmptyString,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import dateFixtureData from '../fixtures/date-behavior.json';
+import dateFixtureData from '../../fixtures/date-behavior.json';
 import {
   formatPuzzleDisplayDate,
   isFuturePuzzleDateId,

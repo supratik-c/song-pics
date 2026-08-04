@@ -24,11 +24,6 @@
     var(--loading-indicator-reveal-delay) backwards;
 }
 
-.loading-indicator-small {
-  --loading-indicator-font-size: 1rem;
-  --loading-indicator-min-height: 64px;
-}
-
 .loading-indicator-large {
   --loading-indicator-font-size: clamp(1.5rem, 5vw, 2.25rem);
   --loading-indicator-min-height: 128px;

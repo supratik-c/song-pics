@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { FuturePuzzleError } from '../domain/types.ts';
+import { jsonResponse } from '../testSupport.ts';
 import { loadPuzzle } from './puzzleLoader.ts';
-import { FuturePuzzleError } from './types.ts';
 
 type ControlledRequest = {
   input: string | URL | Request;
@@ -313,10 +314,4 @@ function panelManifest(puzzleId: string) {
       { src: `/content/puzzles/${puzzleId}/1.webp` },
     ],
   };
-}
-
-function jsonResponse(value: unknown): Response {
-  return new Response(JSON.stringify(value), {
-    headers: { 'Content-Type': 'application/json' },
-  });
 }

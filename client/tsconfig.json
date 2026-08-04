@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "allowImportingTsExtensions": true,
+    "allowJs": true,
     "isolatedModules": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
@@ -10,5 +11,5 @@
     "target": "ES2022",
     "types": ["vite/client"]
   },
-  "include": ["src", "vite.config.js"]
+  "include": ["src", "shared", "vite.config.js", "vitest.config.ts"]
 }

@@ -1,41 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { runAfterTactileActivation } from './tactileAction.ts';
 
-class FakeClassList {
-  private readonly values = new Set<string>();
-
-  add(value: string): void {
-    this.values.add(value);
-  }
-
-  contains(value: string): boolean {
-    return this.values.has(value);
-  }
-
-  remove(value: string): void {
-    this.values.delete(value);
-  }
-}
-
-class FakeButton extends EventTarget {
-  readonly classList = new FakeClassList();
-}
-
 afterEach(() => {
   vi.useRealTimers();
-  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe('tactile activation', () => {
   it('waits for the activation animation before running the action', () => {
     stubReducedMotion(false);
-    const button = new FakeButton();
+    const button = document.createElement('button');
     const action = vi.fn();
 
-    runAfterTactileActivation(
-      button as unknown as HTMLButtonElement,
-      action,
-    );
+    runAfterTactileActivation(button, action);
 
     expect(button.classList.contains('is-tactile-activating')).toBe(true);
     expect(action).not.toHaveBeenCalled();
@@ -48,18 +25,12 @@ describe('tactile activation', () => {
 
   it('ignores repeat activation while the first action is pending', () => {
     stubReducedMotion(false);
-    const button = new FakeButton();
+    const button = document.createElement('button');
     const firstAction = vi.fn();
     const repeatAction = vi.fn();
 
-    runAfterTactileActivation(
-      button as unknown as HTMLButtonElement,
-      firstAction,
-    );
-    runAfterTactileActivation(
-      button as unknown as HTMLButtonElement,
-      repeatAction,
-    );
+    runAfterTactileActivation(button, firstAction);
+    runAfterTactileActivation(button, repeatAction);
     button.dispatchEvent(new Event('animationend'));
 
     expect(firstAction).toHaveBeenCalledOnce();
@@ -68,13 +39,10 @@ describe('tactile activation', () => {
 
   it('runs the action if the animation is cancelled', () => {
     stubReducedMotion(false);
-    const button = new FakeButton();
+    const button = document.createElement('button');
     const action = vi.fn();
 
-    runAfterTactileActivation(
-      button as unknown as HTMLButtonElement,
-      action,
-    );
+    runAfterTactileActivation(button, action);
     button.dispatchEvent(new Event('animationcancel'));
 
     expect(action).toHaveBeenCalledOnce();
@@ -83,13 +51,10 @@ describe('tactile activation', () => {
   it('uses a fallback when no animation event is emitted', () => {
     vi.useFakeTimers();
     stubReducedMotion(false);
-    const button = new FakeButton();
+    const button = document.createElement('button');
     const action = vi.fn();
 
-    runAfterTactileActivation(
-      button as unknown as HTMLButtonElement,
-      action,
-    );
+    runAfterTactileActivation(button, action);
     vi.runAllTimers();
 
     expect(action).toHaveBeenCalledOnce();
@@ -98,13 +63,10 @@ describe('tactile activation', () => {
 
   it('runs immediately when reduced motion is preferred', () => {
     stubReducedMotion(true);
-    const button = new FakeButton();
+    const button = document.createElement('button');
     const action = vi.fn();
 
-    runAfterTactileActivation(
-      button as unknown as HTMLButtonElement,
-      action,
-    );
+    runAfterTactileActivation(button, action);
 
     expect(action).toHaveBeenCalledOnce();
     expect(button.classList.contains('is-tactile-activating')).toBe(false);
@@ -112,7 +74,7 @@ describe('tactile activation', () => {
 });
 
 function stubReducedMotion(matches: boolean): void {
-  vi.stubGlobal('window', {
-    matchMedia: () => ({ matches }),
-  });
+  vi.spyOn(window, 'matchMedia').mockReturnValue({
+    matches,
+  } as MediaQueryList);
 }

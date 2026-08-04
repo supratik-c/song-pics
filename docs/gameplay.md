@@ -12,10 +12,10 @@ values fall back to the latest puzzle. A future date produces the dedicated
 future-puzzle view rather than attempting to fetch its answer data.
 
 Query parsing and archive URL construction are pure functions in
-`client/src/navigation.ts`. The composition root supplies the requested ID to
+`client/src/domain/navigation.ts`. The composition root supplies the requested ID to
 the puzzle loader, so content selection does not read browser globals. Archive
 rendering similarly receives a URL callback and does not inspect location. All
-Issues is the single in-app browsing surface for selecting another released
+Releases is the single in-app browsing surface for selecting another released
 puzzle.
 
 The generated archive index is chronological. The client assigns contiguous
@@ -27,12 +27,14 @@ older links preserve it.
 
 ## Guess matching
 
-`client/src/gameConfig.ts` exposes the single durable gameplay-policy object,
-`GAME_RULES`, currently allowing a maximum of five attempts and a 64-character
-answer. Feature-local values such as archive page size stay beside their
-only consumer rather than becoming global configuration.
+`client/src/domain/gameConfig.ts` exposes the single durable gameplay-policy
+object, `GAME_RULES`, currently allowing a maximum of five attempts and a
+64-character answer. Feature-local values such as archive page size stay
+beside their only consumer rather than becoming global configuration.
 
-`client/src/game.ts` owns answer normalization and matching. Normalization:
+`client/src/domain/game.ts` owns answer matching; normalization itself lives
+in `client/shared/textNormalization.mjs`, shared with `scripts/puzzleValidation.mjs`
+so an answer is judged the same way at authoring time and at play time:
 
 - lowercases text, removes accents and punctuation, converts `&` to `and`, and
   collapses whitespace.
@@ -145,7 +147,7 @@ and no previous format is migrated.
 implementation derives completed IDs from terminal states returned by the
 state store; it is not folded into the storage adapter because a future
 account-backed completion API may have different ownership and timing.
-Completion is refreshed whenever All Issues opens. Lookup failure leaves
+Completion is refreshed whenever All Releases opens. Lookup failure leaves
 navigation usable and simply omits completion markers.
 
 The authored wire JSON uses the single current puzzle shape, while its runtime

@@ -1,27 +1,122 @@
-import type { GameElements } from '../dom.ts';
-import type { InvalidGuessReason } from '../game.ts';
-import type { GameRules } from '../gameConfig.ts';
-import { resolvePublicPath } from '../publicPath.ts';
+import type { InvalidGuessReason } from '../domain/game.ts';
+import type { GameRules } from '../domain/gameConfig.ts';
 import type {
   GameState,
   GameStatus,
   PuzzleClue,
   PuzzleSolution,
-} from '../types.ts';
+} from '../domain/types.ts';
+import { resolvePublicPath } from '../content/publicPath.ts';
+import type { GameElements } from '../platform/dom.ts';
 import { renderLoadingIndicator } from './loadingView.ts';
+import { createPanelZoomController } from './panelZoom.ts';
+import { clearResult } from './resultView.ts';
 
 const futurePuzzleMessage = 'Still in development....';
 const futurePuzzleImagePath =
   '/content/misc/double-semiquaver-orange.svg';
 const lyricNote = '♪';
 const lyricNoteSpacing = '  ';
-let closeExpandedPanel: (() => void) | null = null;
+const panelZoom = createPanelZoomController();
+
+// Every full-screen state this view can show sets a value for each of
+// these fields - 'unchanged' is an explicit choice, not an omission, so a
+// new screen can't silently forget one. doodleCredit and resultRegion are
+// handled separately: doodleCredit already has its own render function,
+// and resultRegion also needs its content/dataset cleared, not just hidden.
+type HiddenFieldName =
+  | 'artistHint'
+  | 'attemptsCount'
+  | 'date'
+  | 'form'
+  | 'guessList'
+  | 'message'
+  | 'revealArtistButton'
+  | 'shareRegion'
+  | 'songClue'
+  | 'validationMessage';
+
+type HiddenFieldValue = boolean | 'unchanged';
+
+type ScreenName = 'loading' | 'ready' | 'future' | 'load-error';
+
+const SCREEN_HIDDEN_STATE: Record<
+  ScreenName,
+  Record<HiddenFieldName, HiddenFieldValue>
+> = {
+  loading: {
+    artistHint: true,
+    attemptsCount: false,
+    date: false,
+    form: false,
+    guessList: true,
+    message: true,
+    revealArtistButton: false,
+    shareRegion: true,
+    songClue: false,
+    validationMessage: true,
+  },
+  ready: {
+    artistHint: 'unchanged',
+    attemptsCount: 'unchanged',
+    date: false,
+    form: 'unchanged',
+    guessList: false,
+    message: false,
+    revealArtistButton: 'unchanged',
+    shareRegion: 'unchanged',
+    songClue: false,
+    validationMessage: true,
+  },
+  future: {
+    artistHint: true,
+    attemptsCount: true,
+    date: true,
+    form: true,
+    guessList: true,
+    message: true,
+    revealArtistButton: 'unchanged',
+    shareRegion: true,
+    songClue: true,
+    validationMessage: true,
+  },
+  'load-error': {
+    artistHint: true,
+    attemptsCount: true,
+    // Deliberately 'unchanged': a load error can follow a normal render
+    // (date/songClue visible) or a future-puzzle screen (already hidden),
+    // and this path has never picked a value for them either way.
+    date: 'unchanged',
+    form: true,
+    guessList: true,
+    message: false,
+    revealArtistButton: 'unchanged',
+    shareRegion: true,
+    songClue: 'unchanged',
+    validationMessage: true,
+  },
+};
+
+function applyScreenHiddenState(
+  elements: GameElements,
+  screen: ScreenName,
+): void {
+  const state = SCREEN_HIDDEN_STATE[screen];
+
+  (Object.keys(state) as HiddenFieldName[]).forEach((field) => {
+    const value = state[field];
+
+    if (value !== 'unchanged') {
+      elements[field].hidden = value;
+    }
+  });
+}
 
 export async function renderPuzzle(
   elements: GameElements,
   puzzle: PuzzleClue,
 ): Promise<void> {
-  closeExpandedPanel?.();
+  panelZoom.closeAny();
   setPuzzleLoadingView(elements);
 
   elements.date.textContent =
@@ -47,7 +142,7 @@ export async function renderPuzzle(
 
     zoomButton.append(image);
     figure.append(zoomButton);
-    configurePanelZoom(figure, zoomButton, panelNumber);
+    panelZoom.configure(figure, zoomButton, panelNumber);
     return { figure, ready };
   });
 
@@ -65,21 +160,13 @@ export async function renderPuzzle(
 }
 
 export function renderFuturePuzzle(elements: GameElements): void {
-  closeExpandedPanel?.();
+  panelZoom.closeAny();
   const game = elements.form.closest<HTMLElement>('.game');
 
   game?.classList.add('future-puzzle');
-  elements.date.hidden = true;
-  elements.songClue.hidden = true;
-  elements.artistHint.hidden = true;
-  elements.attemptsCount.hidden = true;
-  elements.form.hidden = true;
+  applyScreenHiddenState(elements, 'future');
   setFormUnavailable(elements, false);
-  elements.message.hidden = true;
-  elements.validationMessage.hidden = true;
-  elements.guessList.hidden = true;
-  hideResultRegion(elements);
-  elements.shareRegion.hidden = true;
+  clearResult(elements.resultRegion);
   renderDoodleCredit(elements.doodleCredit, undefined);
 
   elements.date.textContent = '';
@@ -251,21 +338,15 @@ export function clearGuessValidation(elements: GameElements): void {
 }
 
 export function renderLoadError(elements: GameElements): void {
-  closeExpandedPanel?.();
-  hideResultRegion(elements);
-  elements.form.hidden = true;
+  panelZoom.closeAny();
+  clearResult(elements.resultRegion);
+  applyScreenHiddenState(elements, 'load-error');
   setFormUnavailable(elements, false);
-  elements.artistHint.hidden = true;
-  elements.attemptsCount.hidden = true;
-  elements.validationMessage.hidden = true;
-  elements.guessList.hidden = true;
-  elements.shareRegion.hidden = true;
   renderDoodleCredit(elements.doodleCredit, undefined);
   elements.panels.classList.remove('is-loading');
   elements.panels.removeAttribute('aria-busy');
   elements.panels.setAttribute('aria-label', 'Puzzle loading error');
   elements.panels.replaceChildren();
-  elements.message.hidden = false;
   elements.message.textContent =
     'The puzzle could not be loaded. Please refresh the page and try again.';
 }
@@ -337,64 +418,11 @@ function loadPanelImage(
   });
 }
 
-function configurePanelZoom(
-  figure: HTMLElement,
-  button: HTMLButtonElement,
-  panelNumber: number,
-): void {
-  const handleEscape = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape') {
-      return;
-    }
-
-    event.preventDefault();
-    close();
-    button.focus();
-  };
-
-  const close = (): void => {
-    figure.classList.remove('is-expanded');
-    button.setAttribute('aria-expanded', 'false');
-    button.setAttribute('aria-label', `Enlarge clue panel ${panelNumber}`);
-    document.body.classList.remove('panel-zoom-open');
-    document.removeEventListener('keydown', handleEscape);
-
-    if (closeExpandedPanel === close) {
-      closeExpandedPanel = null;
-    }
-  };
-
-  const open = (): void => {
-    closeExpandedPanel?.();
-    figure.classList.add('is-expanded');
-    button.setAttribute('aria-expanded', 'true');
-    button.setAttribute(
-      'aria-label',
-      `Return clue panel ${panelNumber} to normal size`,
-    );
-    document.body.classList.add('panel-zoom-open');
-    document.addEventListener('keydown', handleEscape);
-    closeExpandedPanel = close;
-  };
-
-  button.addEventListener('click', () => {
-    if (figure.classList.contains('is-expanded')) {
-      close();
-    } else {
-      open();
-    }
-  });
-}
-
 function setPanelsReady(elements: GameElements): void {
   const game = elements.form.closest<HTMLElement>('.game');
 
   game?.classList.remove('future-puzzle');
-  elements.date.hidden = false;
-  elements.songClue.hidden = false;
-  elements.message.hidden = false;
-  elements.validationMessage.hidden = true;
-  elements.guessList.hidden = false;
+  applyScreenHiddenState(elements, 'ready');
   elements.panels.setAttribute('aria-label', 'Storyboard clue panels');
   elements.panels.classList.remove('is-loading');
   elements.panels.removeAttribute('aria-busy');
@@ -404,17 +432,8 @@ function setPuzzleLoadingView(elements: GameElements): void {
   const game = elements.form.closest<HTMLElement>('.game');
 
   game?.classList.remove('future-puzzle');
-  elements.date.hidden = false;
-  elements.songClue.hidden = false;
-  elements.artistHint.hidden = true;
-  elements.revealArtistButton.hidden = false;
-  elements.attemptsCount.hidden = false;
-  elements.form.hidden = false;
-  elements.message.hidden = true;
-  elements.validationMessage.hidden = true;
-  elements.guessList.hidden = true;
-  hideResultRegion(elements);
-  elements.shareRegion.hidden = true;
+  applyScreenHiddenState(elements, 'loading');
+  clearResult(elements.resultRegion);
   elements.artistHint.textContent = '';
   elements.attemptsCount.textContent = 'Guesses left';
   elements.validationMessage.textContent = '';
@@ -452,10 +471,4 @@ function setFormUnavailable(
   elements.revealArtistButton.disabled = true;
   elements.revealSongButton.disabled = true;
   elements.submitButton.disabled = true;
-}
-
-function hideResultRegion(elements: GameElements): void {
-  elements.resultRegion.hidden = true;
-  delete elements.resultRegion.dataset.outcome;
-  elements.resultRegion.replaceChildren();
 }

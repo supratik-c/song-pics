@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isBuildVersionManifest } from './deploymentVersion.ts';
+import { isBuildVersionManifest } from '../platform/deploymentVersion.ts';
 import { isHowToPlayManifest } from './howToPlayLoader.ts';
 import {
   isPuzzleIndex,

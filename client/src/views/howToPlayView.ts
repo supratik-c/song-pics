@@ -1,7 +1,7 @@
 import {
   type HowToPlayManifest,
   resolveHowToPlayImagePath,
-} from '../howToPlayLoader.ts';
+} from '../content/howToPlayLoader.ts';
 
 export function renderHowToPlayContent(
   manifest: HowToPlayManifest,

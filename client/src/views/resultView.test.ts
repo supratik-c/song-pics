@@ -1,87 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { GameStatus, PuzzleSolution } from './types.ts';
+import type { GameStatus, PuzzleSolution } from '../domain/types.ts';
 import {
   clearResult,
   focusCompletedResult,
   getYouTubeVideoUrls,
   renderResult,
-} from './views/resultView.ts';
-
-class FakeElement {
-  readonly children: FakeElement[] = [];
-  readonly dataset: Record<string, string> = {};
-  readonly attributes: Record<string, string> = {};
-  readonly listeners = new Map<string, Array<() => void>>();
-  allow = '';
-  allowFullscreen = false;
-  className = '';
-  focusCalled = false;
-  focusOptions: FocusOptions | undefined;
-  hidden = false;
-  href = '';
-  id = '';
-  loading = '';
-  referrerPolicy = '';
-  rel = '';
-  src = '';
-  target = '';
-  textContent = '';
-  title = '';
-  type = '';
-
-  constructor(readonly tagName = 'div') {}
-
-  append(...nodes: FakeElement[]): void {
-    this.children.push(...nodes);
-  }
-
-  addEventListener(type: string, listener: () => void): void {
-    const listeners = this.listeners.get(type) ?? [];
-
-    listeners.push(listener);
-    this.listeners.set(type, listeners);
-  }
-
-  click(): void {
-    this.listeners.get('click')?.forEach((listener) => listener());
-  }
-
-  focus(options?: FocusOptions): void {
-    this.focusCalled = true;
-    this.focusOptions = options;
-  }
-
-  querySelector(selector: string): FakeElement | null {
-    for (const child of this.children) {
-      if (
-        selector.startsWith('.') &&
-        child.className.split(' ').includes(selector.slice(1))
-      ) {
-        return child;
-      }
-
-      if (!selector.startsWith('.') && child.tagName === selector) {
-        return child;
-      }
-
-      const descendant = child.querySelector(selector);
-
-      if (descendant) {
-        return descendant;
-      }
-    }
-
-    return null;
-  }
-
-  replaceChildren(...nodes: FakeElement[]): void {
-    this.children.splice(0, this.children.length, ...nodes);
-  }
-
-  setAttribute(name: string, value: string): void {
-    this.attributes[name] = value;
-  }
-}
+} from './resultView.ts';
 
 const solution: PuzzleSolution = {
   songTitle: 'Counting Stars',
@@ -92,7 +16,6 @@ const solution: PuzzleSolution = {
 
 afterEach(() => {
   vi.restoreAllMocks();
-  vi.unstubAllGlobals();
 });
 
 describe('inline result rendering', () => {
@@ -118,16 +41,10 @@ describe('inline result rendering', () => {
   ])(
     'renders the %s outcome and its video policy',
     (status, title, message, hasVideoControl) => {
-      stubDocument();
-      const region = new FakeElement('section');
+      const region = document.createElement('section');
       region.hidden = true;
 
-      renderResult(
-        region as unknown as HTMLElement,
-        solution,
-        status,
-        createConsent(false),
-      );
+      renderResult(region, solution, status, createConsent(false));
 
       expect(region.hidden).toBe(false);
       expect(region.dataset.outcome).toBe(status);
@@ -146,7 +63,7 @@ describe('inline result rendering', () => {
       if (loadButton) {
         expect(loadButton.children[1]?.textContent).toBe('Watch YouTube Video');
         expect(
-          loadButton.children[0]?.attributes['aria-hidden'],
+          loadButton.children[0]?.getAttribute('aria-hidden'),
         ).toBe('true');
 
         const privacy = region.querySelector('.youtube-privacy-notice');
@@ -163,24 +80,21 @@ describe('inline result rendering', () => {
   );
 
   it('loads the privacy-enhanced player when the watch button is pressed', () => {
-    stubDocument();
-    const region = new FakeElement('section');
+    const focusSpy = vi.spyOn(HTMLIFrameElement.prototype, 'focus');
+    const region = document.createElement('section');
     const grantConsent = vi.fn();
 
-    renderResult(
-      region as unknown as HTMLElement,
-      solution,
-      'solved',
-      createConsent(false, grantConsent),
-    );
+    renderResult(region, solution, 'solved', createConsent(false, grantConsent));
 
-    const loadButton = region.querySelector('.youtube-load-button');
+    const loadButton =
+      region.querySelector<HTMLButtonElement>('.youtube-load-button');
 
     expect(loadButton).not.toBeNull();
     loadButton?.click();
 
-    const video = region.querySelector('.result-video');
-    const watchLink = region.querySelector('.youtube-watch-link');
+    const video = region.querySelector<HTMLIFrameElement>('.result-video');
+    const watchLink =
+      region.querySelector<HTMLAnchorElement>('.youtube-watch-link');
 
     expect(grantConsent).toHaveBeenCalledOnce();
     expect(video?.src).toBe(
@@ -193,11 +107,11 @@ describe('inline result rendering', () => {
     expect(video?.allowFullscreen).toBe(true);
     expect(video?.loading).toBe('lazy');
     expect(video?.referrerPolicy).toBe('strict-origin-when-cross-origin');
-    expect(video?.focusCalled).toBe(true);
+    expect(focusSpy).toHaveBeenCalledOnce();
     expect(watchLink?.href).toBe(
       'https://www.youtube.com/watch?v=hT_nvWreIhg',
     );
-    expect(watchLink?.children[0]?.attributes['aria-hidden']).toBe('true');
+    expect(watchLink?.children[0]?.getAttribute('aria-hidden')).toBe('true');
     expect(watchLink?.children[1]?.textContent).toBe('Watch on YouTube');
 
     loadButton?.click();
@@ -205,46 +119,31 @@ describe('inline result rendering', () => {
   });
 
   it('automatically loads a rerendered result after consent without moving focus', () => {
-    stubDocument();
-    const region = new FakeElement('section');
+    const focusSpy = vi.spyOn(HTMLIFrameElement.prototype, 'focus');
+    const region = document.createElement('section');
     let granted = false;
     const grantConsent = (): void => {
       granted = true;
     };
 
-    renderResult(
-      region as unknown as HTMLElement,
-      solution,
-      'solved',
-      createConsent(false, grantConsent),
-    );
-    region.querySelector('.youtube-load-button')?.click();
+    renderResult(region, solution, 'solved', createConsent(false, grantConsent));
+    region.querySelector<HTMLButtonElement>('.youtube-load-button')?.click();
     expect(granted).toBe(true);
     expect(region.querySelector('.result-video')).not.toBeNull();
+    focusSpy.mockClear();
 
-    renderResult(
-      region as unknown as HTMLElement,
-      solution,
-      'solved',
-      createConsent(granted, grantConsent),
-    );
+    renderResult(region, solution, 'solved', createConsent(granted, grantConsent));
 
     expect(region.querySelector('.youtube-load-button')).toBeNull();
     expect(region.querySelector('.youtube-privacy-notice')).toBeNull();
     expect(region.querySelector('.youtube-watch-link')).not.toBeNull();
-    expect(region.querySelector('.result-video')?.focusCalled).toBe(false);
+    expect(focusSpy).not.toHaveBeenCalled();
   });
 
   it('does not load a failed result even with session consent', () => {
-    stubDocument();
-    const region = new FakeElement('section');
+    const region = document.createElement('section');
 
-    renderResult(
-      region as unknown as HTMLElement,
-      solution,
-      'failed',
-      createConsent(true),
-    );
+    renderResult(region, solution, 'failed', createConsent(true));
 
     expect(region.querySelector('.result-video')).toBeNull();
     expect(region.querySelector('.youtube-load-button')).toBeNull();
@@ -254,12 +153,11 @@ describe('inline result rendering', () => {
   it.each([undefined, 'not a URL'])(
     'handles an optional video URL of %s',
     (youtubeURL) => {
-      stubDocument();
       const error = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const region = new FakeElement('section');
+      const region = document.createElement('section');
 
       renderResult(
-        region as unknown as HTMLElement,
+        region,
         { ...solution, youtubeURL },
         'solved',
         createConsent(true),
@@ -275,11 +173,11 @@ describe('inline result rendering', () => {
   );
 
   it('clears and hides stale result content during play', () => {
-    const region = new FakeElement('section');
+    const region = document.createElement('section');
     region.dataset.outcome = 'solved';
-    region.append(new FakeElement('h3'));
+    region.append(document.createElement('h3'));
 
-    clearResult(region as unknown as HTMLElement);
+    clearResult(region);
 
     expect(region.hidden).toBe(true);
     expect(region.dataset.outcome).toBeUndefined();
@@ -288,34 +186,46 @@ describe('inline result rendering', () => {
 });
 
 describe('new result focus and scrolling', () => {
+  afterEach(() => {
+    delete (document.body as { scrollHeight?: number }).scrollHeight;
+    delete (document.documentElement as { scrollHeight?: number }).scrollHeight;
+  });
+
   it.each([
     [false, 'smooth'],
     [true, 'auto'],
   ] as const)(
     'uses %s reduced motion preference for %s scrolling',
     (reducedMotion, behavior) => {
-      const region = new FakeElement('section');
-      const scrollTo = vi.fn();
-      const requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
-        callback(0);
-        return 1;
+      const region = document.createElement('section');
+      const focusSpy = vi.spyOn(region, 'focus');
+      const scrollToSpy = vi
+        .spyOn(window, 'scrollTo')
+        .mockImplementation(() => {});
+      const rafSpy = vi
+        .spyOn(window, 'requestAnimationFrame')
+        .mockImplementation((callback) => {
+          callback(0);
+          return 1;
+        });
+
+      vi.spyOn(window, 'matchMedia').mockReturnValue({
+        matches: reducedMotion,
+      } as MediaQueryList);
+      Object.defineProperty(document.body, 'scrollHeight', {
+        value: 900,
+        configurable: true,
+      });
+      Object.defineProperty(document.documentElement, 'scrollHeight', {
+        value: 1200,
+        configurable: true,
       });
 
-      vi.stubGlobal('document', {
-        body: { scrollHeight: 900 },
-        documentElement: { scrollHeight: 1200 },
-      });
-      vi.stubGlobal('window', {
-        matchMedia: () => ({ matches: reducedMotion }),
-        requestAnimationFrame,
-        scrollTo,
-      });
+      focusCompletedResult(region);
 
-      focusCompletedResult(region as unknown as HTMLElement);
-
-      expect(region.focusOptions).toEqual({ preventScroll: true });
-      expect(requestAnimationFrame).toHaveBeenCalledOnce();
-      expect(scrollTo).toHaveBeenCalledWith({ top: 1200, behavior });
+      expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
+      expect(rafSpy).toHaveBeenCalledOnce();
+      expect(scrollToSpy).toHaveBeenCalledWith({ top: 1200, behavior });
     },
   );
 });
@@ -371,12 +281,6 @@ describe('YouTube URL conversion', () => {
     expect(getYouTubeVideoUrls(url)).toBeNull();
   });
 });
-
-function stubDocument(): void {
-  vi.stubGlobal('document', {
-    createElement: (tagName: string) => new FakeElement(tagName),
-  });
-}
 
 function createConsent(
   hasConsent: boolean,

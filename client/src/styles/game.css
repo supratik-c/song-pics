@@ -388,12 +388,12 @@ input::placeholder {
   grid-area: 1 / 1;
 }
 
-.artist-reveal-button,
+.reveal-artist-button,
 .artist-hint {
   --comic-shape: polygon(0 0, 100% 0, 100% calc(100% - 7px), 0 100%);
 }
 
-.artist-reveal-button {
+.reveal-artist-button {
   --action-fill: var(--yellow);
   color: var(--ink);
 }

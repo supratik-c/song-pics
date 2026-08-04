@@ -1,18 +1,10 @@
-const supportedYouTubeHosts = new Set([
-  'youtube.com',
-  'www.youtube.com',
-  'youtu.be',
-  'youtube-nocookie.com',
-  'www.youtube-nocookie.com',
-]);
-const standardYouTubeHosts = new Set([
-  'youtube.com',
-  'www.youtube.com',
-]);
-const noCookieYouTubeHosts = new Set([
-  'youtube-nocookie.com',
-  'www.youtube-nocookie.com',
-]);
+import { normalizeText } from '../shared/textNormalization.mjs';
+import {
+  isNonEmptyString,
+  isRecord,
+} from '../shared/validationPrimitives.mjs';
+import { getYouTubeVideoId } from '../shared/youtubeVideoId.mjs';
+
 const puzzleJsonFields = new Set([
   'songClue',
   'songTitle',
@@ -132,13 +124,13 @@ export function isSupportedYouTubeUrl(value) {
   try {
     const url = new URL(value);
 
-    if (
-      (url.protocol !== 'https:' && url.protocol !== 'http:') ||
-      !supportedYouTubeHosts.has(url.hostname)
-    ) {
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
       return false;
     }
 
+    // getYouTubeVideoId only recognizes youtube.com, youtu.be, and
+    // youtube-nocookie.com hosts, so an unsupported host already falls
+    // through to null here without a separate host allow-list check.
     return getYouTubeVideoId(url) !== null;
   } catch {
     return false;
@@ -179,65 +171,10 @@ function validateAcceptedAnswers(puzzle, sourcePath) {
   }
 }
 
-function getYouTubeVideoId(url) {
-  if (url.hostname === 'youtu.be') {
-    const pathParts = url.pathname.split('/').filter(Boolean);
-
-    return pathParts.length === 1 && isValidVideoId(pathParts[0])
-      ? pathParts[0]
-      : null;
-  }
-
-  if (standardYouTubeHosts.has(url.hostname) && url.pathname === '/watch') {
-    const queryVideoId = url.searchParams.get('v');
-
-    return queryVideoId && isValidVideoId(queryVideoId)
-      ? queryVideoId
-      : null;
-  }
-
-  if (
-    (
-      standardYouTubeHosts.has(url.hostname) ||
-      noCookieYouTubeHosts.has(url.hostname)
-    ) &&
-    url.pathname.startsWith('/embed/')
-  ) {
-    const pathParts = url.pathname.split('/').filter(Boolean);
-
-    return pathParts.length === 2 &&
-      pathParts[0] === 'embed' &&
-      isValidVideoId(pathParts[1])
-      ? pathParts[1]
-      : null;
-  }
-
-  return null;
-}
-
-function isValidVideoId(value) {
-  return /^[A-Za-z0-9_-]+$/.test(value);
-}
-
-function normalizeText(value) {
-  return value
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/&/g, ' and ')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
-    .replace(/\s+/g, ' ');
-}
-
 function assertNonEmptyString(value, field, sourcePath) {
-  if (typeof value !== 'string' || value.trim().length === 0) {
+  if (!isNonEmptyString(value)) {
     throw invalidPuzzle(sourcePath, `${field} must be a non-empty string`);
   }
-}
-
-function isRecord(value) {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function invalidPuzzle(sourcePath, reason) {

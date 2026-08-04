@@ -1,21 +1,21 @@
 import { initApp, type AppDependencies } from './app.ts';
-import { createBrowserShareGateway } from './browserShare.ts';
-import { createLocalCompletionSource } from './completion.ts';
-import { ensureCurrentDeployment } from './deploymentVersion.ts';
-import { getGameElements } from './dom.ts';
-import { loadHowToPlayManifest } from './howToPlayLoader.ts';
 import {
   buildCanonicalPuzzleUrl,
   buildPuzzleShareUrl,
   buildPuzzleUrl as buildPuzzleUrlFromLocation,
   getRequestedPuzzleId,
   getSharePuzzleId,
-} from './navigation.ts';
-import { loadPuzzle } from './puzzleLoader.ts';
+} from './domain/navigation.ts';
+import { loadPuzzle } from './content/puzzleLoader.ts';
+import { loadHowToPlayManifest } from './content/howToPlayLoader.ts';
+import { createBrowserShareGateway } from './platform/browserShare.ts';
+import { createLocalCompletionSource } from './platform/completion.ts';
+import { ensureCurrentDeployment } from './platform/deploymentVersion.ts';
+import { getGameElements } from './platform/dom.ts';
 import {
   createLocalGameStateStore,
   createSessionYouTubeConsentStore,
-} from './storage.ts';
+} from './platform/storage.ts';
 import { renderLoadError } from './views/puzzleView.ts';
 
 async function start(): Promise<void> {

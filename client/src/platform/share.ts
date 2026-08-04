@@ -1,4 +1,4 @@
-import type { PuzzlePerformance } from './performance.ts';
+import type { PuzzlePerformance } from '../domain/performance.ts';
 
 export type PuzzleShareRequest = {
   title: string;

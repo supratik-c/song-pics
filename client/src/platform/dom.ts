@@ -12,7 +12,7 @@ export type GameElements = {
   message: HTMLElement;
   modal: ModalElements;
   panels: HTMLElement;
-  allIssuesButton: HTMLButtonElement;
+  allReleasesButton: HTMLButtonElement;
   revealArtistButton: HTMLButtonElement;
   revealSongButton: HTMLButtonElement;
   resultRegion: HTMLElement;
@@ -40,7 +40,7 @@ export function getGameElements(): GameElements {
       closeButton: getElement<HTMLButtonElement>('#game-dialog-close'),
     },
     panels: getElement<HTMLElement>('#panels'),
-    allIssuesButton: getElement<HTMLButtonElement>('#all-issues-button'),
+    allReleasesButton: getElement<HTMLButtonElement>('#all-releases-button'),
     revealArtistButton: getElement<HTMLButtonElement>('#reveal-artist-button'),
     revealSongButton: getElement<HTMLButtonElement>('#reveal-song-button'),
     resultRegion: getElement<HTMLElement>('#result-region'),

@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createInitialGameState, submitGuess } from './game.ts';
-import { GAME_RULES } from './gameConfig.ts';
-import { getPuzzlePerformance } from './performance.ts';
+import { createInitialGameState, submitGuess } from '../domain/game.ts';
+import { GAME_RULES } from '../domain/gameConfig.ts';
+import { getPuzzlePerformance } from '../domain/performance.ts';
+import type { GameState } from '../domain/types.ts';
 import {
   createPuzzleShareRequest,
   getCopyText,
   shareCurrentPuzzle,
 } from './share.ts';
-import type { GameState } from './types.ts';
 
 const puzzleId = '2026-07-23';
 const shareUrl = 'https://example.test/share/2026-07-23/';

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { GameState } from '../domain/types.ts';
 import {
   createLocalCompletionSource,
 } from './completion.ts';
@@ -9,7 +10,6 @@ import {
   YOUTUBE_CONSENT_STORAGE_KEY,
   type GameStateStore,
 } from './storage.ts';
-import type { GameState } from './types.ts';
 
 function createMemoryStorage(initial: Record<string, string> = {}) {
   const values = new Map(Object.entries(initial));

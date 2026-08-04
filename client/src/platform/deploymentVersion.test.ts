@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { jsonResponse } from '../testSupport.ts';
 import { ensureCurrentDeployment } from './deploymentVersion.ts';
 
 afterEach(() => {
@@ -33,9 +34,3 @@ describe('deployment version loading', () => {
     expect(init).toEqual({ cache: 'no-store' });
   });
 });
-
-function jsonResponse(value: unknown): Response {
-  return new Response(JSON.stringify(value), {
-    headers: { 'Content-Type': 'application/json' },
-  });
-}

@@ -333,11 +333,11 @@ h1 {
   place-items: center;
 }
 
-.all-issues-button {
+.all-releases-button {
   --header-button-fill: var(--blue-light);
 }
 
-.all-issues-icon {
+.all-releases-icon {
   display: block;
   width: 30px;
   height: 26px;

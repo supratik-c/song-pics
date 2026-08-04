@@ -16,18 +16,18 @@
             <p class="intro">Guess today's song from these highly professional drawings.</p>
             <div class="header-controls">
               <button
-                class="header-icon-button all-issues-button tactile-button"
-                id="all-issues-button"
+                class="header-icon-button all-releases-button tactile-button"
+                id="all-releases-button"
                 type="button"
                 disabled
               >
                 <img
-                  class="all-issues-icon"
-                  src="./src/assets/ui/icons/all-issues.svg"
+                  class="all-releases-icon"
+                  src="./src/assets/ui/icons/all-releases.svg"
                   alt=""
                   aria-hidden="true"
                 />
-                <span class="visually-hidden">All Issues</span>
+                <span class="visually-hidden">All Releases</span>
               </button>
               <button
                 class="header-icon-button how-to-play-button tactile-button"
@@ -62,10 +62,10 @@
                 style="--loading-indicator-reveal-delay: 250ms; --loading-note-stagger: 180ms"
               >
                 <span
-                  class="loading-indicator-note loading-indicator-note-leading"
+                  class="loading-indicator-note"
                   aria-hidden="true"
                 >♪</span>
-                <span class="loading-indicator-label">Scribbling...</span>
+                <span>Scribbling...</span>
                 <span
                   class="loading-indicator-note loading-indicator-note-trailing"
                   aria-hidden="true"
@@ -115,7 +115,7 @@
 
                 <div class="artist-action-cell">
                   <button
-                    class="comic-action tactile-button artist-reveal-button"
+                    class="comic-action tactile-button reveal-artist-button"
                     id="reveal-artist-button"
                     type="button"
                     disabled

@@ -75,11 +75,10 @@ describe('released puzzle share pages', () => {
     expect(laterPage).toContain(
       'Can you guess today&#39;s song from some questionable hand-drawn doodles?',
     );
-    expect(laterPage).not.toContain('Issue #2:');
+    expect(laterPage).not.toContain(validPuzzle.songTitle);
+    expect(laterPage).not.toContain(validPuzzle.artist);
     expect(laterPage).not.toContain('I got it in');
-    expect(laterPage).not.toContain(
-      'succumb to the scribbles like me',
-    );
+    expect(laterPage).not.toContain('succumb to the scribbles');
     expect(() => readSharePage('2026-07-24')).toThrow();
   });
 

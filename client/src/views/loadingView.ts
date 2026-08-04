@@ -1,4 +1,4 @@
-export type LoadingIndicatorSize = 'small' | 'medium' | 'large';
+export type LoadingIndicatorSize = 'medium' | 'large';
 
 export type LoadingIndicatorOptions = {
   label?: string;
@@ -18,7 +18,7 @@ export function renderLoadingIndicator({
 }: LoadingIndicatorOptions = {}): DocumentFragment {
   const content = document.createDocumentFragment();
   const indicator = document.createElement('p');
-  const leadingNote = createNote('loading-indicator-note-leading');
+  const leadingNote = createNote();
   const text = document.createElement('span');
   const trailingNote = createNote('loading-indicator-note-trailing');
   const safeNoteStaggerMs = Number.isFinite(noteStaggerMs) && noteStaggerMs >= 0
@@ -40,7 +40,6 @@ export function renderLoadingIndicator({
     '--loading-indicator-reveal-delay',
     `${safeRevealDelayMs}ms`,
   );
-  text.className = 'loading-indicator-label';
   text.textContent = label;
   indicator.append(leadingNote, text, trailingNote);
   content.append(indicator);
@@ -48,10 +47,12 @@ export function renderLoadingIndicator({
   return content;
 }
 
-function createNote(extraClass: string): HTMLSpanElement {
+function createNote(extraClass?: string): HTMLSpanElement {
   const note = document.createElement('span');
 
-  note.className = `loading-indicator-note ${extraClass}`;
+  note.className = extraClass
+    ? `loading-indicator-note ${extraClass}`
+    : 'loading-indicator-note';
   note.textContent = '♪';
   note.setAttribute('aria-hidden', 'true');
   return note;

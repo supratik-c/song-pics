@@ -31,7 +31,7 @@ npm run generate:puzzle-index # regenerate content/puzzles/{index.json,panels.js
 Single test / filtering:
 
 ```bash
-npx vitest run src/game.test.ts            # one browser-code test file
+npx vitest run src/domain/game.test.ts     # one browser-code test file
 npx vitest run scripts/sharePages.test.mjs # one build-script test file
 npx vitest run -t "substring of test name" # filter by test name
 npx vitest                                 # watch mode
@@ -60,19 +60,28 @@ Frontend-only daily song-guessing game. Strict TypeScript + Vite + plain DOM/CSS
 Runtime layering (do not collapse these boundaries):
 
 ```
-main.ts      composition root — the only place that constructs browser adapters
-  -> app.ts  orchestration + event handling; never writes DOM directly
-       -> game.ts / gameConfig.ts   pure rules, immutable transitions, policy
-       -> puzzleLoader / howToPlayLoader   fetch + complete boundary validation
-       -> views/*   pure render functions; never fetch or persist
-       -> storage.ts / completion.ts   replaceable persistence boundaries
+main.ts       composition root — the only place that constructs browser adapters
+  -> app.ts   orchestration + event handling; never writes DOM directly
+       -> domain/    pure rules, transitions, policy (game.ts, gameConfig.ts,
+                      types.ts, puzzleDates.ts, navigation.ts, performance.ts)
+       -> content/   fetch + complete boundary validation (puzzleLoader.ts,
+                      howToPlayLoader.ts, validation.ts, publicPath.ts)
+       -> platform/  replaceable browser-adapter boundaries (storage.ts,
+                      completion.ts, dom.ts, modal.ts, share.ts,
+                      browserShare.ts, deploymentVersion.ts, tactileAction.ts)
+       -> views/     pure render functions; never fetch or persist
 ```
+
+`client/src/` is otherwise flat: `app.ts`, `main.ts`, `legal.ts`, `fontLicenses.ts`,
+`testSupport.ts`, `styles.css`, `legal.css`, `styles/`, `assets/`. `main.ts`/`legal.ts`/
+the two stylesheets/`assets/` cannot move into a layer folder — `index.html` and
+`legal.html` reference them by literal path and `tsc` cannot check an HTML attribute.
 
 Two Vite HTML entries: `index.html` -> `src/main.ts`, `legal.html` -> `src/legal.ts`.
 No router — navigation is full page loads driven by `?puzzle=YYYY-MM-DD`, parsed by
-pure functions in [client/src/navigation.ts](client/src/navigation.ts). No `puzzle`
-query selects the latest release. State is one `let state` in the `initApp` closure,
-reassigned from pure `game.ts` transitions.
+pure functions in [client/src/domain/navigation.ts](client/src/domain/navigation.ts).
+No `puzzle` query selects the latest release. State is one `let state` in the
+`initApp` closure, reassigned from pure `game.ts` transitions.
 
 ### Content pipeline
 
@@ -86,8 +95,8 @@ panels (`1.webp`, `2.webp`, …; the integer sets display order, gaps are legal)
 error at build ([client/scripts/puzzleValidation.mjs](client/scripts/puzzleValidation.mjs))
 and at runtime. `id`, `displayDate`, `issueNumber`, and `panels` are **derived, never
 authored** — see the `PuzzleClue` / `PuzzleSolution` / `PuzzleJson` split in
-[client/src/types.ts](client/src/types.ts). Views take the narrowest type so pre-solve
-code cannot reach the answer.
+[client/src/domain/types.ts](client/src/domain/types.ts). Views take the narrowest
+type so pre-solve code cannot reach the answer.
 
 `content/puzzles/index.json` and `panels.json` are generated and gitignored — never
 hand-edit them. `client/dist/` and `node_modules/` are likewise never committed.
@@ -105,11 +114,12 @@ then `npm run generate:puzzle-index` and `npm test`.
 
 ### resolvePublicPath
 
-[client/src/publicPath.ts](client/src/publicPath.ts) is the single most load-bearing
-utility. Every runtime content and asset URL must go through it — it prefixes
-`import.meta.env.BASE_URL` (stripping leading slashes so the base is not doubled) and
-appends `?v=<VITE_BUILD_ID>` for cache busting. Absolute URLs pass through untouched.
-The deliberate exception is [client/src/deploymentVersion.ts](client/src/deploymentVersion.ts),
+[client/src/content/publicPath.ts](client/src/content/publicPath.ts) is the single
+most load-bearing utility. Every runtime content and asset URL must go through it —
+it prefixes `import.meta.env.BASE_URL` (stripping leading slashes so the base is not
+doubled) and appends `?v=<VITE_BUILD_ID>` for cache busting. Absolute URLs pass
+through untouched. The deliberate exception is
+[client/src/platform/deploymentVersion.ts](client/src/platform/deploymentVersion.ts),
 which builds its own uncached URL so it can detect a *newer* build.
 
 Three asset classes, three base-path mechanisms: runtime content uses
@@ -117,9 +127,9 @@ Three asset classes, three base-path mechanisms: runtime content uses
 static HTML links use the `%BASE_URL%` token.
 
 All external JSON goes through `fetchStaticJson` in
-[client/src/validation.ts](client/src/validation.ts), which checks `response.ok` and
-applies a complete type guard before data enters the app. Use `textContent` and DOM
-APIs; `innerHTML` appears nowhere in this codebase.
+[client/src/content/validation.ts](client/src/content/validation.ts), which checks
+`response.ok` and applies a complete type guard before data enters the app. Use
+`textContent` and DOM APIs; `innerHTML` appears nowhere in this codebase.
 
 ## Conventions
 
@@ -128,13 +138,19 @@ APIs; `innerHTML` appears nowhere in this codebase.
 - **Tests are co-located**: `<name>.test.ts` beside browser code, `<name>.test.mjs`
   beside build scripts in `client/scripts/`. No `tests/` or `__tests__/` directory,
   no e2e suite.
-- **No DOM environment in tests.** There is no vitest config, so tests run in Node.
-  DOM tests hand-roll `FakeElement` / `FakeClassList` / `FakeStyle` and use
-  `vi.stubGlobal` / `vi.stubEnv`. Follow that pattern rather than adding jsdom.
-- **Duplicated logic is intentional.** Answer normalization and puzzle-date rules are
-  implemented twice — browser TS (`src/game.ts`, `src/puzzleDates.ts`) and Node ESM
-  (`scripts/puzzleValidation.mjs`, `scripts/puzzleConventions.mjs`) — kept aligned by
-  shared fixtures in `client/fixtures/`. Change all three together.
+- **Browser tests run against a real DOM.** [client/vitest.config.ts](client/vitest.config.ts)
+  splits the suite into two projects: `src/**/*.test.ts` runs in `happy-dom`,
+  `scripts/**/*.test.mjs` runs in `node` (build scripts only touch the filesystem).
+  Prefer real DOM APIs (`document.createElement`, `vi.stubGlobal('navigator', …)` for
+  platform signals) over hand-rolled fakes.
+- **Shared pure logic lives in `client/shared/*.mjs`.** Answer normalization, puzzle
+  date-id parsing and calendar math, and YouTube video-id extraction are each
+  implemented once there and imported by both the browser TS in `client/src/` and the
+  Node ESM build scripts in `client/scripts/`, so the two runtimes cannot drift.
+  `client/tsconfig.json` sets `allowJs` (not `checkJs`) so these type-check via
+  `// @ts-check` + JSDoc without pulling the rest of `scripts/` into the TS program;
+  keep new shared modules free of `import.meta.env` and DOM APIs, since
+  `vite.config.js` loads `puzzleConventions.mjs` at config time in plain Node.
 - `client/.npmrc` sets `ignore-scripts=true`. Keep dependency lifecycle scripts
   disabled; prefer a reviewed one-off exception over re-enabling them globally.
 - The product name is "Scribble Bops" (`scribble-bops` for identifiers). `song-pics`

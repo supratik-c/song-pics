@@ -1,3 +1,4 @@
+import { normalizeText } from '../../shared/textNormalization.mjs';
 import type { GameRules } from './gameConfig.ts';
 import type { GameState, PuzzleSolution } from './types.ts';
 
@@ -76,16 +77,7 @@ export function normalizeAnswer(answer: string): string {
   return normalizeText(answer);
 }
 
-export function normalizeText(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/&/g, ' and ')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
-    .replace(/\s+/g, ' ');
-}
+export { normalizeText };
 
 export function isAcceptedAnswer(
   guess: string,

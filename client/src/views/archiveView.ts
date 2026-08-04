@@ -1,5 +1,5 @@
-import type { BuildPuzzleUrl } from '../navigation.ts';
-import type { PuzzleArchive } from '../types.ts';
+import type { BuildPuzzleUrl } from '../domain/navigation.ts';
+import type { PuzzleArchive } from '../domain/types.ts';
 
 const ARCHIVE_PAGE_SIZE = 50;
 
@@ -57,7 +57,6 @@ export function renderArchiveContent(
         const issueTitle = document.createElement('span');
         const badges = document.createElement('span');
 
-        item.className = 'archive-list-item';
         link.className = 'archive-link';
         link.href = buildPuzzleUrl(entry.id, archive.latestPuzzleId);
         link.addEventListener('click', (event) => {

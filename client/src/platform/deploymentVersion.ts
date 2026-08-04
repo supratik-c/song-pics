@@ -2,7 +2,7 @@ import {
   fetchStaticJson,
   isNonEmptyString,
   isRecord,
-} from './validation.ts';
+} from '../content/validation.ts';
 
 const BUILD_VERSION_FILE_NAME = 'build-version.json';
 const DEPLOYMENT_QUERY_PARAMETER = '_deployment';

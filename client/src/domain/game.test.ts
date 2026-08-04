@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import normalizationFixtureData from '../fixtures/answer-normalization.json';
+import normalizationFixtureData from '../../fixtures/answer-normalization.json';
 import {
   createInitialGameState,
   isAcceptedAnswer,

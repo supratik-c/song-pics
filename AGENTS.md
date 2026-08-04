@@ -28,11 +28,19 @@ changes. Do not copy transient implementation detail into documentation.
   server must own secrets or authority.
 - Keep the client dependency-light. Do not introduce a framework, state
   library, CSS framework, or extra build layer without a demonstrated need.
-- Keep responsibilities in their established boundaries: pure rules and
-  transitions in `game.ts`, policy in `gameConfig.ts`, content fetching in
-  loaders, DOM output in focused `views/`, persistence in `storage.ts`, the
-  completion read model in `completion.ts`, orchestration in `app.ts`, and
-  concrete dependency composition in `main.ts`.
+- Keep responsibilities in their established boundaries: `client/src/domain/` holds
+  pure rules, transitions, and policy (`game.ts`, `gameConfig.ts`, `puzzleDates.ts`,
+  `navigation.ts`, `performance.ts`, `types.ts`) with no fetch, DOM, or storage
+  access; `client/src/content/` holds fetch-and-validate boundaries
+  (`puzzleLoader.ts`, `howToPlayLoader.ts`, `validation.ts`, `publicPath.ts`);
+  `client/src/platform/` holds replaceable browser adapters (`storage.ts`,
+  `completion.ts`, `dom.ts`, `modal.ts`, `share.ts`, `browserShare.ts`,
+  `deploymentVersion.ts`, `tactileAction.ts`); `client/src/views/` holds DOM output
+  that never fetches or persists; orchestration lives in `app.ts` and concrete
+  dependency composition in `main.ts`, both at `client/src/` root alongside
+  `legal.ts` and `fontLicenses.ts`, which `index.html`/`legal.html` reference by
+  literal path and so cannot move into a layer folder. Logic shared between the
+  browser app and the Node build scripts lives once in `client/shared/*.mjs`.
 - Keep domain types explicit and validate data at external boundaries. Use DOM
   APIs and `textContent`, not untrusted `innerHTML`.
 - Pass runtime content and asset paths through `resolvePublicPath`; deployment
@@ -67,9 +75,11 @@ and share text. Prefer compressed WebP for new raster panels and keep important
 content crop-safe in the 4:3 frame.
 
 Use useful accepted-answer alternatives only, always including the canonical
-title. Normalization already handles case, punctuation, accents, spacing, `&`
-versus `and`, and matching artist words. Do not include normalized duplicates
-and keep answers within `GAME_RULES.maxAnswerLength`.
+title. Normalization already handles case, punctuation, accents, spacing, and
+`&` versus `and` — it does not treat artist text specially, so a `Song by
+Artist` guess only matches if that exact combined value is itself listed as
+an accepted answer. Do not include normalized duplicates and keep answers
+within `GAME_RULES.maxAnswerLength`.
 
 ## Visual changes
 

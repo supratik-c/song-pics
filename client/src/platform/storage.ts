@@ -1,7 +1,7 @@
-import { createInitialGameState, normalizeText } from './game.ts';
-import { GAME_RULES, type GameRules } from './gameConfig.ts';
-import type { GameState, GameStatus } from './types.ts';
-import { isRecord } from './validation.ts';
+import { createInitialGameState, normalizeText } from '../domain/game.ts';
+import { GAME_RULES, type GameRules } from '../domain/gameConfig.ts';
+import type { GameState, GameStatus } from '../domain/types.ts';
+import { isRecord } from '../content/validation.ts';
 
 type StorageAdapter = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 

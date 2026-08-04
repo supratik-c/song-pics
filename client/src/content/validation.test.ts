@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { jsonResponse } from '../testSupport.ts';
 import { fetchStaticJson, isRecord } from './validation.ts';
 
 afterEach(() => {
@@ -39,9 +40,3 @@ describe('static JSON fetching', () => {
     );
   });
 });
-
-function jsonResponse(value: unknown): Response {
-  return new Response(JSON.stringify(value), {
-    headers: { 'Content-Type': 'application/json' },
-  });
-}

@@ -10,9 +10,9 @@ and transient visual implementation details remain canonical in source.
 `client/index.html` owns the static semantic shell: masthead controls, puzzle
 heading, clue-panel region, guess form, action controls, inline result and
 feedback regions, a small site footer, and one native `<dialog>`. The footer
-links to the separate “The Legal Stuff” page. `client/src/dom.ts` resolves the
-interactive shell into typed element references and co-locates the
-`GameElements` contract.
+links to the separate “The Legal Stuff” page. `client/src/platform/dom.ts`
+resolves the interactive shell into typed element references and co-locates
+the `GameElements` contract.
 
 `client/src/main.ts` performs the deployment check, constructs concrete browser
 dependencies, and starts the app. `client/src/app.ts` owns orchestration and
@@ -55,14 +55,14 @@ and Kalam OFL assets without embedding their full text. A single base-aware
 main shell and every generated share shell.
 
 The title panel places a compact pair of circular controls beside the
-introduction: a pale-blue illustrated open-comic control for All Issues
+introduction: a pale-blue hand-drawn menu control for All Releases
 followed by the green question-mark control for How to Play. Their accessible
-names remain “All Issues” and “How to Play,” and closing either dialog restores
+names remain “All Releases” and “How to Play,” and closing either dialog restores
 focus to the control that opened it. The game area follows the title panel
 directly across the hand-drawn black divider.
 
 The puzzle header stacks the abbreviated issue date above the song clue. The
-visible date uses one `Issue #N · D Mon YY` format everywhere. All Issues is the
+visible date uses one `Issue #N · D Mon YY` format everywhere. All Releases is the
 single browsing surface for selecting another released puzzle.
 
 When puzzle content includes a `doodledBy` credit, the clue section displays
@@ -72,7 +72,7 @@ empty when the field is omitted.
 
 ## Dialogs and secondary views
 
-`client/src/modal.ts` owns one reusable native dialog and co-locates its modal
+`client/src/platform/modal.ts` owns one reusable native dialog and co-locates its modal
 types. It manages the common title, close action, active-view identity, cleanup,
 and focus restoration. Feature renderers return typed
 `DocumentFragment` content rather than branching inside the modal controller.
@@ -84,7 +84,7 @@ manifest lazily and shows a recoverable error if loading fails. Async modal
 content uses the reusable loading status and marks the modal body busy until
 content or an error replaces it. The status defers only its visual appearance
 through a short shared threshold, so fast operations do not flash and ready
-content is never held back. All Issues loads completion asynchronously each
+content is never held back. All Releases loads completion asynchronously each
 time it opens, orders released puzzles newest first, paginates in groups of 50,
 and opens on the page containing the selected puzzle. Long lists scroll within
 the height-constrained dialog. Completion lookup failure does not block archive
@@ -107,7 +107,7 @@ Activating that control grants consent for the current tab session, creates the
 configured privacy-enhanced iframe, and reveals a separate red
 `Watch on YouTube` fallback link with the same play icon. Later eligible results
 in that session create the iframe immediately. The reusable dialog remains the
-surface for How to Play and All Issues, while the share control stays in its
+surface for How to Play and All Releases, while the share control stays in its
 separate terminal-state region below the result and previous guesses.
 
 ## State rendering and errors
@@ -227,7 +227,8 @@ stylesheet:
    overrides.
 
 `client/src/legal.css` is the separate entry for The Legal Stuff page. It
-imports the shared foundation before its page-specific legal styles, avoiding
+imports the shared foundation before `styles/legal.css` — the seventh file in
+`client/src/styles/`, page-specific and outside `styles.css`'s chain — avoiding
 game, dialog, and share rules that the static page does not use.
 
 The import order is part of the cascade contract. Exact measurements, font

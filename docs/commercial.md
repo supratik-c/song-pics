@@ -73,9 +73,11 @@ statement such as:
 
 The most significant current rights risk is reproduced lyrics and artwork that
 visually reproduces or closely adapts lyrics. The source data currently has
-explicit `lyricLines` in puzzles `2026-07-04`, `2026-07-05`, and `2026-07-09`.
-All panels must also be reviewed because removing a caption does not clear a
-drawing that reproduces protected lyrical expression.
+explicit `lyricLines` in puzzles `2026-07-03`, `2026-07-04`, `2026-07-05`, and
+`2026-07-09`. Re-check this list against `client/content/puzzles/*/puzzle.json`
+before each audit — it is not generated. All panels must also be reviewed
+because removing a caption does not clear a drawing that reproduces protected
+lyrical expression.
 
 A YouTube embed does not grant a licence to reproduce lyrics elsewhere on the
 page. Before monetisation, remove or replace each lyrical use with an original,

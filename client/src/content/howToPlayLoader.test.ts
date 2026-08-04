@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { jsonResponse } from '../testSupport.ts';
 
 afterEach(() => {
   vi.resetModules();
@@ -36,9 +37,3 @@ describe('How to Play loading', () => {
     expect(init).toEqual({ cache: 'default' });
   });
 });
-
-function jsonResponse(value: unknown): Response {
-  return new Response(JSON.stringify(value), {
-    headers: { 'Content-Type': 'application/json' },
-  });
-}

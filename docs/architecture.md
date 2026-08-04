@@ -21,11 +21,22 @@ How to Play loading, state persistence, archive completion, and archive URL
 construction. `app.ts` coordinates those capabilities and user events without
 constructing concrete infrastructure.
 
-Game rules and immutable state transitions live in `game.ts`, with durable
-policy in `gameConfig.ts`. Loaders fetch static content through a shared JSON
-boundary that checks status, defaults to fresh requests, lets
-deployment-versioned content use normal HTTP caching, and validates data before
-it enters the application. Focused modules under `views/` own DOM output.
+`client/src/` is organized by layer: `domain/` holds pure rules, transitions,
+and policy with no fetch, DOM, or storage access (`game.ts`, `gameConfig.ts`,
+`puzzleDates.ts`, `navigation.ts`, `performance.ts`, `types.ts`); `content/`
+holds the fetch-and-validate boundary (`puzzleLoader.ts`, `howToPlayLoader.ts`,
+`validation.ts`, `publicPath.ts`); `platform/` holds replaceable browser
+adapters (`storage.ts`, `completion.ts`, `dom.ts`, `modal.ts`, `share.ts`,
+`browserShare.ts`, `deploymentVersion.ts`, `tactileAction.ts`); `views/` holds
+DOM output that never fetches or persists. `app.ts` and `main.ts` sit at
+`client/src/` root, alongside `legal.ts` and `fontLicenses.ts` (which
+`legal.html` needs) — none of those four can move into a layer folder, since
+`index.html`/`legal.html` reference them by literal path and `tsc` cannot
+check an HTML attribute.
+
+Loaders fetch static content through a shared JSON boundary that checks
+status, defaults to fresh requests, lets deployment-versioned content use
+normal HTTP caching, and validates data before it enters the application.
 Browser persistence adapters for puzzle progress and session-scoped YouTube
 consent live in `storage.ts`; the independently replaceable completion read
 model lives in `completion.ts`.
@@ -62,10 +73,14 @@ The same captured release date drives generation of one small share HTML page
 per released puzzle. Those pages reuse the bundled application shell and
 reference existing puzzle panels rather than copying images beneath `share/`.
 
-Shared JSON fixtures exercise normalization and date behavior in both browser
-TypeScript and build scripts. This keeps independently implemented boundaries
-aligned and gives a future backend portable cases for the same behavior without
-creating a shared runtime package prematurely.
+Answer normalization, puzzle date-id parsing/calendar math, and YouTube
+video-id extraction are each implemented once in `client/shared/*.mjs` and
+imported by both the browser TypeScript in `client/src/` and the Node build
+scripts in `client/scripts/`, so the two runtimes cannot drift. `vite.config.js`
+loads one of these modules at config time, so shared modules stay plain-Node
+safe: no `import.meta.env`, no DOM. `client/tsconfig.json` sets `allowJs`
+(not `checkJs`), so these type-check via `// @ts-check` + JSDoc without
+pulling the rest of `scripts/` into the TypeScript program.
 
 Vite also emits a build-version manifest. Production clients compare it with
 the build identifier compiled into the JavaScript and perform at most one
@@ -74,26 +89,42 @@ carry the same build identifier; compiled assets use Vite's content hashes.
 
 ## Responsibility map
 
-- `client/index.html` and `client/src/dom.ts`: static semantic shell and typed
-  element references.
+- `client/index.html` and `client/src/platform/dom.ts`: static semantic shell
+  and typed element references. `dom.test.ts` checks the two stay in sync.
 - `client/src/main.ts`: deployment check and concrete dependency composition.
 - `client/src/app.ts`: application orchestration and browser event handling.
-- `client/src/game.ts` and `gameConfig.ts`: pure game rules, immutable
+- `client/src/domain/game.ts` and `gameConfig.ts`: pure game rules, immutable
   transitions, and gameplay policy.
-- `client/src/performance.ts`: a pure terminal-performance read model derived
-  from the current game state; its browser values are not authoritative for
-  competitive leaderboards.
-- `client/src/navigation.ts`: pure query parsing and archive URL behavior.
-- `client/src/share.ts`, `browserShare.ts`, and `views/shareView.ts`: pure share
-  requests, browser sharing/copy fallbacks, and reusable share controls.
-- `client/src/types.ts` and `validation.ts`: domain/content contracts and
-  reusable runtime validation primitives.
-- Loaders: static content selection, fetching, and complete boundary validation.
-- `client/src/storage.ts` and `completion.ts`: replaceable progress,
+- `client/src/domain/puzzleDates.ts`: pure puzzle date-id parsing, calendar
+  math, and display-date formatting, built on `client/shared/puzzleDateMath.mjs`.
+- `client/src/domain/performance.ts`: a pure terminal-performance read model
+  derived from the current game state; its browser values are not authoritative
+  for competitive leaderboards.
+- `client/src/domain/navigation.ts`: pure query parsing and archive URL
+  behavior.
+- `client/src/platform/share.ts`, `browserShare.ts`, and `views/shareView.ts`:
+  pure share requests, browser sharing/copy fallbacks, and reusable share
+  controls.
+- `client/src/domain/types.ts` and `content/validation.ts`: domain/content
+  contracts and reusable runtime validation primitives.
+- `client/src/content/`: static content selection, fetching, and complete
+  boundary validation (`puzzleLoader.ts`, `howToPlayLoader.ts`, `publicPath.ts`).
+- `client/src/platform/storage.ts` and `completion.ts`: replaceable progress,
   session-consent, and completion-read-model boundaries with browser-local
   implementations.
-- `client/src/views/`, `modal.ts`, and `styles/`: focused DOM output, dialog
-  lifecycle, and the visual system.
+- `client/src/platform/deploymentVersion.ts`: compares the running build
+  against `build-version.json` and performs at most one cache-busting reload.
+- `client/src/platform/tactileAction.ts`: defers a button's action until its
+  press animation ends (or a fallback timer, or immediately under reduced
+  motion), shared by every tactile control.
+- `client/src/views/`, `platform/modal.ts`, and `styles/`: focused DOM output,
+  dialog lifecycle, and the visual system.
+- `client/src/legal.ts` and `fontLicenses.ts`: the legal page's font-license
+  listing; kept at `client/src/` root alongside `main.ts` because `legal.html`
+  references `legal.ts` by literal path.
+- `client/shared/*.mjs`: pure logic shared between the browser app and the
+  Node build scripts — answer normalization, puzzle date math, and YouTube
+  video-id extraction (see Build flow above).
 - `client/scripts/` and `client/vite.config.js`: authoring validation, generated
   metadata and share pages, release filtering/copying, and build integration.
 

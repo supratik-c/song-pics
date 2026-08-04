@@ -1,10 +1,5 @@
-import type { GameStatus, PuzzleSolution } from '../types.ts';
-
-const standardYouTubeHosts = new Set(['youtube.com', 'www.youtube.com']);
-const noCookieYouTubeHosts = new Set([
-  'youtube-nocookie.com',
-  'www.youtube-nocookie.com',
-]);
+import { getYouTubeVideoId } from '../../shared/youtubeVideoId.mjs';
+import type { GameStatus, PuzzleSolution } from '../domain/types.ts';
 
 export type YouTubeVideoUrls = {
   embedUrl: string;
@@ -89,25 +84,14 @@ export function focusCompletedResult(region: HTMLElement): void {
 export function getYouTubeVideoUrls(url: string): YouTubeVideoUrls | null {
   try {
     const parsedUrl = new URL(url);
-    let videoId: string | null = null;
 
     if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:') {
       return null;
     }
 
-    if (parsedUrl.hostname === 'youtu.be') {
-      const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+    const videoId = getYouTubeVideoId(parsedUrl);
 
-      videoId = pathParts.length === 1 ? pathParts[0] : null;
-    } else if (standardYouTubeHosts.has(parsedUrl.hostname)) {
-      videoId = parsedUrl.pathname === '/watch'
-        ? parsedUrl.searchParams.get('v')
-        : getEmbedVideoId(parsedUrl.pathname);
-    } else if (noCookieYouTubeHosts.has(parsedUrl.hostname)) {
-      videoId = getEmbedVideoId(parsedUrl.pathname);
-    }
-
-    if (!videoId || !/^[A-Za-z0-9_-]+$/.test(videoId)) {
+    if (!videoId) {
       return null;
     }
 
@@ -232,12 +216,4 @@ function createYouTubePlayIcon(): HTMLSpanElement {
   icon.className = 'youtube-play-icon';
   icon.setAttribute('aria-hidden', 'true');
   return icon;
-}
-
-function getEmbedVideoId(pathname: string): string | null {
-  const pathParts = pathname.split('/').filter(Boolean);
-
-  return pathParts.length === 2 && pathParts[0] === 'embed'
-    ? pathParts[1]
-    : null;
 }

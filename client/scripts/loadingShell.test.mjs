@@ -11,15 +11,9 @@ const gameCss = readFileSync(
 );
 
 describe('static loading shell', () => {
-  it('uses the runtime loading indicator reveal delay', () => {
-    const indicator = indexHtml.match(
-      /<p\s+class="loading-indicator loading-indicator-large"[\s\S]*?<\/p>/,
-    )?.[0];
-
-    expect(indicator).toContain(
-      '--loading-indicator-reveal-delay: 250ms',
-    );
-  });
+  // The indicator markup itself is checked against the runtime render
+  // function's actual output in src/views/loadingView.test.ts, rather
+  // than against a hardcoded value here.
 
   it('reserves one line for puzzle metadata before it loads', () => {
     expect(gameCss).toMatch(

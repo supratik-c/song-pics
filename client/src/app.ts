@@ -1,35 +1,35 @@
-import type { CompletionSource } from './completion.ts';
-import type { GameElements } from './dom.ts';
 import {
   revealSong,
   submitGuess,
-} from './game.ts';
-import { GAME_RULES } from './gameConfig.ts';
-import type { HowToPlayManifest } from './howToPlayLoader.ts';
-import type { BuildPuzzleUrl } from './navigation.ts';
-import { getPuzzlePerformance } from './performance.ts';
-import {
-  createModalController,
-  renderModalMessage,
-  type ModalController,
-} from './modal.ts';
-import type {
-  GameStateStore,
-  YouTubeConsentStore,
-} from './storage.ts';
-import { runAfterTactileActivation } from './tactileAction.ts';
-import {
-  createPuzzleShareRequest,
-  type PuzzleShareRequestFactory,
-  type ShareGateway,
-} from './share.ts';
+} from './domain/game.ts';
+import { GAME_RULES } from './domain/gameConfig.ts';
+import type { BuildPuzzleUrl } from './domain/navigation.ts';
+import { getPuzzlePerformance } from './domain/performance.ts';
 import {
   FuturePuzzleError,
   type GameState,
   type LoadedPuzzle,
   type Puzzle,
   type PuzzleArchive,
-} from './types.ts';
+} from './domain/types.ts';
+import type { HowToPlayManifest } from './content/howToPlayLoader.ts';
+import type { CompletionSource } from './platform/completion.ts';
+import type { GameElements } from './platform/dom.ts';
+import {
+  createModalController,
+  renderModalMessage,
+  type ModalController,
+} from './platform/modal.ts';
+import {
+  createPuzzleShareRequest,
+  type PuzzleShareRequestFactory,
+  type ShareGateway,
+} from './platform/share.ts';
+import type {
+  GameStateStore,
+  YouTubeConsentStore,
+} from './platform/storage.ts';
+import { runAfterTactileActivation } from './platform/tactileAction.ts';
 import {
   renderArchiveContent,
 } from './views/archiveView.ts';
@@ -236,14 +236,14 @@ function bindArchiveButton(
   modal: ModalController,
   dependencies: AppDependencies,
 ): void {
-  elements.allIssuesButton.disabled = archive.entries.length === 0;
+  elements.allReleasesButton.disabled = archive.entries.length === 0;
 
-  elements.allIssuesButton.addEventListener('click', () => {
-    runAfterTactileActivation(elements.allIssuesButton, () => {
+  elements.allReleasesButton.addEventListener('click', () => {
+    runAfterTactileActivation(elements.allReleasesButton, () => {
       const viewId = modal.open({
-        title: 'All Issues',
+        title: 'All Releases',
         content: renderLoadingIndicator(),
-        returnFocus: elements.allIssuesButton,
+        returnFocus: elements.allReleasesButton,
         busy: true,
       });
 

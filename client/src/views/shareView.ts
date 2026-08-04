@@ -3,7 +3,7 @@ import {
   type PuzzleShareRequestFactory,
   type PuzzleShareRequest,
   type ShareOutcome,
-} from '../share.ts';
+} from '../platform/share.ts';
 
 type ShareControlOptions = {
   fallbackUrl: string;
@@ -22,7 +22,6 @@ export function renderShareControl(
   control.className = 'share-control';
   button.type = 'button';
   button.className = 'share-button tactile-button';
-  label.className = 'share-button-label';
   label.textContent = 'Share';
   status.className = 'share-status';
   status.setAttribute('role', 'status');
