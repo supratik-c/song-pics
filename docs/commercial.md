@@ -10,6 +10,9 @@ and search results can change. Recheck the cited primary sources and obtain
 professional advice where this checklist identifies a clearance or filing
 decision.
 
+For the operator's own business identity, email, banking, and UK tax/
+registration position, see [Business admin](business.md).
+
 ## Launch position
 
 - Treat initial Ko-fi payments as optional **tips** or **support**, with no
@@ -60,6 +63,15 @@ Font Name conditions. Repeat this check before replacing or modifying a font.
 - Keep an asset register containing the filename, creator, source URL, date
   acquired, licence version, licence evidence, modifications, and where the
   asset is used.
+- `client/src/assets/ui/branding/kofi-logo.webp` is Ko-fi's own wordmark
+  (cup + "Ko-fi"), acquired 2026-08-05 from the preview image on
+  [more.ko-fi.com/brand-assets](https://more.ko-fi.com/brand-assets) and used
+  by `client/src/views/supportView.ts`. Ko-fi's brand guidelines permit
+  creators to use the unmodified mark to link to their own Ko-fi page; the
+  only changes made were a format conversion (AVIF to lossless WebP) and a
+  proportional downscale, not a redraw or recolour. Full provenance is in
+  `client/src/assets/ui/branding/README.md`; recheck Ko-fi's brand-assets page
+  for updated guidelines before any future change to this asset.
 
 ### Songs, artists, and lyrics
 
@@ -84,6 +96,19 @@ page. Before monetisation, remove or replace each lyrical use with an original,
 non-lyrical clue, or obtain written permission covering it.
 
 ## Ko-fi checklist
+
+**Implementation status (2026-08-05):** items 2 and 3 are done in code — the
+support prompt (`client/src/views/supportView.ts`, mounted from
+`client/src/app.ts`) is a plain external link, its accessible name is "Support
+Scribble Bops on Ko-fi", and it carries a visible disclaimer that support is
+optional and unlocks nothing. `client/legal.html` now describes the Ko-fi data
+flow (see the privacy policy outline below). Items 1, 4, 5, and 6 are account
+and record-keeping decisions for the operator, not code, and remain open.
+`main.ts`'s `SUPPORT_URL` constant is still a placeholder — set it to the real
+Ko-fi page, created under item 1's legal/trading name, before this goes live.
+The **lyric audit** (below) and a **trade mark clearance search** (see
+below) also remain outstanding per the launch position above; neither is
+resolved by this checklist.
 
 Before adding a support link:
 
@@ -317,7 +342,7 @@ guidance](https://commission.europa.eu/law/law-topic/data-protection/rules-busin
   connected payment processors process payment details and may make supporter
   names, email addresses, messages, and transaction information available to
   the creator. Describe the parties' actual roles rather than calling every
-  recipient a processor.
+  recipient a processor. Published in `client/legal.html`.
 - **Share and clipboard:** Web Share hands the prepared invitation and URL to
   the operating system or chosen application; clipboard fallback writes it to
   the local clipboard. Scribble Bops does not receive later activity from the

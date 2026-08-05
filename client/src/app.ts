@@ -5,6 +5,7 @@ import {
 import { GAME_RULES } from './domain/gameConfig.ts';
 import type { BuildPuzzleUrl } from './domain/navigation.ts';
 import { getPuzzlePerformance } from './domain/performance.ts';
+import type { SupportTrigger } from './domain/supportTriggers.ts';
 import {
   FuturePuzzleError,
   type GameState,
@@ -49,6 +50,7 @@ import {
   renderResult,
 } from './views/resultView.ts';
 import { renderShareControl } from './views/shareView.ts';
+import { renderSupportPrompt } from './views/supportView.ts';
 
 export type AppDependencies = {
   loadPuzzle: (requestedPuzzleId: string | null) => Promise<LoadedPuzzle>;
@@ -60,6 +62,8 @@ export type AppDependencies = {
   buildPuzzleShareUrl: (puzzleId: string) => string;
   shareGateway: ShareGateway;
   navigateToPuzzle: (url: string) => void;
+  supportTrigger: SupportTrigger;
+  supportUrl: string;
 };
 
 export async function initApp(
@@ -90,6 +94,29 @@ export async function initApp(
   }
 
   let state = dependencies.gameStateStore.load(puzzle.id);
+  const solvedPuzzleIds = new Set(
+    await dependencies.completionSource.loadSolvedPuzzleIds(
+      archive.entries.map((entry) => entry.id),
+    ),
+  );
+  const updateGameState = (): void => {
+    if (state.status === 'solved') {
+      solvedPuzzleIds.add(puzzle.id);
+    }
+
+    renderGameState(elements, puzzle, state, dependencies.youtubeConsentStore);
+
+    const prompt = renderSupportPrompt({
+      supportUrl: dependencies.supportUrl,
+      shouldRender: () => dependencies.supportTrigger({
+        solvedPuzzleCount: solvedPuzzleIds.size,
+        status: state.status,
+      }),
+    });
+
+    elements.supportRegion.replaceChildren(...(prompt ? [prompt] : []));
+    elements.supportRegion.hidden = prompt === null;
+  };
   const shareUrl = dependencies.buildPuzzleShareUrl(puzzle.id);
   const getShareRequest: PuzzleShareRequestFactory = () => {
     const performance = getPuzzlePerformance(puzzle.id, state);
@@ -110,7 +137,7 @@ export async function initApp(
 
   bindArchiveButton(elements, archive, modal, dependencies);
   await renderPuzzle(elements, puzzle);
-  renderGameState(elements, puzzle, state, dependencies.youtubeConsentStore);
+  updateGameState();
 
   elements.form.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -130,12 +157,7 @@ export async function initApp(
       state = submission.state;
       dependencies.gameStateStore.save(puzzle.id, state);
       elements.form.reset();
-      renderGameState(
-        elements,
-        puzzle,
-        state,
-        dependencies.youtubeConsentStore,
-      );
+      updateGameState();
 
       if (state.status === 'playing') {
         elements.guessInput.focus();
@@ -168,12 +190,7 @@ export async function initApp(
       state = revealSong(state);
       dependencies.gameStateStore.save(puzzle.id, state);
       clearGuessValidation(elements);
-      renderGameState(
-        elements,
-        puzzle,
-        state,
-        dependencies.youtubeConsentStore,
-      );
+      updateGameState();
       focusCompletedResult(elements.resultRegion);
     });
   });

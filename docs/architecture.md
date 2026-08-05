@@ -140,6 +140,7 @@ concern the task touches:
 | Puzzle authoring, assets, manifests, runtime paths, builds, caching, or deployment | [Content delivery](content-delivery.md) |
 | Commercialisation, intellectual property, tips, privacy, or third-party services | [Commercialisation](commercial.md) |
 | One-time Cloudflare dashboard setup for production or the dev preview (DNS, Access, Web Analytics) | [Cloudflare migration runbook](cloudflare-migration.md) |
+| Business identity, email, banking, or UK tax and registration position | [Business admin](business.md) |
 
 Keep exact style values and short-lived implementation detail in source code.
 Use a small decision record only when a future architectural choice has

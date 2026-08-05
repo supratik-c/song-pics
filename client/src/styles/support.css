@@ -1,0 +1,64 @@
+/* Reusable Ko-fi support prompt */
+
+.support-region {
+  padding: 22px 28px 25px;
+  border-top: var(--line-heavy) solid var(--ink);
+  background:
+    radial-gradient(circle at 10px 10px, rgba(36, 31, 28, 0.07) 1px, transparent 1.2px),
+    var(--cream);
+  background-size: 20px 20px;
+}
+
+.support-prompt {
+  display: grid;
+  justify-items: center;
+  gap: 11px;
+  text-align: center;
+}
+
+.support-prompt-text {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-hand);
+  font-size: clamp(1rem, 2.3vw, 1.2rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/*
+ * The vendored Ko-fi logo has a transparent background rather than a solid
+ * fill (see assets/ui/branding/README.md), so there is no background color
+ * to match. The tactile drop-shadow instead hugs the logo's own silhouette,
+ * which already reads as ink-dark linework -- the same look as the rest of
+ * this comic-page chrome -- so the mark blends in without a boxed button
+ * behind it.
+ */
+.support-link {
+  --tactile-shadow-x: 4px;
+  --tactile-shadow-y: 5px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 5px;
+}
+
+.support-link:focus-visible {
+  outline: 4px solid var(--focus-ring);
+  outline-offset: 5px;
+}
+
+.support-logo {
+  display: block;
+  height: 34px;
+  width: auto;
+}
+
+.support-disclaimer {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.3;
+}

@@ -6,6 +6,10 @@ import {
   getRequestedPuzzleId,
   getSharePuzzleId,
 } from './domain/navigation.ts';
+import {
+  whenSolvedAtLeast,
+  type SupportTrigger,
+} from './domain/supportTriggers.ts';
 import { loadPuzzle } from './content/puzzleLoader.ts';
 import { loadHowToPlayManifest } from './content/howToPlayLoader.ts';
 import { createBrowserShareGateway } from './platform/browserShare.ts';
@@ -46,6 +50,17 @@ async function start(): Promise<void> {
   const gameStateStore = createLocalGameStateStore({
     shouldPersist: !import.meta.env.DEV,
   });
+
+  // Swap this composition to change what triggers the Ko-fi prompt. It is
+  // gated on a terminal status because the prompt is mounted beside the
+  // post-solve result, not the active guessing UI; whenSolvedAtLeast is the
+  // reusable, hotswappable building block (see domain/supportTriggers.ts).
+  const supportTrigger: SupportTrigger = (context) =>
+    context.status !== 'playing' && whenSolvedAtLeast(3)(context);
+
+  // TODO: replace with the real Ko-fi page before this ships publicly.
+  const SUPPORT_URL = 'https://ko-fi.com/REPLACE_ME';
+
   const dependencies: AppDependencies = {
     loadPuzzle,
     loadHowToPlay: loadHowToPlayManifest,
@@ -65,6 +80,8 @@ async function start(): Promise<void> {
       puzzleId,
       import.meta.env.BASE_URL,
     ),
+    supportTrigger,
+    supportUrl: SUPPORT_URL,
   };
   const requestedPuzzleId = sharePuzzleId ??
     getRequestedPuzzleId(window.location.search);

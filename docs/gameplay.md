@@ -150,6 +150,15 @@ account-backed completion API may have different ownership and timing.
 Completion is refreshed whenever All Releases opens. Lookup failure leaves
 navigation usable and simply omits completion markers.
 
+The same boundary also exposes `loadSolvedPuzzleIds`, which narrows to the
+`solved` status only (unlike `loadCompletedPuzzleIds`, it excludes `revealed`
+and `failed`). `app.ts` loads it once against the released archive and keeps a
+mutable copy in memory, adding the current puzzle immediately on a live solve
+so the same session's win counts without waiting for a reload. It feeds the
+solved-puzzle count into `SupportTrigger` (`domain/supportTriggers.ts`), the
+swappable predicate that gates the Ko-fi support prompt — see
+[frontend.md](frontend.md) for the view side.
+
 The authored wire JSON uses the single current puzzle shape, while its runtime
 contract is split by capability: `PuzzleClue` contains ID, date, issue, clue,
 and panels;

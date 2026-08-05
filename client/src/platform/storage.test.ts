@@ -302,4 +302,23 @@ describe('local completion source', () => {
     expect(completed).toEqual(new Set(['solved', 'revealed', 'failed']));
     expect(stateStore.load).toHaveBeenCalledTimes(4);
   });
+
+  it('derives solved puzzles only, excluding revealed and failed', async () => {
+    const states: Record<string, GameState> = {
+      playing: { guesses: [], status: 'playing' },
+      solved: { guesses: ['answer'], status: 'solved' },
+      revealed: { guesses: [], status: 'revealed' },
+      failed: { guesses: ['wrong'], status: 'failed' },
+    };
+    const stateStore: GameStateStore = {
+      load: vi.fn((puzzleId) => states[puzzleId]),
+      save: vi.fn(),
+    };
+
+    const solved = await createLocalCompletionSource(
+      stateStore,
+    ).loadSolvedPuzzleIds(Object.keys(states));
+
+    expect(solved).toEqual(new Set(['solved']));
+  });
 });

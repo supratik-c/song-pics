@@ -32,7 +32,11 @@ DOM output is divided by stable UI responsibility:
 - `views/resultView.ts` renders inline terminal results, the optional YouTube
   load control and privacy-policy link, and the activated player;
 - `views/shareView.ts` creates reusable terminal share controls and owns their
-  busy and feedback rendering.
+  busy and feedback rendering;
+- `views/supportView.ts` creates the reusable Ko-fi support prompt — an
+  introductory line and linked logo built as one detached section — gated by
+  an injected `shouldRender` predicate so it, and its heading text, render
+  nothing at all when the predicate is false.
 
 These views use DOM APIs and `textContent`; external or content-authored strings
 are not inserted with untrusted `innerHTML`. The split does not introduce a
@@ -223,13 +227,14 @@ stylesheet:
 3. `styles/game.css` owns panels, controls, feedback, and the future state;
 4. `styles/dialog.css` owns the dialog, tutorial, archive, and results;
 5. `styles/share.css` owns the reusable main and dialog share control;
-6. `styles/responsive.css` owns ordered breakpoint, motion, and forced-color
+6. `styles/support.css` owns the reusable Ko-fi support prompt;
+7. `styles/responsive.css` owns ordered breakpoint, motion, and forced-color
    overrides.
 
 `client/src/legal.css` is the separate entry for The Legal Stuff page. It
-imports the shared foundation before `styles/legal.css` — the seventh file in
+imports the shared foundation before `styles/legal.css` — the eighth file in
 `client/src/styles/`, page-specific and outside `styles.css`'s chain — avoiding
-game, dialog, and share rules that the static page does not use.
+game, dialog, share, and support rules that the static page does not use.
 
 The import order is part of the cascade contract. Exact measurements, font
 ratios, wrapping choices, shadows, and breakpoint values remain canonical in

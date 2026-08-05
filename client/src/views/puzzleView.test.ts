@@ -557,6 +557,7 @@ function createGameElements(): GameElements {
     resultRegion: document.createElement('section'),
     shareRegion: document.createElement('div'),
     submitButton: document.createElement('button') as HTMLButtonElement,
+    supportRegion: document.createElement('div'),
     songClue: document.createElement('h2'),
     validationMessage: document.createElement('p'),
   };

@@ -18,6 +18,7 @@ export type GameElements = {
   resultRegion: HTMLElement;
   shareRegion: HTMLElement;
   submitButton: HTMLButtonElement;
+  supportRegion: HTMLElement;
   songClue: HTMLElement;
   validationMessage: HTMLElement;
 };
@@ -46,6 +47,7 @@ export function getGameElements(): GameElements {
     resultRegion: getElement<HTMLElement>('#result-region'),
     shareRegion: getElement<HTMLElement>('#share-region'),
     submitButton: getElement<HTMLButtonElement>('#guess-form button[type="submit"]'),
+    supportRegion: getElement<HTMLElement>('#support-region'),
     songClue: getElement<HTMLElement>('#puzzle-song-clue'),
     validationMessage: getElement<HTMLElement>('#validation-message'),
   };

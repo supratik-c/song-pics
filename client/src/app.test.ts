@@ -169,6 +169,70 @@ describe('artist and song reveal', () => {
   });
 });
 
+describe('support prompt', () => {
+  it('stays hidden and empty when the support trigger returns false', async () => {
+    const elements = createElements();
+    const dependencies = createDependencies();
+
+    await initApp(elements, null, dependencies);
+    elements.guessInput.value = 'A Song';
+    elements.form.dispatchEvent(new Event('submit', { cancelable: true }));
+
+    expect(elements.supportRegion.hidden).toBe(true);
+    expect(elements.supportRegion.textContent).toBe('');
+  });
+
+  it('renders the heading and link when the support trigger returns true', async () => {
+    const elements = createElements();
+    const dependencies = createDependencies({
+      supportTrigger: vi.fn(() => true),
+      supportUrl: 'https://ko-fi.com/scribblebops',
+    });
+
+    await initApp(elements, null, dependencies);
+
+    expect(elements.supportRegion.hidden).toBe(false);
+    expect(elements.supportRegion.textContent).toContain(
+      'Like Scribble Bops? Support us on',
+    );
+
+    const link = elements.supportRegion.querySelector<HTMLAnchorElement>(
+      '.support-link',
+    );
+
+    expect(link?.href).toBe('https://ko-fi.com/scribblebops');
+  });
+
+  it('counts a puzzle solved this session toward the trigger without waiting for reload', async () => {
+    const elements = createElements();
+    const supportTrigger = vi.fn(() => false);
+    const dependencies = createDependencies({
+      completionSource: {
+        loadCompletedPuzzleIds: vi.fn().mockResolvedValue(new Set()),
+        loadSolvedPuzzleIds: vi.fn().mockResolvedValue(
+          new Set(['2026-07-21', '2026-07-22']),
+        ),
+      },
+      supportTrigger,
+    });
+
+    await initApp(elements, null, dependencies);
+
+    expect(supportTrigger).toHaveBeenLastCalledWith({
+      solvedPuzzleCount: 2,
+      status: 'playing',
+    });
+
+    elements.guessInput.value = 'A Song';
+    elements.form.dispatchEvent(new Event('submit', { cancelable: true }));
+
+    expect(supportTrigger).toHaveBeenLastCalledWith({
+      solvedPuzzleCount: 3,
+      status: 'solved',
+    });
+  });
+});
+
 describe('How to Play modal', () => {
   it('opens the modal and renders the loaded manifest', async () => {
     const elements = createElements();
@@ -225,6 +289,7 @@ describe('All Releases modal', () => {
     const dependencies = createDependencies({
       completionSource: {
         loadCompletedPuzzleIds: vi.fn().mockResolvedValue(new Set([puzzle.id])),
+        loadSolvedPuzzleIds: vi.fn().mockResolvedValue(new Set()),
       },
     });
 
@@ -268,6 +333,7 @@ function createDependencies(
     },
     completionSource: {
       loadCompletedPuzzleIds: vi.fn().mockResolvedValue(new Set()),
+      loadSolvedPuzzleIds: vi.fn().mockResolvedValue(new Set()),
     },
     buildPuzzleUrl: vi.fn(
       (puzzleId: string) => `https://example.test/?puzzle=${puzzleId}`,
@@ -280,6 +346,8 @@ function createDependencies(
       share: vi.fn().mockResolvedValue('copied'),
     },
     navigateToPuzzle: vi.fn(),
+    supportTrigger: vi.fn(() => false),
+    supportUrl: 'https://ko-fi.com/test',
     ...overrides,
   };
 }

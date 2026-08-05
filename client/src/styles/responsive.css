@@ -134,6 +134,10 @@
     padding: 19px 16px 22px;
   }
 
+  .support-region {
+    padding: 19px 16px 22px;
+  }
+
   .comic-dialog {
     width: calc(100% - 18px);
     max-height: calc(100dvh - 18px);
@@ -271,6 +275,19 @@
     padding-left: 12px;
   }
 
+  .support-region {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .support-logo {
+    height: 30px;
+  }
+
+  .support-disclaimer {
+    font-size: 0.74rem;
+  }
+
   .action-grid {
     grid-template-columns: minmax(0, 1.25fr) minmax(100px, 1fr);
     padding-right: 10px;
@@ -352,6 +369,7 @@
   .result-video,
   .youtube-load-button,
   .youtube-watch-link,
+  .support-link,
   dialog,
   .comic-page,
   figure img {

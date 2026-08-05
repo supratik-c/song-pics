@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+When you are making changes, if you find unexpected changes in files relative to your changes, do not revert them. Assume that a separate agent is working on the same branch and has made those changes. Assess them for any conflicts with your work, and leave as is if none are found. If there is a conflict with your work, then work through the dependecies and resolve it without reverting that change.
+
 ## Read first
 
 - [AGENTS.md](AGENTS.md) is the binding contract for work in this repo: repository
