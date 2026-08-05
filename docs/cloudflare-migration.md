@@ -155,6 +155,129 @@ traffic mixed into production's numbers, which most solo setups can live with;
 if it matters, add a Web Analytics rule (Analytics & Logs → Web Analytics →
 Rules) excluding the `dev` hostname.
 
+## Planned, not yet implemented — per-puzzle completion analytics
+
+This section records a design that has been agreed but **not built**. No code,
+config, or binding described here exists in the repo yet. It's written down
+now so the design isn't lost before implementation.
+
+**Purpose.** Cloudflare Web Analytics (Step 5) gives aggregate site traffic
+but nothing per-puzzle — `?puzzle=YYYY-MM-DD` collapses into one path and
+query strings aren't logged. The goal is per-puzzle difficulty/popularity
+data: did a puzzle get solved, how many attempts did it take, roughly how many
+distinct people finished it.
+
+**Why this doesn't change the Cloudflare recommendation.** `client/wrangler.jsonc`
+can add a `main` Worker script alongside its existing `assets` directory in
+the *same* deployment. Cloudflare's `run_worker_first` routing means only
+requests to one specific path (e.g. `/api/complete`) invoke the Worker —
+every other request, i.e. the entire game, still hits free, unbilled Static
+Assets exactly as today. The event sink, Workers Analytics Engine, is free up
+to 100k data points/day. No new vendor, no new pipeline, no change to
+Steps 1–8 above.
+
+**Why the data is scoped down from "distinguish individual users."** The
+original ask was for whatever details could distinguish one visitor from
+another — IP, browser, etc. — attached to each completion, for deduplication
+ahead of the difficulty analysis. That's more data than the stated purpose
+needs and conflicts with this project's existing privacy posture: the
+published privacy policy ([client/legal.html](../client/legal.html)) and
+[docs/commercial.md](commercial.md) currently promise no operator-side
+profiling and that the operator doesn't receive player guesses. Storing raw
+IP/UA per event would be a real walk-back of that. The agreed compromise is a
+**same-day pseudonymous dedup signal** rather than a persistent identifier —
+enough to avoid double-counting a visitor in "how many people finished this
+puzzle," without building anything that identifies or tracks them.
+
+**The dedup design, as agreed:**
+
+- A random salt is generated once per UTC calendar day and stored in Workers
+  KV with a TTL (~2 days, to tolerate clock skew around midnight — not a
+  second valid key, just a safety margin on top of the current day's key).
+- On each completion request, the Worker computes
+  `HMAC-SHA256(today's salt, CF-Connecting-IP + "|" + User-Agent)`. Neither
+  the raw IP nor the raw User-Agent is ever stored — only used in that one
+  hash computation and discarded.
+- The hash is written as an Analytics Engine **index** (not a blob), alongside
+  `puzzleId`/`outcome` as blobs and `attemptsUsed` as a double. Distinct
+  visitor counts per puzzle are then read at query time via
+  `COUNT(DISTINCT index1)`, not computed at write time.
+- Once a day's KV entry expires, that day's hashes become **permanently
+  unrecoverable** — not reversible even by the operator. This is the same
+  technique Plausible and Fathom use, and is why it avoids needing an
+  ePrivacy cookie-consent banner: nothing is stored or read on the visitor's
+  device (the ePrivacy consent trigger is specifically about *device*
+  storage/access), and the hash's minimization, short lifetime, and
+  single-purpose use line up with the criteria regulators such as France's
+  CNIL use to exempt first-party audience-measurement analytics from consent.
+  GDPR itself still applies (a hash derived from an IP is still processing
+  personal data), but that's satisfiable under legitimate interest with a
+  disclosed purpose — not a build blocker, a documentation one (see below).
+  This isn't a compliance guarantee — treat it the same as this project's
+  other non-legal-advice caveats (see [commercial.md](commercial.md) and
+  [business.md](business.md)) and verify against current guidance before
+  relying on it.
+- **Rejected alternative:** a salt derived from a long-lived secret plus the
+  date (`HMAC(secret, today)`), which "rotates" without needing KV storage but
+  is reversible in principle by anyone holding the secret. The ephemeral-KV
+  version was chosen specifically so the irreversibility claim is actually
+  true, not just operationally inconvenient to reverse.
+- **Scope boundary, agreed explicitly:** the hash distinguishes same-day
+  visitors only — not devices, not cross-day archive replays. That's
+  acceptable because the game's own state already prevents a single browser
+  from re-completing the same puzzle (status latches to terminal), so exact
+  headcounts were never achievable anyway; this is an approximation for
+  "is this puzzle too easy/hard," not a precise metric.
+
+**Shape of the future implementation**, at a level useful for picking this
+back up later:
+
+- New `api/completionWorker.ts` — turns `api/` from placeholder to real,
+  matching `api/README.md`'s own stated trigger ("server-side analytics").
+  Validates a `{ puzzleId, outcome, attemptsUsed }` body (reject anything
+  else), computes the dedup hash, calls `writeDataPoint`, and always responds
+  `204`/`400`/`405` without revealing whether the Analytics Engine write
+  succeeded — a public beacon endpoint shouldn't give a client (or an
+  attacker) any way to distinguish "recorded" from "silently dropped."
+- `client/wrangler.jsonc` gains `main`, a
+  `run_worker_first: ["/api/complete"]` rule, and two new bindings
+  (`kv_namespaces`, `analytics_engine_datasets`). Both bindings are
+  **non-inheritable** in Wrangler's config model, so the `dev` environment
+  needs its own KV namespace and its own dataset (e.g.
+  `scribble_bops_completions_dev`) so dev-preview traffic doesn't pollute
+  production difficulty stats. Provisioning would add to Step 2 above:
+  `npx wrangler kv namespace create DEDUP_SALT`, once per environment;
+  Analytics Engine datasets are created implicitly on first write, no
+  separate provisioning step.
+- A new `client/src/platform/analyticsReporter.ts` adapter, following the
+  existing `platform/completion.ts` pattern (capability-typed,
+  `createBrowserX` factory, arrow-function methods, never throws — a blocked
+  or failed beacon must not affect gameplay). Fired from `app.ts`'s two
+  existing terminal-state transitions (guess submission and reveal-song)
+  immediately after `gameStateStore.save`, guarded against re-firing on a
+  refresh of an already-finished puzzle, and disabled entirely in dev via the
+  same `import.meta.env.DEV` pattern already used for `gameStateStore`.
+- Reuses `getPuzzlePerformance` from
+  [client/src/domain/performance.ts](../client/src/domain/performance.ts) as
+  the payload shape — already exactly `{ puzzleId, outcome, attemptsUsed }`
+  with no song/artist spoiler data, no new type to keep in sync.
+
+**Documentation debt this will incur when built** — flagged now so it isn't
+missed later, none of it done yet:
+
+- `AGENTS.md`'s "client/ is the only running application" boundary claim
+  becomes false and needs a scoped correction.
+- `docs/architecture.md`'s framing of the system as purely static needs a
+  precise carve-out: this one fire-and-forget beacon, nothing else, gameplay
+  unaffected if it's down.
+- `client/legal.html` needs a new disclosure describing exactly what's
+  collected (puzzle ID, outcome, attempts — never guesses, never song/artist
+  data), the daily-rotating irreversible hash and why it exists, and that
+  this is a separate channel from Cloudflare Web Analytics.
+- `docs/commercial.md`'s "no application collection" bullet and its mandated
+  "new privacy review before adding analytics" trigger both need updating to
+  point at this feature.
+
 ## Ongoing operation
 
 - **Production:** push to `main` → `deploy-cloudflare.yml` → `scribblebops.com`.
