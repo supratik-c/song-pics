@@ -278,6 +278,206 @@ missed later, none of it done yet:
   "new privacy review before adding analytics" trigger both need updating to
   point at this feature.
 
+## Planned, not yet implemented — persistent per-player cookie (future tier)
+
+This section records a **second, separate** analytics design — also not
+built. It sits on top of the same-day dedup design above rather than
+replacing it; see "How the two tiers relate" at the end of this section for
+why both are worth keeping.
+
+**Purpose.** The same-day hash above answers "is this puzzle too hard" in
+aggregate. It structurally cannot answer anything about a *specific* returning
+player — streaks, personal solve-rate over time, a "your stats" screen — because
+its whole design point is that the same visitor is unlinkable across days. If
+that's wanted, it needs a persistent, cross-day identifier, which is a
+materially different privacy and consent posture, not just a bigger version of
+the same design.
+
+### Design note: what "fingerprint" should mean here
+
+The literal ask was a cookie holding a hash of IP/User-Agent/device features.
+Worth flagging before writing it up further: **that combines two different
+techniques that don't need each other, and the combination is strictly worse
+than either alone.**
+
+- A cookie already gives you persistence — the browser holds and resends it.
+  You don't additionally need the *value* to be derived from device
+  characteristics for it to persist.
+- Deriving the value from IP/UA/device features reopens the exact reversibility
+  problem from the "unsalted hash" discussion — IP and User-Agent are both
+  low-entropy, realistically guessable inputs, so a hash of them is crackable
+  by anyone who can test candidate values, cookie or not.
+- It also reintroduces device fingerprinting specifically, which EU regulators
+  treat with particular suspicion (the EDPB's Guidelines 2/2023 on the
+  technical scope of ePrivacy Article 5(3) explicitly names fingerprinting
+  alongside cookies as in-scope) — it's less transparent and harder for a
+  player to reset than a cookie they can clear.
+- It makes the identifier *less* stable, not more: IP changes on every network
+  switch (home wifi → mobile data), which would silently fragment "the same
+  player" into multiple IDs — undermining the actual goal (recognizing a
+  returning player) rather than serving it.
+
+**Recommended instead:** a cookie holding a single opaque, randomly-generated
+value (e.g. a UUID v4 from `crypto.randomUUID()`), created once and not derived
+from anything about the request. This is the standard pattern essentially every
+analytics tool that does persistent identification uses (Google Analytics'
+`_ga`, Mixpanel, Amplitude). It sidesteps the reversibility and fingerprinting
+concerns entirely — there's nothing to guess, because nothing informed the
+value — at the cost of the honest trade-off below. The rest of this section
+assumes this design, not the literal hash-based one.
+
+### Mechanics
+
+- **Issuance.** The Worker sets the cookie via `Set-Cookie` the first time a
+  request arrives without one — naturally, that's the first `/api/complete`
+  call, since (per the design above) that's the only path that ever invokes
+  the Worker at all; ordinary page loads stay on free Static Assets and can't
+  issue a cookie without pulling every request through the Worker, which would
+  undo that cost model. Practically: the *first* completion on a given browser
+  arrives cookie-less, is still recorded (as a new player), and gets a cookie
+  back for next time.
+- **Attributes:** `HttpOnly` (client JS never needs to read it — it rides
+  automatically on same-origin requests), `Secure`, `SameSite=Lax`, first-party
+  only. A concrete `Max-Age` needs picking and then has to match whatever the
+  privacy policy states — 13 months mirrors the figure French CNIL guidance
+  uses for exempt audience-measurement cookies, though nothing about *this*
+  design is exemption-eligible (see Consent below), so treat that number as a
+  reasonable default rather than a borrowed compliance argument.
+- **Consent gating is a bootstrapping problem.** The tracking cookie can only
+  be set *after* affirmative consent (see Privacy banner below), which means
+  something has to remember "this player already answered" before the tracking
+  cookie exists — that one flag is the one thing ePrivacy's "strictly
+  necessary" exemption actually covers cleanly (recording a consent choice so
+  the player isn't re-prompted every visit). Keep it a single boolean-ish
+  value, separate from the player ID itself.
+
+### Payload shape and trigger points
+
+Reuses the existing `{ puzzleId, outcome, attemptsUsed }` base from
+`getPuzzlePerformance` — no need to invent a new completion shape. Server-set,
+never client-supplied, fields worth adding:
+
+- `serverTimestamp` — set by the Worker on receipt (`Date.now()`), not trusted
+  from the client, so it can't be spoofed and supports later time-of-day /
+  day-of-week analysis.
+- `isReturningPlayer` — derived by the Worker from whether the cookie was
+  already present vs. just issued, not a client-asserted flag.
+- `timeToSolveMs` — elapsed duration from puzzle load to completion, tracked
+  client-side as a duration (not two absolute timestamps — sending only the
+  delta avoids leaking timezone/clock information the payload doesn't need).
+- `currentStreak` — probably the single strongest reason to want this tier at
+  all. Same-day dedup can never produce a streak, since a streak is
+  definitionally a cross-day, per-player fact. If a personal-stats or streak
+  feature is the actual product goal, say so up front — it reframes this from
+  "better analytics" to "a real player-facing feature," which changes how the
+  consent ask should be framed (see banner below: "unlock your stats" reads
+  very differently from "help us with analytics").
+- **Resist adding `deviceClass` / raw User-Agent / IP-derived fields to this
+  payload once a persistent ID exists.** The ID already does the identification
+  job; attaching device signals on top of it doesn't improve dedup (there's
+  nothing left to dedup) and does reintroduce a fingerprinting-shaped data
+  point correlated with a persistent identity — worse than not having the
+  persistent ID in the first place. Coarse, non-identifying context
+  (`request.cf.country`) is fine; per-event device fingerprints are not.
+
+**Trigger points beyond completion** — the literal ask was "what activities
+could this trigger on," and it's worth being deliberate here rather than
+listing everything that's technically loggable:
+
+- `puzzle_completed` (solved/failed/revealed) — same as the existing design,
+  now keyed by the persistent cookie instead of the same-day hash.
+- `share_clicked`, `archive_puzzle_replayed` — plausible, low-intrusiveness
+  additions in the same spirit as completion (one discrete, meaningful action).
+- `puzzle_started` (fired on load rather than only on completion) is a
+  materially different decision, not a natural extension: it means the beacon
+  now fires on every puzzle view, not just outcomes, which starts to
+  reconstruct ordinary page-view analytics that Cloudflare Web Analytics
+  already provides in aggregate — and combined with a persistent ID, starts to
+  look like a visit-by-visit behavioral log rather than a stats feature.
+- **The general caution:** each additional trigger point, once tied to a
+  persistent ID, moves this further from "a stats feature the player opted
+  into" toward "a behavioral profile," which has real consequences — it makes
+  the legitimate-interest balancing test harder to win even where consent
+  exists, and profiling at this scale is one of the criteria the EDPB lists
+  for when a formal Data Protection Impact Assessment (GDPR Art. 35) becomes
+  advisable. Keep the trigger list to what the player-facing feature (streaks,
+  personal stats) actually needs, not everything that's technically easy to
+  log.
+
+### Privacy banner — proposed text and requirements
+
+Draft, for a non-blocking inline prompt rather than a full-page wall:
+
+> **Remember your stats?** Scribble Bops can remember you across visits to
+> track your streak and puzzle history. This uses one cookie holding a random
+> ID — no name, email, or IP address is stored in it. You can play either way;
+> declining just means your stats reset each visit.
+> **[ Yes, remember me ]** **[ No thanks ]** · [Privacy Policy]
+
+Requirements this needs to actually satisfy, not just resemble:
+
+- **Prior** — the cookie is not set until after an affirmative choice, not on
+  page load.
+- **Equally easy to decline as accept** — same visual weight for both buttons;
+  no pre-ticked box, no "accept" styled as primary with "decline" as a buried
+  link. *Planet49* (CJEU, 2019) is the leading authority that a pre-checked
+  box is not valid consent.
+- **Does not gate gameplay.** Declining must have zero effect on being able to
+  play — both because a forced-consent wall for a non-essential feature is
+  generally not "freely given" consent under EDPB guidance on cookie walls,
+  and because it would contradict this project's own stated position of
+  always being playable with no login/wall.
+- **Specific and unambiguous** — names the actual purpose (personal stats), not
+  a generic "we use cookies to improve your experience."
+- **Withdrawable** — needs a real control somewhere (legal page or in-game
+  settings) to turn it back off and delete the existing cookie/record, not
+  just an initial accept/decline.
+
+### Privacy policy changes
+
+This would be a **third** disclosed channel in `client/legal.html`, and the
+policy should describe all three distinctly rather than blur them together:
+
+1. Cloudflare Web Analytics — aggregate, cookieless, already live.
+2. The same-day dedup hash (previous section) — no cookie, no consent needed,
+   automatic.
+3. **This tier** — a first-party cookie, opt-in, needs its own paragraph
+   covering: exactly what it stores (a random ID, nothing else — no IP, no
+   device info), the purpose (personal stats/streaks, not third-party
+   sharing), the retention period (matching the cookie's actual `Max-Age`),
+   that it requires consent and how to withdraw it, and a concrete erasure
+   path — realistically a "Clear my stats" control that both deletes the
+   cookie client-side and asks the Worker to purge the associated record
+   server-side, since telling a player to "just clear your cookies" doesn't
+   satisfy an actual GDPR erasure request for what's stored server-side.
+
+Also update `docs/commercial.md`'s "no application collection" bullet and its
+"new privacy review before adding analytics" trigger to mention this tier
+specifically, distinct from the same-day design's entry.
+
+### How the two tiers relate
+
+They're complementary, not redundant, and can share one endpoint:
+
+- **No consent (or declined):** fall back to the same-day hash tier — the
+  player still contributes to aggregate puzzle-difficulty stats, anonymously,
+  with no banner needed for that part.
+- **Consented:** use the persistent cookie ID as the dedup key instead — it's
+  a strictly better signal than the hash (accurate across days, not just
+  within one), and unlocks the player-facing features (streaks, stats) the
+  hash tier structurally can't provide.
+
+Practically, `api/completionWorker.ts` (or its future equivalent) checks for
+the consented cookie first and uses the same-day hash as the fallback path for
+everyone else — one endpoint, two identity strategies, gated on consent state
+rather than two competing implementations.
+
+**Same caveat as the rest of this document:** this is a design, not legal
+advice, and none of the compliance reasoning above is a guarantee — verify
+against current guidance before relying on it, same as
+[commercial.md](commercial.md) and [business.md](business.md) already say
+about themselves.
+
 ## Ongoing operation
 
 - **Production:** push to `main` → `deploy-cloudflare.yml` → `scribblebops.com`.

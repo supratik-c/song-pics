@@ -49,6 +49,7 @@ Build-time environment variables (all read in [client/vite.config.js](client/vit
 | `VITE_BASE_PATH` | `/` | Vite `base`. GitHub Pages CI sets `/song-pics/`. |
 | `VITE_BUILD_ID` | `local` | Compiled in, emitted to `build-version.json`, appended as `?v=` to runtime content URLs. |
 | `VITE_PUBLIC_SITE_URL` | base-aware localhost | Absolute URL used in generated share-page OG metadata. |
+| `VITE_DEV_RUN_ID` | generated per config load (`Date.now()`), not settable | Dev-only; namespaces `sessionStorage` game progress per dev-server start so a restart starts clean. Read only behind `import.meta.env.DEV` in `main.ts` and eliminated from production builds. |
 
 For any build, path, or date change, build twice — default base **and**
 `VITE_BASE_PATH=/song-pics/` — then inspect `dist/content` (AGENTS.md verification matrix).

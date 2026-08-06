@@ -7,6 +7,7 @@ import {
   getSharePuzzleId,
 } from './domain/navigation.ts';
 import {
+  alwaysShowSupport,
   whenSolvedAtLeast,
   type SupportTrigger,
 } from './domain/supportTriggers.ts';
@@ -47,16 +48,27 @@ async function start(): Promise<void> {
     );
   }
 
-  const gameStateStore = createLocalGameStateStore({
-    shouldPersist: !import.meta.env.DEV,
-  });
+  // Dev keeps progress for the tab session so archive badges and the support
+  // prompt are reachable, namespaced per dev-server run so a restart starts
+  // clean and dev can never collide with production keys on localhost.
+  const gameStateStore = createLocalGameStateStore(
+    import.meta.env.DEV
+      ? {
+          getStorage: () => sessionStorage,
+          namespace: `scribble-bops:dev:${import.meta.env.VITE_DEV_RUN_ID}`,
+        }
+      : {},
+  );
 
   // Swap this composition to change what triggers the Ko-fi prompt. It is
   // gated on a terminal status because the prompt is mounted beside the
   // post-solve result, not the active guessing UI; whenSolvedAtLeast is the
   // reusable, hotswappable building block (see domain/supportTriggers.ts).
-  const supportTrigger: SupportTrigger = (context) =>
-    context.status !== 'playing' && whenSolvedAtLeast(3)(context);
+  // Dev always shows the prompt so it can be inspected without three solves.
+  const supportTrigger: SupportTrigger = import.meta.env.DEV
+    ? alwaysShowSupport
+    : (context) =>
+        context.status !== 'playing' && whenSolvedAtLeast(3)(context);
 
   // TODO: replace with the real Ko-fi page before this ships publicly.
   const SUPPORT_URL = 'https://ko-fi.com/REPLACE_ME';

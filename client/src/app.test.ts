@@ -193,7 +193,7 @@ describe('support prompt', () => {
 
     expect(elements.supportRegion.hidden).toBe(false);
     expect(elements.supportRegion.textContent).toContain(
-      'Like Scribble Bops? Support us on',
+      'Like Scribble Bops? Buy us a',
     );
 
     const link = elements.supportRegion.querySelector<HTMLAnchorElement>(

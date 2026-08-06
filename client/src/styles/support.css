@@ -1,19 +1,20 @@
-/* Reusable Ko-fi support prompt */
+/*
+ * Reusable Ko-fi support prompt. #support-region is a nested child of
+ * #share-region (see share.css), which owns the shared row layout that pairs
+ * this with the Share button; this file owns the prompt's own content.
+ */
 
 .support-region {
-  padding: 22px 28px 25px;
-  border-top: var(--line-heavy) solid var(--ink);
-  background:
-    radial-gradient(circle at 10px 10px, rgba(36, 31, 28, 0.07) 1px, transparent 1.2px),
-    var(--cream);
-  background-size: 20px 20px;
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 220px;
 }
 
 .support-prompt {
-  display: grid;
-  justify-items: center;
-  gap: 11px;
-  text-align: center;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .support-prompt-text {
@@ -22,16 +23,15 @@
   font-family: var(--font-hand);
   font-size: clamp(1rem, 2.3vw, 1.2rem);
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.5;
 }
 
 /*
- * The vendored Ko-fi logo has a transparent background rather than a solid
- * fill (see assets/ui/branding/README.md), so there is no background color
- * to match. The tactile drop-shadow instead hugs the logo's own silhouette,
- * which already reads as ink-dark linework -- the same look as the rest of
- * this comic-page chrome -- so the mark blends in without a boxed button
- * behind it.
+ * The vendored Ko-fi logo has a transparent background (see
+ * assets/ui/branding/README.md). Unlike the earlier blend-in treatment, this
+ * one deliberately boxes it -- border, fill, and the inherited .tactile-button
+ * drop-shadow -- the same recipe as .youtube-watch-link, so it reads
+ * unambiguously as a clickable button rather than decorative logo art.
  */
 .support-link {
   --tactile-shadow-x: 4px;
@@ -40,8 +40,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding: 5px;
+  vertical-align: middle;
+  margin: 0 0.05em;
+  padding: 4px 10px;
+  border: var(--line-medium) solid var(--ink);
+  border-radius: 0;
+  background: var(--peach);
 }
 
 .support-link:focus-visible {
@@ -51,14 +55,23 @@
 
 .support-logo {
   display: block;
-  height: 34px;
+  height: 26px;
   width: auto;
 }
 
+/*
+ * Capped in `ch` (scales with font-size) rather than left to size itself:
+ * the disclaimer's own unwrapped text is longer than the sentence+button
+ * line above it, so without a cap it -- not the sentence -- would end up
+ * setting .support-prompt's fit-content width, letting it run past the
+ * button's right edge. Wrapping a line earlier than strictly necessary is
+ * fine; running under the button is not.
+ */
 .support-disclaimer {
-  margin: 0;
+  max-width: 30ch;
+  margin: 6px 0 0;
   color: var(--ink);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 700;
   line-height: 1.3;
 }

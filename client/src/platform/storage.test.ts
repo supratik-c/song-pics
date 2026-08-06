@@ -31,6 +31,29 @@ describe('local game-state storage', () => {
     expect(storageKey('2026-07-23')).toBe('scribble-bops:2026-07-23');
   });
 
+  it('namespaces progress under a custom namespace when provided', () => {
+    expect(storageKey('2026-07-23', 'scribble-bops:dev:123')).toBe(
+      'scribble-bops:dev:123:2026-07-23',
+    );
+  });
+
+  it('round-trips state under a custom namespace', () => {
+    const storage = createMemoryStorage();
+    const store = createLocalGameStateStore({
+      getStorage: () => storage,
+      namespace: 'scribble-bops:dev:123',
+    });
+
+    store.save('2026-07-23', { guesses: ['answer'], status: 'solved' });
+
+    expect(store.load('2026-07-23')).toEqual({
+      guesses: ['answer'],
+      status: 'solved',
+    });
+    expect(storage.values.has('scribble-bops:dev:123:2026-07-23')).toBe(true);
+    expect(storage.values.has(storageKey('2026-07-23'))).toBe(false);
+  });
+
   it.each([
     { guesses: ['one', 'two', 'three', 'four'], status: 'playing' },
     { guesses: ['answer'], status: 'solved' },
@@ -47,7 +70,6 @@ describe('local game-state storage', () => {
   ] as const)('round-trips a current $status state by puzzle ID', (state) => {
     const storage = createMemoryStorage();
     const store = createLocalGameStateStore({
-      shouldPersist: true,
       getStorage: () => storage,
     });
 
@@ -126,7 +148,6 @@ describe('local game-state storage', () => {
       [key]: JSON.stringify(value),
     });
     const store = createLocalGameStateStore({
-      shouldPersist: true,
       getStorage: () => storage,
     });
 
@@ -147,7 +168,6 @@ describe('local game-state storage', () => {
       [storageKey('2026-07-23')]: storedValue,
     });
     const store = createLocalGameStateStore({
-      shouldPersist: true,
       getStorage: () => storage,
     });
 
@@ -160,32 +180,8 @@ describe('local game-state storage', () => {
     );
   });
 
-  it('clears stale progress and ignores saves when persistence is disabled', () => {
-    const key = storageKey('2026-07-23');
-    const storage = createMemoryStorage({
-      [key]: JSON.stringify({ guesses: ['one'], status: 'playing' }),
-    });
-    const store = createLocalGameStateStore({
-      shouldPersist: false,
-      getStorage: () => storage,
-    });
-
-    expect(store.load('2026-07-23')).toEqual({
-      guesses: [],
-      status: 'playing',
-    });
-    expect(storage.removeItem).toHaveBeenCalledWith(key);
-
-    store.save('2026-07-23', {
-      guesses: ['hey jude'],
-      status: 'solved',
-    });
-    expect(storage.setItem).not.toHaveBeenCalled();
-  });
-
   it('degrades safely when browser storage is unavailable', () => {
     const store = createLocalGameStateStore({
-      shouldPersist: true,
       getStorage: () => {
         throw new Error('SecurityError');
       },
@@ -209,7 +205,6 @@ describe('local game-state storage', () => {
       throw new Error('QuotaExceededError');
     });
     const store = createLocalGameStateStore({
-      shouldPersist: true,
       getStorage: () => storage,
     });
 

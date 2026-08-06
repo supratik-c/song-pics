@@ -13,7 +13,7 @@ describe('support prompt', () => {
     expect(prompt).toBeNull();
   });
 
-  it('renders the heading and a Ko-fi link when the trigger is on', () => {
+  it('renders the sentence with a Ko-fi link flowing inline at the end', () => {
     const prompt = renderSupportPrompt({
       supportUrl,
       shouldRender: () => true,
@@ -24,21 +24,20 @@ describe('support prompt', () => {
     }
 
     const text = prompt.querySelector('.support-prompt-text');
-    const link = prompt.querySelector<HTMLAnchorElement>('.support-link');
-    const logo = prompt.querySelector<HTMLImageElement>('.support-logo');
+    const link = text?.querySelector<HTMLAnchorElement>('.support-link');
+    const logo = link?.querySelector<HTMLImageElement>('.support-logo');
 
-    expect(text?.textContent).toBe('Like Scribble Bops? Support us on');
+    expect(text?.textContent).toBe('Like Scribble Bops? Buy us a ');
     expect(link?.href).toBe(supportUrl);
     expect(link?.target).toBe('_blank');
     expect(link?.rel).toBe('noopener noreferrer');
     expect(link?.getAttribute('aria-label')).toBe(
-      'Support Scribble Bops on Ko-fi',
+      'Buy Scribble Bops a coffee on Ko-fi',
     );
     expect(logo?.alt).toBe('');
-    expect(link?.contains(logo)).toBe(true);
   });
 
-  it('places the heading text before the link in document order', () => {
+  it('places the disclaimer after the sentence in document order', () => {
     const prompt = renderSupportPrompt({
       supportUrl,
       shouldRender: () => true,
@@ -47,10 +46,10 @@ describe('support prompt', () => {
     const children = Array.from(prompt?.children ?? []);
     const textIndex = children.findIndex((child) =>
       child.classList.contains('support-prompt-text'));
-    const linkIndex = children.findIndex((child) =>
-      child.classList.contains('support-link'));
+    const disclaimerIndex = children.findIndex((child) =>
+      child.classList.contains('support-disclaimer'));
 
     expect(textIndex).toBeGreaterThanOrEqual(0);
-    expect(linkIndex).toBeGreaterThan(textIndex);
+    expect(disclaimerIndex).toBeGreaterThan(textIndex);
   });
 });

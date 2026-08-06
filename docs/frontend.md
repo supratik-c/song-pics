@@ -33,10 +33,13 @@ DOM output is divided by stable UI responsibility:
   load control and privacy-policy link, and the activated player;
 - `views/shareView.ts` creates reusable terminal share controls and owns their
   busy and feedback rendering;
-- `views/supportView.ts` creates the reusable Ko-fi support prompt — an
-  introductory line and linked logo built as one detached section — gated by
-  an injected `shouldRender` predicate so it, and its heading text, render
-  nothing at all when the predicate is false.
+- `views/supportView.ts` creates the reusable Ko-fi support prompt — a single
+  sentence with a boxed, linked logo inline at the end, built as one detached
+  section — gated by an injected `shouldRender` predicate so it, and its
+  text, render nothing at all when the predicate is false. `#support-region`
+  is nested inside `#share-region` in `index.html` so the prompt pairs
+  visually with the Share button in one row; see the stylesheet-structure
+  note below for the resulting cross-file layout split.
 
 These views use DOM APIs and `textContent`; external or content-authored strings
 are not inserted with untrusted `innerHTML`. The split does not introduce a
@@ -195,6 +198,19 @@ with the iframe, moves focus to the player, reveals the external fallback link,
 and records consent in `sessionStorage`. A later automatic load does not move
 focus. Closing the tab ends consent; a later tab session starts unloaded.
 
+`platform/storage.ts` persists per-puzzle game state (guesses and status) by
+puzzle ID under the `scribble-bops:` key prefix. `main.ts` composes the store
+per environment: production uses `localStorage` with the default namespace so
+progress survives across sessions; `vite dev` uses `sessionStorage` under a
+`scribble-bops:dev:<run id>` namespace, where the run id is generated fresh in
+`vite.config.js` on every dev-server start. This lets progress persist across
+reloads and navigation within a dev session — so archive "Completed" badges
+and the Ko-fi support prompt are reachable while developing — without ever
+colliding with production keys on `localhost`, and it self-resets on the next
+`npm run dev`. `main.ts` also forces the Ko-fi support trigger to
+`alwaysShowSupport` in dev, bypassing the normal three-solve threshold, so the
+prompt can be inspected after any single terminal result.
+
 The layout is mobile-first down to 320 px and also supports wide desktop
 viewports. Controls must not overflow and primary targets should remain roughly
 44 px or larger. If motion is added, it must honor `prefers-reduced-motion`.
@@ -226,8 +242,11 @@ stylesheet:
 2. `styles/loading.css` owns the reusable loading status and its motion;
 3. `styles/game.css` owns panels, controls, feedback, and the future state;
 4. `styles/dialog.css` owns the dialog, tutorial, archive, and results;
-5. `styles/share.css` owns the reusable main and dialog share control;
-6. `styles/support.css` owns the reusable Ko-fi support prompt;
+5. `styles/share.css` owns the reusable main and dialog share control, and
+   the shared flex-row layout of `.share-region` that pairs it with the
+   nested Ko-fi prompt;
+6. `styles/support.css` owns the reusable Ko-fi support prompt's own content
+   and boxed-logo styling, not its row layout;
 7. `styles/responsive.css` owns ordered breakpoint, motion, and forced-color
    overrides.
 

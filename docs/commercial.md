@@ -316,9 +316,11 @@ guidance](https://commission.europa.eu/law/law-topic/data-protection/rules-busin
   bullet below.
 - **Saved progress:** production uses browser `localStorage` keyed by puzzle ID
   for normalized guesses and completion status. It remains on that device
-  until site/browser data is cleared. Development starts clean and does not
-  persist progress. Explain browser clearing steps and that the operator cannot
-  remotely access, correct, export, or erase local-only values.
+  until site/browser data is cleared. Development instead persists to
+  `sessionStorage` under a namespace scoped to that dev-server run, so it never
+  shares storage with a production visit and clears on the next dev-server
+  start. Explain browser clearing steps and that the operator cannot remotely
+  access, correct, export, or erase local-only values.
 - **YouTube session choice:** activating `Watch YouTube Video` stores a
   versioned consent value in `sessionStorage`. It enables automatic YouTube
   loading for later solved or revealed results in the same tab session and

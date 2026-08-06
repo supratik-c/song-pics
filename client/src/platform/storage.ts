@@ -19,26 +19,23 @@ export const YOUTUBE_CONSENT_STORAGE_KEY =
   'scribble-bops:youtube-consent:v1';
 const YOUTUBE_CONSENT_GRANTED_VALUE = 'granted';
 
+const DEFAULT_STORAGE_NAMESPACE = 'scribble-bops';
+
 export type LocalGameStateStoreOptions = {
-  shouldPersist: boolean;
   getStorage?: () => StorageAdapter;
   rules?: GameRules;
+  namespace?: string;
 };
 
 export function createLocalGameStateStore({
-  shouldPersist,
   getStorage = () => localStorage,
   rules = GAME_RULES,
-}: LocalGameStateStoreOptions): GameStateStore {
+  namespace = DEFAULT_STORAGE_NAMESPACE,
+}: LocalGameStateStoreOptions = {}): GameStateStore {
   return {
     load: (puzzleId) => {
       const fallback = createInitialGameState();
-      const key = storageKey(puzzleId);
-
-      if (!shouldPersist) {
-        tryStorage(getStorage, (storage) => storage.removeItem(key));
-        return fallback;
-      }
+      const key = storageKey(puzzleId, namespace);
 
       const stored = tryStorage(
         getStorage,
@@ -62,12 +59,8 @@ export function createLocalGameStateStore({
       return fallback;
     },
     save: (puzzleId, state) => {
-      if (!shouldPersist) {
-        return;
-      }
-
       tryStorage(getStorage, (storage) => {
-        storage.setItem(storageKey(puzzleId), JSON.stringify(state));
+        storage.setItem(storageKey(puzzleId, namespace), JSON.stringify(state));
       });
     },
   };
@@ -110,8 +103,11 @@ export function createSessionYouTubeConsentStore(
   };
 }
 
-export function storageKey(puzzleId: string): string {
-  return `scribble-bops:${puzzleId}`;
+export function storageKey(
+  puzzleId: string,
+  namespace: string = DEFAULT_STORAGE_NAMESPACE,
+): string {
+  return `${namespace}:${puzzleId}`;
 }
 
 function parseStoredGameState(

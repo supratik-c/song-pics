@@ -1,6 +1,18 @@
 /* Reusable terminal-state sharing */
 
+/*
+ * .support-region (styles/support.css) is authored as a nested child of this
+ * element in index.html so the Share button and the Ko-fi prompt read as one
+ * paired row instead of two separate strips. This flex layout is the one
+ * deliberate crossover between the two stylesheets -- support.css owns the
+ * Ko-fi content itself, this file owns the shared row.
+ */
 .share-region {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
   padding: 22px 28px 25px;
   border-top: var(--line-heavy) solid var(--ink);
   background:
@@ -11,6 +23,7 @@
 
 .share-control {
   display: grid;
+  flex: 0 0 auto;
   justify-items: start;
   gap: 8px;
 }

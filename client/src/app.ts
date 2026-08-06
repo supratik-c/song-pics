@@ -133,7 +133,10 @@ export async function initApp(
     share: dependencies.shareGateway.share,
   });
 
-  elements.shareRegion.replaceChildren(createShareControl());
+  // The support prompt is authored as a nested child of #share-region in
+  // index.html so the two pair visually in one row (see share.css); prepend
+  // rather than replaceChildren so that nested #support-region survives.
+  elements.shareRegion.prepend(createShareControl());
 
   bindArchiveButton(elements, archive, modal, dependencies);
   await renderPuzzle(elements, puzzle);

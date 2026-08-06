@@ -39,7 +39,11 @@ status, defaults to fresh requests, lets deployment-versioned content use
 normal HTTP caching, and validates data before it enters the application.
 Browser persistence adapters for puzzle progress and session-scoped YouTube
 consent live in `storage.ts`; the independently replaceable completion read
-model lives in `completion.ts`.
+model lives in `completion.ts`. `main.ts` composes the progress store per
+environment — production `localStorage`, dev `sessionStorage` under a
+per-dev-run namespace so dev progress persists across reloads within a
+session, resets on the next `vite dev` start, and never collides with
+production keys (see [frontend.md](frontend.md)).
 
 Pure functions in `navigation.ts` own puzzle-query parsing and archive URL
 construction. With no `puzzle` query parameter, the latest released puzzle is

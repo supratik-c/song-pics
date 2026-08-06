@@ -57,8 +57,9 @@ behavior incidentally. In particular:
   released archive entry;
 - production builds must exclude future puzzle JSON and images—the friendly
   future screen is not the security boundary;
-- development starts puzzle progress clean, while production persists it by
-  puzzle ID;
+- development persists puzzle progress in `sessionStorage`, namespaced per
+  dev-server run so a restart starts clean; production persists it in
+  `localStorage` by puzzle ID; the two never share keys;
 - issue numbers remain chronological and contiguous across available puzzles;
 - user-visible controls remain semantic, keyboard-operable, visibly focused,
   and usable at the 320 px minimum width.
