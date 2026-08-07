@@ -43,7 +43,7 @@ export function renderResult(
 
   body.append(message, answer);
 
-  if (status !== 'failed' && solution.youtubeURL) {
+  if (solution.youtubeURL) {
     body.append(createYouTubeControl(
       solution.youtubeURL,
       solution,

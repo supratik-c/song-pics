@@ -81,14 +81,13 @@ Game state contains normalized guesses and one status:
 | `failed` | No guesses remain | Fifth incorrect guess |
 
 All terminal states replace the guess form and action grid with an inline
-result. A solved result reveals the canonical song and artist, uses the success
-treatment, and may offer the configured YouTube video. A manually revealed
-result may also offer it. The initial control and linked privacy notice are
-local and create no third-party media request. Activating
+result. Every terminal result — solved, manually revealed, or failed — reveals
+the canonical song and artist and may offer the configured YouTube video; only
+the banner and message differ by status. The initial control and linked
+privacy notice are local and create no third-party media request. Activating
 `Watch YouTube Video` creates the privacy-enhanced player and external YouTube
 fallback link and grants consent for the current browser-tab session. Later
-solved or revealed results in that session load the player automatically. A
-failed result reveals the answer without a video control regardless of consent.
+terminal results in that session load the player automatically.
 
 When authored lyric lines exist, every terminal state also reveals them beneath
 their corresponding clue panels. They remain absent from the DOM while play is
@@ -99,10 +98,10 @@ Terminal results render inline immediately when reached and when a saved puzzle
 is revisited. A newly reached result receives keyboard focus and scrolls the
 page to the bottom, using immediate rather than smooth scrolling when reduced
 motion is preferred. Restored results do not move focus or scroll the page.
-YouTube consent is not game state. A restored solved or revealed result loads
-the player automatically when the current tab session has consent and otherwise
-returns to the unloaded local control and notice. Automatic loading does not
-move focus.
+YouTube consent is not game state. A restored terminal result loads the player
+automatically when the current tab session has consent and otherwise returns
+to the unloaded local control and notice. Automatic loading does not move
+focus.
 
 Every terminal outcome offers the same spoiler-free puzzle invitation in a
 persistent main game region kept separate from the inline result. The

@@ -36,7 +36,7 @@ describe('inline result rendering', () => {
       'failed',
       'Out of Guesses',
       'That was your last guess. The song was:',
-      false,
+      true,
     ],
   ])(
     'renders the %s outcome and its video policy',
@@ -140,14 +140,14 @@ describe('inline result rendering', () => {
     expect(focusSpy).not.toHaveBeenCalled();
   });
 
-  it('does not load a failed result even with session consent', () => {
+  it('automatically loads a failed result with session consent', () => {
     const region = document.createElement('section');
 
     renderResult(region, solution, 'failed', createConsent(true));
 
-    expect(region.querySelector('.result-video')).toBeNull();
+    expect(region.querySelector('.result-video')).not.toBeNull();
     expect(region.querySelector('.youtube-load-button')).toBeNull();
-    expect(region.querySelector('.youtube-watch-link')).toBeNull();
+    expect(region.querySelector('.youtube-watch-link')).not.toBeNull();
   });
 
   it.each([undefined, 'not a URL'])(
