@@ -100,7 +100,10 @@ archive, load-error, and future-puzzle states.
 
 ## Local workflow
 
-Use Node 22.12 or newer. From `client/`:
+Use Node 22.12 or newer. `npm run build` also requires the `dwebp` binary
+(from the `webp` system package, e.g. `apt-get install webp` or
+`brew install webp`) on `PATH` — it produces the crawler-compatible share
+preview image for each puzzle's first panel. From `client/`:
 
 ```bash
 npm ci

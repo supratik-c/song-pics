@@ -52,8 +52,10 @@ content paths pass through `resolvePublicPath` so the same code works at `/`
 and beneath a GitHub Pages repository base path.
 
 Generated `/share/YYYY-MM-DD/` entry pages give link-preview crawlers static,
-puzzle-specific metadata whose image points at the released puzzle's existing
-first panel. The browser recognizes that base-aware path, selects its puzzle,
+puzzle-specific metadata whose image points at a crawler-compatible PNG
+derived from the released puzzle's first panel (see
+[content-delivery](content-delivery.md)). The browser recognizes that
+base-aware path, selects its puzzle,
 and normalizes the address to the canonical puzzle query before composing
 navigation URLs. Terminal share controls copy the invitation on desktop and
 use link-only OS sharing on conservatively recognized mobile platforms when
@@ -74,8 +76,10 @@ friendly guard; excluding the files from the production artifact is the
 security boundary.
 
 The same captured release date drives generation of one small share HTML page
-per released puzzle. Those pages reuse the bundled application shell and
-reference existing puzzle panels rather than copying images beneath `share/`.
+per released puzzle, plus a sibling derived preview image beneath `share/`.
+Those pages reuse the bundled application shell; the preview image is decoded
+or copied from the puzzle's existing first panel, never authored by hand or
+copied into `client/content/`.
 
 Answer normalization, puzzle date-id parsing/calendar math, and YouTube
 video-id extraction are each implemented once in `client/shared/*.mjs` and

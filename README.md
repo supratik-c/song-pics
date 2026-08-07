@@ -88,13 +88,18 @@ one-time setup checklist for both `scribblebops.com` and
 `dev.scribblebops.com`, including the Cloudflare Access application.
 
 `https://supratik-c.github.io/song-pics/` keeps building in parallel from the
-same source via [deploy-pages.yml](.github/workflows/deploy-pages.yml) as a
-warm standby, in case Cloudflare or the domain has an incident. Its workflow
-sets `VITE_BASE_PATH` from the GitHub repository name so Vite assets and
-copied puzzle content resolve correctly from the GitHub Pages project URL, but
-its `VITE_PUBLIC_SITE_URL` still points at `https://scribblebops.com/` so its
-share metadata references the real site. Local builds fall back to a
-base-aware localhost URL; set the variable explicitly when inspecting a
+same source via [deploy-pages.yml](.github/workflows/deploy-pages.yml). Its
+`deploy-cloudflare.yml` counterpart currently has its `push` trigger disabled
+pending Cloudflare account setup, so this GitHub Pages build is presently the
+live, user-facing site rather than a standby. Its workflow sets
+`VITE_BASE_PATH` from the GitHub repository name and `VITE_PUBLIC_SITE_URL`
+to its own Pages origin — a build's OG/canonical metadata must describe the
+origin it is actually served from, or share previews and canonical links
+break; `client/vite.config.js` asserts the two variables agree and fails the
+build otherwise. Once Cloudflare production is live and this workflow reverts
+to a warm standby, its `VITE_PUBLIC_SITE_URL` should be revisited alongside
+that cutover. Local builds fall back to a base-aware localhost URL; set the
+variable explicitly (matching `VITE_BASE_PATH`) when inspecting a
 production-like share artifact.
 
 ## Architecture

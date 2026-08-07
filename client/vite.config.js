@@ -6,7 +6,10 @@ import {
   copyReleasedContent,
   writeReleasedPuzzleMetadata,
 } from './scripts/releaseContent.mjs';
-import { writeReleasedPuzzleSharePages } from './scripts/sharePages.mjs';
+import {
+  assertPublicSiteUrlMatchesBasePath,
+  writeReleasedPuzzleSharePages,
+} from './scripts/sharePages.mjs';
 
 const projectRoot = import.meta.dirname;
 const contentDirectory = resolve(projectRoot, CONTENT_DIRECTORY_NAME);
@@ -15,6 +18,12 @@ const basePath = process.env.VITE_BASE_PATH ?? '/';
 const buildId = process.env.VITE_BUILD_ID?.trim() || 'local';
 const publicSiteUrl = process.env.VITE_PUBLIC_SITE_URL?.trim() ||
   new URL(basePath, 'http://localhost').toString();
+
+// Fails the config load, before any output is written, if this build's
+// declared public URL and base path describe different places — see
+// assertPublicSiteUrlMatchesBasePath for why that combination breaks share
+// previews and canonical links.
+assertPublicSiteUrlMatchesBasePath(publicSiteUrl, basePath);
 // Fresh on every config load, so each `vite dev` start scopes dev-only game
 // progress to its own storage namespace (see main.ts). Only read behind an
 // `import.meta.env.DEV` check, which Vite statically eliminates from

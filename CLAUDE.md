@@ -21,6 +21,10 @@ repo-specific conventions.
 ## Commands
 
 There is no root `package.json`. **Every command runs from `client/`.** Node 22.12+.
+`npm run build` also requires the `dwebp` binary (the `webp` system package) on
+`PATH` — it decodes each puzzle's first panel to a crawler-compatible share
+preview image. All CI workflows already install it; see
+[docs/content-delivery.md](docs/content-delivery.md).
 
 ```bash
 npm ci                        # clean install (matches CI)
@@ -48,7 +52,7 @@ Build-time environment variables (all read in [client/vite.config.js](client/vit
 | --- | --- | --- |
 | `VITE_BASE_PATH` | `/` | Vite `base`. GitHub Pages CI sets `/song-pics/`. |
 | `VITE_BUILD_ID` | `local` | Compiled in, emitted to `build-version.json`, appended as `?v=` to runtime content URLs. |
-| `VITE_PUBLIC_SITE_URL` | base-aware localhost | Absolute URL used in generated share-page OG metadata. |
+| `VITE_PUBLIC_SITE_URL` | base-aware localhost | Absolute URL used in generated share-page OG metadata. Its path must match `VITE_BASE_PATH`; the build asserts this and fails otherwise. |
 | `VITE_DEV_RUN_ID` | generated per config load (`Date.now()`), not settable | Dev-only; namespaces `sessionStorage` game progress per dev-server start so a restart starts clean. Read only behind `import.meta.env.DEV` in `main.ts` and eliminated from production builds. |
 
 For any build, path, or date change, build twice — default base **and**
@@ -182,5 +186,10 @@ both off). See [docs/cloudflare-migration.md](docs/cloudflare-migration.md)
 for the full Cloudflare setup, including the Access application.
 
 [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) keeps
-building the same source to GitHub Pages in parallel as a warm standby, with
-the same `VITE_PUBLIC_SITE_URL` so its share metadata points at the real site.
+building the same source to GitHub Pages in parallel as a warm standby. Its
+`VITE_PUBLIC_SITE_URL` points at its own Pages origin, not at
+`scribblebops.com` — a build's OG/canonical metadata must describe the origin
+it is actually served from (`assertPublicSiteUrlMatchesBasePath` in
+`scripts/sharePages.mjs` enforces this at build time), and `deploy-cloudflare.yml`'s
+`push` trigger is currently disabled pending Cloudflare account setup, so
+GitHub Pages is the live site today.

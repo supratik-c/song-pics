@@ -55,16 +55,22 @@ hand-drawn rasters should normally use compressed WebP on an 800 × 600 (4:3)
 canvas. `client/scripts/convert.sh` converts PNG and JPEG panels and resizes
 WebP panels that do not already match those dimensions. Important clue content
 must remain crop-safe because the grid uses a 4:3 frame with
-`object-fit: cover`.
+`object-fit: cover`. Share-page preview generation (below) only accepts a
+first panel that is WebP or PNG — the two formats `convert.sh` actually
+produces — and fails the build for any other first-panel extension.
 
 Song, artist, and lyric data are spoilers. Pre-solve headings, captions,
 filenames, alt text, logs, and share copy must not expose them.
 
 Puzzle share pages use the first numerically ordered panel already present in
 the puzzle directory. Their dated URLs, metadata, alt text, and invitation copy
-remain neutral; no duplicate share image is authored or emitted. Browser share
+remain neutral. The build derives a crawler-compatible `preview.png` from that
+panel — no image is authored by hand — because Meta's crawler (Facebook,
+WhatsApp) does not reliably render the `image/webp` panels the authoring
+pipeline produces; see the Generated metadata section below. Browser share
 payloads contain the invitation and dated URL rather than an image attachment,
-leaving a receiving app to fetch the first panel when it creates a link preview.
+leaving a receiving app to fetch the preview image when it creates a link
+preview.
 
 Reusable How to Play content lives in `client/content/how-to-play/`; its
 manifest is validated lazily in the browser and its panel paths are relative to
@@ -100,12 +106,25 @@ gitignored. They are never source and must not be hand-edited. The `dev` and
 disabled in `client/.npmrc`.
 
 Production builds also generate `dist/share/YYYY-MM-DD/index.html` from the
-built application shell for each released puzzle. Each page supplies static
-Open Graph and Twitter metadata, including an absolute image URL for the
-puzzle's existing first panel, its media type and accessible alternative, and
-a canonical dated URL. HTTPS builds also identify the secure image URL. Share
-HTML is a build artifact and is not committed; images remain only under
-`dist/content/puzzles`.
+built application shell for each released puzzle, alongside a sibling
+`dist/share/YYYY-MM-DD/preview.png`. `client/scripts/sharePages.mjs` produces
+that PNG from the puzzle's first panel — decoding it with the `dwebp` system
+binary (from the same `webp` package `convert.sh` requires) when the panel is
+WebP, or copying it through unchanged when it is already PNG — and reads its
+true dimensions from the PNG header rather than assuming a size. Each share
+page supplies static Open Graph and Twitter metadata built from that preview:
+an absolute image URL, its PNG media type, declared width and height, an
+accessible alternative, and a canonical dated URL. HTTPS builds also identify
+the secure image URL. Both the share HTML and its preview image are build
+artifacts and are not committed; `client/content/puzzles` never gains a
+`preview.png` — `convert.sh` would otherwise reconvert it back to WebP on the
+next run.
+
+Because `npm run build` now shells out to `dwebp` for any WebP first panel —
+which is every puzzle today — it requires the same `webp` system package
+`convert.sh` documents below. All three deploy workflows already install it
+before building; a local build without it fails with an actionable message
+naming the missing binary.
 
 ## Runtime paths and loading
 
@@ -175,7 +194,8 @@ own its filesystem policy:
 - future dated puzzle directories are omitted entirely;
 - source generated `index.json` and `panels.json` files are not copied;
 - released-only archive and panel manifests are regenerated in `dist`;
-- released-only share entry pages are generated without copying panel images;
+- released-only share entry pages are generated with a derived preview image,
+  not a copy of the original panel;
 - shared non-dated content remains available.
 
 The future-puzzle screen improves the experience for manually entered URLs but
@@ -247,11 +267,21 @@ images within one deployment, while a new build ID creates new cache keys so
 replaced content is not reused across deployments.
 
 `VITE_PUBLIC_SITE_URL` supplies the absolute canonical base used in social
-metadata. It is `https://scribblebops.com/` for both the Cloudflare production
-build and the GitHub Pages standby build, so the standby mirror's OG and
-canonical tags point at the real site rather than at itself. The dev preview
-build is the one exception: it sets `https://dev.scribblebops.com/` so its own
-generated share pages are self-consistent and actually testable there.
+metadata, and its path must describe the origin a build is actually served
+from: `client/vite.config.js` calls
+`assertPublicSiteUrlMatchesBasePath(publicSiteUrl, basePath)` (exported from
+`scripts/sharePages.mjs`) at config load, and the build fails before writing
+any output if `VITE_PUBLIC_SITE_URL`'s path does not match `VITE_BASE_PATH`.
+Cloudflare production and dev builds set it to their own domain
+(`https://scribblebops.com/`, `https://dev.scribblebops.com/`); the GitHub
+Pages standby build sets it to its own Pages origin. A standby mirror pointing
+its OG/canonical metadata at another origin is only sound while that mirror is
+dark — a *live* mirror advertising a foreign origin's image is exactly the
+outage this assertion exists to catch (it shipped once, from GitHub Pages
+pointed at `https://scribblebops.com/` while that domain was still an
+unrelated parked page). `dev.scribblebops.com` share pages are URL-correct but
+never render a preview in practice, since Cloudflare Access blocks
+unauthenticated crawlers from fetching them.
 
 ## Cross-runtime fixtures
 
