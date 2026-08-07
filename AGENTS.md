@@ -39,8 +39,9 @@ changes. Do not copy transient implementation detail into documentation.
   that never fetches or persists; orchestration lives in `app.ts` and concrete
   dependency composition in `main.ts`, both at `client/src/` root alongside
   `legal.ts` and `fontLicenses.ts`, which `index.html`/`legal.html` reference by
-  literal path and so cannot move into a layer folder. Logic shared between the
-  browser app and the Node build scripts lives once in `client/shared/*.mjs`.
+  literal path and so cannot move into a layer folder. Logic and copy shared
+  between the browser app and the Node build scripts live once in
+  `client/shared/*.mjs`.
 - Keep domain types explicit and validate data at external boundaries. Use DOM
   APIs and `textContent`, not untrusted `innerHTML`.
 - Pass runtime content and asset paths through `resolvePublicPath`; deployment

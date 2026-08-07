@@ -153,10 +153,11 @@ All external JSON goes through `fetchStaticJson` in
   `scripts/**/*.test.mjs` runs in `node` (build scripts only touch the filesystem).
   Prefer real DOM APIs (`document.createElement`, `vi.stubGlobal('navigator', …)` for
   platform signals) over hand-rolled fakes.
-- **Shared pure logic lives in `client/shared/*.mjs`.** Answer normalization, puzzle
-  date-id parsing and calendar math, and YouTube video-id extraction are each
-  implemented once there and imported by both the browser TS in `client/src/` and the
-  Node ESM build scripts in `client/scripts/`, so the two runtimes cannot drift.
+- **Shared pure logic and copy live in `client/shared/*.mjs`.** Answer normalization,
+  puzzle date-id parsing and calendar math, YouTube video-id extraction, and the
+  product name and share invitation (`branding.mjs`) are each implemented once there
+  and imported by both the browser TS in `client/src/` and the Node ESM build scripts
+  in `client/scripts/`, so the two runtimes cannot drift.
   `client/tsconfig.json` sets `allowJs` (not `checkJs`) so these type-check via
   `// @ts-check` + JSDoc without pulling the rest of `scripts/` into the TS program;
   keep new shared modules free of `import.meta.env` and DOM APIs, since

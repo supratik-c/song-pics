@@ -81,14 +81,15 @@ Those pages reuse the bundled application shell; the preview image is decoded
 or copied from the puzzle's existing first panel, never authored by hand or
 copied into `client/content/`.
 
-Answer normalization, puzzle date-id parsing/calendar math, and YouTube
-video-id extraction are each implemented once in `client/shared/*.mjs` and
-imported by both the browser TypeScript in `client/src/` and the Node build
-scripts in `client/scripts/`, so the two runtimes cannot drift. `vite.config.js`
-loads one of these modules at config time, so shared modules stay plain-Node
-safe: no `import.meta.env`, no DOM. `client/tsconfig.json` sets `allowJs`
-(not `checkJs`), so these type-check via `// @ts-check` + JSDoc without
-pulling the rest of `scripts/` into the TypeScript program.
+Answer normalization, puzzle date-id parsing/calendar math, YouTube video-id
+extraction, and the product name and share invitation are each implemented
+once in `client/shared/*.mjs` and imported by both the browser TypeScript in
+`client/src/` and the Node build scripts in `client/scripts/`, so the two
+runtimes cannot drift. `vite.config.js` loads one of these modules at config
+time, so shared modules stay plain-Node safe: no `import.meta.env`, no DOM.
+`client/tsconfig.json` sets `allowJs` (not `checkJs`), so these type-check via
+`// @ts-check` + JSDoc without pulling the rest of `scripts/` into the
+TypeScript program.
 
 Vite also emits a build-version manifest. Production clients compare it with
 the build identifier compiled into the JavaScript and perform at most one
@@ -130,9 +131,9 @@ carry the same build identifier; compiled assets use Vite's content hashes.
 - `client/src/legal.ts` and `fontLicenses.ts`: the legal page's font-license
   listing; kept at `client/src/` root alongside `main.ts` because `legal.html`
   references `legal.ts` by literal path.
-- `client/shared/*.mjs`: pure logic shared between the browser app and the
-  Node build scripts — answer normalization, puzzle date math, and YouTube
-  video-id extraction (see Build flow above).
+- `client/shared/*.mjs`: pure logic and copy shared between the browser app and
+  the Node build scripts — answer normalization, puzzle date math, YouTube
+  video-id extraction, and share branding (see Build flow above).
 - `client/scripts/` and `client/vite.config.js`: authoring validation, generated
   metadata and share pages, release filtering/copying, and build integration.
 

@@ -115,10 +115,16 @@ true dimensions from the PNG header rather than assuming a size. Each share
 page supplies static Open Graph and Twitter metadata built from that preview:
 an absolute image URL, its PNG media type, declared width and height, an
 accessible alternative, and a canonical dated URL. HTTPS builds also identify
-the secure image URL. Both the share HTML and its preview image are build
-artifacts and are not committed; `client/content/puzzles` never gains a
-`preview.png` — `convert.sh` would otherwise reconvert it back to WebP on the
-next run.
+the secure image URL. The card's title and description are the product name
+and the same spoiler-free invitation the browser share control uses, defined
+once in `client/shared/branding.mjs` so the card a crawler renders and the
+message a player pastes cannot drift. No `og:site_name` is emitted — a site
+name identical to `og:title` would render the product name twice on the card;
+the built shell's own `<title>` is retained for the browser tab, since
+crawlers prefer `og:title` and only fall back to `<title>` when it is absent.
+Both the share HTML and its preview image are build artifacts and are not
+committed; `client/content/puzzles` never gains a `preview.png` — `convert.sh`
+would otherwise reconvert it back to WebP on the next run.
 
 Because `npm run build` now shells out to `dwebp` for any WebP first panel —
 which is every puzzle today — it requires the same `webp` system package

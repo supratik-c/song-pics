@@ -1,6 +1,11 @@
+import { PRODUCT_NAME, SHARE_INVITATION } from '../../shared/branding.mjs';
 import type { PuzzlePerformance } from '../domain/performance.ts';
 
 export type PuzzleShareRequest = {
+  // Not read by getCopyText — the clipboard text opens with the invitation,
+  // not the product name, to avoid repeating the card's own og:title.
+  // browserShare.ts still forwards this to ShareData.title for OS share
+  // sheets (e.g. Android's EXTRA_SUBJECT, the iOS/macOS mail subject).
   title: string;
   text: string;
   url: string;
@@ -26,16 +31,14 @@ export function createPuzzleShareRequest(
   performance: PuzzlePerformance,
 ): PuzzleShareRequest {
   return {
-    title: 'Scribble Bops',
-    text:
-      "Can you guess today's song from some questionable hand-drawn doodles?\n" +
-      getPerformanceLine(performance),
+    title: PRODUCT_NAME,
+    text: `${SHARE_INVITATION}\n${getPerformanceLine(performance)}`,
     url,
   };
 }
 
 export function getCopyText(request: PuzzleShareRequest): string {
-  return `${request.title}\n${request.text}\n${request.url}`;
+  return `${request.text}\n${request.url}`;
 }
 
 export async function shareCurrentPuzzle(

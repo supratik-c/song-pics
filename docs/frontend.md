@@ -222,7 +222,11 @@ The compact, left-aligned share action uses the visible label `Share` with its
 three-node icon, leaving room for adjacent terminal actions. Desktop and unknown
 platforms make that action copy the invitation even when the browser exposes an
 OS share mechanism, avoiding desktop share targets that discard the link in
-favour of another payload representation. Conservatively recognized Android,
+favour of another payload representation. The copied text carries the
+invitation, terminal performance, and dated URL without the product title,
+since a rendered link preview already shows its own title; the title survives
+only for the native path below, where OS share sheets use it directly (e.g. as
+a mail subject). Conservatively recognized Android,
 iPhone, iPod, and iPadOS browsers use native sharing when it is available; their
 payload contains only the title, spoiler-free invitation with terminal
 performance, and dated URL. The request is created synchronously from current

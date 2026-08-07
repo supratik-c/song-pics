@@ -90,10 +90,18 @@ describe('released puzzle share pages', () => {
       '<meta property="og:image:height" content="600" />',
     );
     expect(laterPage).toContain('property="og:image:secure_url"');
-    expect(laterPage).toContain('name="twitter:image:alt"');
+    expect(laterPage).toContain(
+      '<meta name="twitter:image:alt" content="First Scribble Bops clue panel for Issue #2" />',
+    );
     expect(laterPage).toContain(
       'Can you guess today&#39;s song from some questionable hand-drawn doodles?',
     );
+    // The card's title line is og:title alone. A site name identical to it
+    // rendered the product name twice; the shell's own <title> is not a
+    // card line — crawlers prefer og:title and only fall back to it when
+    // og:title is absent.
+    expect(laterPage).not.toContain('og:site_name');
+    expect(laterPage).toContain('<title>Scribble Bops</title>');
     expect(laterPage).not.toContain(validPuzzle.songTitle);
     expect(laterPage).not.toContain(validPuzzle.artist);
     expect(laterPage).not.toContain('I got it in');

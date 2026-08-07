@@ -52,7 +52,7 @@ describe('puzzle share request', () => {
     },
   );
 
-  it('formats the clipboard invitation in the intended line order', () => {
+  it('omits the product title from the clipboard text but keeps it for OS share sheets', () => {
     const request = createPuzzleShareRequest(shareUrl, {
       puzzleId,
       outcome: 'solved',
@@ -60,11 +60,12 @@ describe('puzzle share request', () => {
     });
 
     expect(getCopyText(request)).toBe(
-      'Scribble Bops\n' +
       "Can you guess today's song from some questionable hand-drawn doodles?\n" +
       'I got it in 1 guess!\n' +
       shareUrl,
     );
+    expect(getCopyText(request)).not.toContain('Scribble Bops');
+    expect(request.title).toBe('Scribble Bops');
   });
 
   it('resolves performance from the latest state when sharing begins', async () => {

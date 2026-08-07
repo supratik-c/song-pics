@@ -86,7 +86,7 @@ describe('browser share gateway', () => {
     await expect(gateway.share(request)).resolves.toBe('copied');
     expect(share).not.toHaveBeenCalled();
     expect(writeText).toHaveBeenCalledWith(
-      `${request.title}\n${request.text}\n${request.url}`,
+      `${request.text}\n${request.url}`,
     );
   });
 

@@ -7,6 +7,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { extname, resolve } from 'node:path';
+import { PRODUCT_NAME, SHARE_INVITATION } from '../shared/branding.mjs';
 import {
   getPuzzleDirectory,
   isFuturePuzzleDateId,
@@ -16,9 +17,6 @@ import { getPuzzleMetadata } from './puzzleMetadata.mjs';
 const SHARE_DIRECTORY_NAME = 'share';
 const SHARE_PAGE_FILE_NAME = 'index.html';
 const SHARE_PREVIEW_FILE_NAME = 'preview.png';
-const PAGE_TITLE = 'Scribble Bops';
-const PAGE_DESCRIPTION =
-  "Can you guess today's song from some questionable hand-drawn doodles?";
 
 export function writeReleasedPuzzleSharePages(
   projectRoot,
@@ -98,12 +96,16 @@ export function createPuzzleSharePage(
     imageWidth > 0 &&
     Number.isInteger(imageHeight) &&
     imageHeight > 0;
+  const imageAltText = escapeHtml(
+    `First ${PRODUCT_NAME} clue panel for Issue #${issueNumber}`,
+  );
   const metadata = [
     `<link rel="canonical" href="${escapeHtml(shareUrl)}" />`,
     '<meta property="og:type" content="website" />',
-    '<meta property="og:site_name" content="Scribble Bops" />',
-    `<meta property="og:title" content="${escapeHtml(PAGE_TITLE)}" />`,
-    `<meta property="og:description" content="${escapeHtml(PAGE_DESCRIPTION)}" />`,
+    // No og:site_name: it would duplicate the product name that og:title
+    // already carries as the card's title line.
+    `<meta property="og:title" content="${escapeHtml(PRODUCT_NAME)}" />`,
+    `<meta property="og:description" content="${escapeHtml(SHARE_INVITATION)}" />`,
     `<meta property="og:url" content="${escapeHtml(shareUrl)}" />`,
     `<meta property="og:image" content="${escapeHtml(imageUrl)}" />`,
     ...(image.protocol === 'https:'
@@ -116,12 +118,12 @@ export function createPuzzleSharePage(
         `<meta property="og:image:height" content="${imageHeight}" />`,
       ]
       : []),
-    `<meta property="og:image:alt" content="First Scribble Bops clue panel for Issue #${issueNumber}" />`,
+    `<meta property="og:image:alt" content="${imageAltText}" />`,
     '<meta name="twitter:card" content="summary_large_image" />',
-    `<meta name="twitter:title" content="${escapeHtml(PAGE_TITLE)}" />`,
-    `<meta name="twitter:description" content="${escapeHtml(PAGE_DESCRIPTION)}" />`,
+    `<meta name="twitter:title" content="${escapeHtml(PRODUCT_NAME)}" />`,
+    `<meta name="twitter:description" content="${escapeHtml(SHARE_INVITATION)}" />`,
     `<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />`,
-    `<meta name="twitter:image:alt" content="First Scribble Bops clue panel for Issue #${issueNumber}" />`,
+    `<meta name="twitter:image:alt" content="${imageAltText}" />`,
   ].map((line) => `    ${line}`).join('\n');
 
   if (!applicationHtml.includes('</head>')) {
