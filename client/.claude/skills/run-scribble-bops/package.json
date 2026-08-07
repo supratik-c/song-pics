@@ -1,0 +1,9 @@
+{
+  "name": "run-scribble-bops-driver",
+  "private": true,
+  "type": "module",
+  "description": "Agent tooling for the run-scribble-bops skill. Not part of the shipped app.",
+  "dependencies": {
+    "playwright-core": "1.62.1"
+  }
+}
