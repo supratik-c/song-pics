@@ -21,13 +21,22 @@ export function renderResult(
   const body = document.createElement('div');
   const message = document.createElement('p');
   const answer = document.createElement('p');
+  const artist = document.createElement('p');
+  const artistPrefix = document.createElement('span');
+  const artistName = document.createElement('span');
 
   title.id = 'puzzle-result-title';
   title.className = 'result-banner';
   body.className = 'result-body';
   message.className = 'result-message';
   answer.className = 'result-answer';
-  answer.textContent = `${solution.songTitle} by ${solution.artist}`;
+  answer.textContent = solution.songTitle;
+  artist.className = 'result-artist';
+  artistPrefix.className = 'result-artist-prefix';
+  artistPrefix.textContent = 'by';
+  artistName.className = 'result-artist-name';
+  artistName.textContent = solution.artist;
+  artist.append(artistPrefix, document.createTextNode(' '), artistName);
 
   if (status === 'solved') {
     title.textContent = 'Correct!';
@@ -41,7 +50,7 @@ export function renderResult(
     message.textContent = 'That was your last guess. The song was:';
   }
 
-  body.append(message, answer);
+  body.append(message, answer, artist);
 
   if (solution.youtubeURL) {
     body.append(createYouTubeControl(

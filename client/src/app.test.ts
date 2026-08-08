@@ -164,7 +164,10 @@ describe('artist and song reveal', () => {
     expect(elements.resultRegion.hidden).toBe(false);
     expect(
       elements.resultRegion.querySelector('.result-answer')?.textContent,
-    ).toBe(`${puzzle.songTitle} by ${puzzle.artist}`);
+    ).toBe(puzzle.songTitle);
+    expect(
+      elements.resultRegion.querySelector('.result-artist')?.textContent,
+    ).toBe(`by ${puzzle.artist}`);
     expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
   });
 });

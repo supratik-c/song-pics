@@ -51,7 +51,10 @@ describe('inline result rendering', () => {
       expect(region.querySelector('.result-banner')?.textContent).toBe(title);
       expect(region.querySelector('.result-message')?.textContent).toBe(message);
       expect(region.querySelector('.result-answer')?.textContent).toBe(
-        'Counting Stars by OneRepublic',
+        'Counting Stars',
+      );
+      expect(region.querySelector('.result-artist')?.textContent).toBe(
+        'by OneRepublic',
       );
 
       expect(region.querySelector('.result-video')).toBeNull();
