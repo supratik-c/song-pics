@@ -106,6 +106,81 @@ Modified activations and links targeting another browsing context retain
 native anchor behavior. The modal closes during page exit so a back-forward-
 cache restore does not leave a stale loading overlay open.
 
+`client/src/platform/anchoredDialog.ts` owns a second, general-purpose dialog
+system — a peer of `modal.ts`, not a feature of any one caller. Where
+`modal.ts` centers one shared `<dialog>` in the page, `anchoredDialog.ts`
+opens a fresh `<dialog>` positioned relative to a caller-supplied control,
+for a small popup that reads as an aside rather than a full modal
+interruption. A caller's `AnchoredDialogView` supplies content (a
+`DocumentFragment`), a modifier class for its own styling, the anchor and
+return-focus elements, and an optional `onClose` callback; the controller
+exposes `open`/`close`/`isOpen`/`setDismissible` and never learns why a
+popover closed or was locked — that meaning stays entirely with the caller,
+expressed as ordinary closures around `onClose`. A popup that is just copy
+and a single close button is the same controller with different injected
+content; `dismissible: false` at open time and the runtime `setDismissible`
+toggle are the two built-in extension points, for a popup that must be
+answered rather than dismissed with Escape or an outside tap, including one
+whose dismissibility needs to change while it's already open (e.g. locking
+it once a caller-side action has started committing). The Reveal Artist
+notice (below) is its first caller. It still reuses `showModal()` for the same free
+inertness/top-layer/focus-containment `modal.ts` relies on, but overrides the
+UA's fixed, auto-centered positioning: CSS sets `position: absolute` (so the
+top-layer dialog scrolls with the document instead of staying pinned to the
+viewport) with `top`/`left` from JS-computed custom properties, and a
+transparent `::backdrop` so the rest of the page stays visible, just inert.
+Initial focus goes to the dialog container itself, not a descendant button,
+since which button (if any) should be pre-focused is caller-specific. The
+shared `.anchored-popover` shell (`styles/anchoredPopover.css`) sets
+`overflow: visible`, overriding the UA `dialog` stylesheet's `overflow: auto`
+— without it, the speech-bubble tail pseudo-element, which deliberately
+protrudes past the border box, gets silently clipped to two stray stubs. For
+the same reason its hard comic shadow is a `filter: drop-shadow(...)` rather
+than `box-shadow`, so the shadow follows the tail's silhouette too;
+forced-colors mode suppresses it back to `filter: none` (`styles/
+responsive.css`) since forced-colors does not remap or suppress `filter` the
+way it does `box-shadow`. Beware that `elementHandle.screenshot()` in a
+Playwright verification pass clips to the same border box and will hide
+this tail — screenshot a page region instead.
+Placement — above or below the anchor, depending on scroll position, with
+horizontal clamping at narrow viewports — is computed once when the popover
+opens (`platform/anchoredPlacement.ts`, a pure function) and is not
+recomputed on resize or orientation change; an open popover may overlap
+other controls, which is safe because the inert page means a keyboard or
+assistive-technology user cannot reach anything underneath, and a pointer
+user simply hits whichever element is topmost.
+
+The Reveal Artist button now shows only its label; the button used to also
+carry a small `−2` cost badge, but that made the button look cramped on
+narrow viewports and has been replaced. Before the very first click of any
+Reveal Artist button, ever, a speech-bubble popover (`anchored-popover
+artist-reveal-notice`) opens anchored to the button, stating the guess cost
+with light-green Accept (“Reveal”) and red Decline (“No Thanks”) buttons. The
+cost phrase (“uses two guesses”) is bold and underlined against an otherwise
+regular-weight message — Kalam only ships weights 400/700, so the surrounding
+text must drop to 400 for the bold phrase to read as emphasized rather than
+matching weight with the rest of the line.
+Escape and an outside tap both behave as Decline. Either choice permanently
+records that the notice has been answered — a separate flag
+(`ArtistRevealNoticeStore`, see the persistence section below), not part of
+per-puzzle game state — so it never appears again on that puzzle or any
+other, once per browser. Once answered, subsequent clicks reveal directly
+with the existing cost/flourish behavior and no popover. Once fewer attempts
+remain than the reveal would cost plus one, the button disables and its
+label swaps to `Not enough guesses!`, exactly as before; that affordability
+check runs before the notice can open, so a click that can't reveal never
+opens the popover and never spends the once-ever flag. A successful reveal,
+from either the popover's Accept or a direct click once the notice has
+already been answered, moves focus to the artist hint that replaces the
+button, so keyboard and assistive-technology users are not left on a
+now-hidden element. Revealing still updates the polite attempts-left live
+region like any other attempt, and the
+separate, purely decorative `aria-hidden` `−2` marker still appears over the
+guesses-left number and drifts downward while fading over 0.5s, then removes
+itself; under `prefers-reduced-motion` the marker still appears and is still
+removed, just without the drift, fade, or the popover's own appear
+animation.
+
 Correct, revealed, and failed outcomes replace the guess form and action grid
 with an inline result. Only correct answers use its success treatment. Solved
 and manually revealed results may include a local `Watch YouTube Video`
@@ -125,6 +200,15 @@ polite live region and does not replace general application errors. Artist and
 attempt feedback use deliberate live regions without making every visual change
 an announcement. Fatal initialization and load failures are also rendered
 through a view rather than direct writes from `main.ts` or `app.ts`.
+
+The Reveal Artist tile shows a single centered label. Once fewer attempts
+remain than the reveal would cost plus one, the button disables and the
+label swaps to `Not enough guesses!`, so a player can never spend attempts
+on a hint they cannot act on. See "Dialogs and secondary views" above for
+the once-ever confirmation popover this button opens and the attempts-left
+flourish this produces — the first animation in this codebase to need
+`prefers-reduced-motion` handling distinct from a live-region announcement,
+since it communicates the same change without motion rather than removing it.
 
 The static game shell places the reusable loading status in the clue-panel area
 so it can appear before JavaScript downloads. It reserves the loading layout and
@@ -198,8 +282,9 @@ with the iframe, moves focus to the player, reveals the external fallback link,
 and records consent in `sessionStorage`. A later automatic load does not move
 focus. Closing the tab ends consent; a later tab session starts unloaded.
 
-`platform/storage.ts` persists per-puzzle game state (guesses and status) by
-puzzle ID under the `scribble-bops:` key prefix. `main.ts` composes the store
+`platform/storage.ts` persists per-puzzle game state (guesses, status, and
+whether the artist has been revealed) by puzzle ID under the `scribble-bops:`
+key prefix. `main.ts` composes the store
 per environment: production uses `localStorage` with the default namespace so
 progress survives across sessions; `vite dev` uses `sessionStorage` under a
 `scribble-bops:dev:<run id>` namespace, where the run id is generated fresh in
@@ -210,6 +295,17 @@ colliding with production keys on `localhost`, and it self-resets on the next
 `npm run dev`. `main.ts` also forces the Ko-fi support trigger to
 `alwaysShowSupport` in dev, bypassing the normal three-solve threshold, so the
 prompt can be inspected after any single terminal result.
+
+`ArtistRevealNoticeStore` (also in `platform/storage.ts`) is a second,
+separate permanent flag: whether the player has ever answered the Reveal
+Artist confirmation popover, on any puzzle. It shares `main.ts`'s dev/prod
+namespace split with game-state persistence — `localStorage` in production,
+dev-run-namespaced `sessionStorage` in `vite dev` — but is deliberately not
+part of the per-puzzle `GameState` contract, which is a closed, exactly-3-key
+shape that cannot grow to hold a cross-puzzle flag. Once set, it stays set
+until the browser's storage for the site is cleared, at which point the
+notice is expected to reappear — the same graceful-reset shape `GameState`
+and `YouTubeConsentStore` already have.
 
 The layout is mobile-first down to 320 px and also supports wide desktop
 viewports. Controls must not overflow and primary targets should remain roughly
@@ -244,18 +340,25 @@ stylesheet:
 
 1. `styles/foundation.css` owns fonts, tokens, reset, page shell, and masthead;
 2. `styles/loading.css` owns the reusable loading status and its motion;
-3. `styles/game.css` owns panels, controls, feedback, and the future state;
+3. `styles/game.css` owns panels, controls, feedback, the future state, and
+   the Reveal Artist notice's content (message and Accept/Decline styling —
+   the popover shell itself lives in `anchoredPopover.css`, below);
 4. `styles/dialog.css` owns the dialog, tutorial, archive, and results;
-5. `styles/share.css` owns the reusable main and dialog share control, and
+5. `styles/anchoredPopover.css` owns the generic anchored-popover shell
+   (shape, tail, placement, transparent backdrop, appear animation) that
+   `platform/anchoredDialog.ts` opens — content-only styling for any one
+   popover, such as the Reveal Artist notice, stays in that feature's own
+   stylesheet instead;
+6. `styles/share.css` owns the reusable main and dialog share control, and
    the shared flex-row layout of `.share-region` that pairs it with the
    nested Ko-fi prompt;
-6. `styles/support.css` owns the reusable Ko-fi support prompt's own content
+7. `styles/support.css` owns the reusable Ko-fi support prompt's own content
    and boxed-logo styling, not its row layout;
-7. `styles/responsive.css` owns ordered breakpoint, motion, and forced-color
+8. `styles/responsive.css` owns ordered breakpoint, motion, and forced-color
    overrides.
 
 `client/src/legal.css` is the separate entry for The Legal Stuff page. It
-imports the shared foundation before `styles/legal.css` — the eighth file in
+imports the shared foundation before `styles/legal.css` — the ninth file in
 `client/src/styles/`, page-specific and outside `styles.css`'s chain — avoiding
 game, dialog, share, and support rules that the static page does not use.
 

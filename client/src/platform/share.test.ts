@@ -72,7 +72,7 @@ describe('puzzle share request', () => {
     let state: GameState = createInitialGameState();
     const share = vi.fn().mockResolvedValue('copied' as const);
     const getRequest = () => {
-      const performance = getPuzzlePerformance(puzzleId, state);
+      const performance = getPuzzlePerformance(puzzleId, state, GAME_RULES);
 
       if (!performance) {
         throw new Error('Performance is not terminal.');
@@ -95,7 +95,8 @@ describe('puzzle share request', () => {
     const performance = getPuzzlePerformance(puzzleId, {
       guesses: ['secret wrong answer', 'secret correct answer'],
       status: 'solved',
-    });
+      artistRevealed: false,
+    }, GAME_RULES);
 
     expect(performance).not.toBeNull();
     const request = createPuzzleShareRequest(shareUrl, performance!);

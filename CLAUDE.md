@@ -74,8 +74,9 @@ main.ts       composition root — the only place that constructs browser adapte
        -> content/   fetch + complete boundary validation (puzzleLoader.ts,
                       howToPlayLoader.ts, validation.ts, publicPath.ts)
        -> platform/  replaceable browser-adapter boundaries (storage.ts,
-                      completion.ts, dom.ts, modal.ts, share.ts,
-                      browserShare.ts, deploymentVersion.ts, tactileAction.ts)
+                      completion.ts, dom.ts, modal.ts, anchoredDialog.ts,
+                      anchoredPlacement.ts, share.ts, browserShare.ts,
+                      deploymentVersion.ts, tactileAction.ts)
        -> views/     pure render functions; never fetch or persist
 ```
 

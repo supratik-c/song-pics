@@ -101,6 +101,7 @@ describe('guess submission', () => {
     expect(dependencies.gameStateStore.save).toHaveBeenCalledWith(puzzle.id, {
       guesses: ['a wrong guess'],
       status: 'playing',
+      artistRevealed: false,
     });
     expect(elements.guessList.children).toHaveLength(1);
     expect(elements.attemptsCount.textContent).toBe('4 guesses left');
@@ -125,7 +126,7 @@ describe('guess submission', () => {
 });
 
 describe('artist and song reveal', () => {
-  it('reveals the artist only while the puzzle is still being played', async () => {
+  it('reveals the artist for a cost of 2 guesses while playing', async () => {
     const elements = createElements();
     const dependencies = createDependencies();
 
@@ -134,6 +135,68 @@ describe('artist and song reveal', () => {
 
     expect(elements.artistHint.hidden).toBe(false);
     expect(elements.artistHint.textContent).toBe(puzzle.artist);
+    expect(elements.attemptsCount.textContent).toBe('3 guesses left');
+    expect(dependencies.gameStateStore.save).toHaveBeenCalledWith(puzzle.id, {
+      guesses: [],
+      status: 'playing',
+      artistRevealed: true,
+    });
+
+    const penalty = elements.attemptsCell.querySelector('.attempts-penalty');
+
+    expect(penalty?.textContent).toBe('−2');
+    expect(document.activeElement).toBe(elements.artistHint);
+  });
+
+  it('disables the reveal button once fewer than 3 guesses remain', async () => {
+    const elements = createElements();
+    const dependencies = createDependencies();
+
+    await initApp(elements, null, dependencies);
+
+    for (const guess of ['wrong one', 'wrong two', 'wrong three']) {
+      elements.guessInput.value = guess;
+      elements.form.dispatchEvent(new Event('submit', { cancelable: true }));
+    }
+
+    expect(elements.attemptsCount.textContent).toBe('2 guesses left');
+    expect(elements.revealArtistButton.disabled).toBe(true);
+    expect(elements.revealArtistButton.textContent).toContain(
+      'Not enough guesses!',
+    );
+
+    elements.revealArtistButton.click();
+
+    expect(elements.artistHint.hidden).toBe(true);
+    expect(dependencies.gameStateStore.save).not.toHaveBeenCalledWith(
+      puzzle.id,
+      expect.objectContaining({ artistRevealed: true }),
+    );
+  });
+
+  it('does not replay the reveal or its penalty flourish for a restored puzzle', async () => {
+    const elements = createElements();
+    let state: GameState = {
+      guesses: ['one'],
+      status: 'playing',
+      artistRevealed: true,
+    };
+    const dependencies = createDependencies({
+      gameStateStore: {
+        load: vi.fn(() => state),
+        save: vi.fn((_puzzleId: string, nextState: GameState) => {
+          state = nextState;
+        }),
+      },
+    });
+
+    await initApp(elements, null, dependencies);
+
+    expect(elements.artistHint.hidden).toBe(false);
+    expect(elements.artistHint.textContent).toBe(puzzle.artist);
+    expect(
+      elements.attemptsCell.querySelector('.attempts-penalty'),
+    ).toBeNull();
   });
 
   it('ignores an artist reveal once the round has ended', async () => {
@@ -160,6 +223,7 @@ describe('artist and song reveal', () => {
     expect(dependencies.gameStateStore.save).toHaveBeenCalledWith(puzzle.id, {
       guesses: [],
       status: 'revealed',
+      artistRevealed: false,
     });
     expect(elements.resultRegion.hidden).toBe(false);
     expect(
@@ -169,6 +233,218 @@ describe('artist and song reveal', () => {
       elements.resultRegion.querySelector('.result-artist')?.textContent,
     ).toBe(`by ${puzzle.artist}`);
     expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
+  });
+});
+
+describe('reveal-artist notice', () => {
+  it('opens the popover instead of revealing on the very first click', async () => {
+    const elements = createElements();
+    const artistRevealNoticeStore = createArtistRevealNoticeStore(false);
+    const dependencies = createDependencies({ artistRevealNoticeStore });
+
+    await initApp(elements, null, dependencies);
+    elements.revealArtistButton.click();
+
+    const dialog = document.querySelector<HTMLDialogElement>(
+      'dialog.artist-reveal-notice',
+    );
+
+    expect(dialog).not.toBeNull();
+    expect(dialog?.open).toBe(true);
+    expect(elements.artistHint.hidden).toBe(true);
+    expect(dependencies.gameStateStore.save).not.toHaveBeenCalled();
+  });
+
+  it('reveals, marks the notice seen, and shows the flourish when Accept is pressed', async () => {
+    const elements = createElements();
+    const artistRevealNoticeStore = createArtistRevealNoticeStore(false);
+    const dependencies = createDependencies({ artistRevealNoticeStore });
+
+    await initApp(elements, null, dependencies);
+    elements.revealArtistButton.click();
+    document
+      .querySelector<HTMLButtonElement>('.artist-reveal-notice-accept')
+      ?.click();
+
+    expect(document.querySelector('dialog.artist-reveal-notice')).toBeNull();
+    expect(artistRevealNoticeStore.markSeen).toHaveBeenCalledTimes(1);
+    expect(elements.artistHint.hidden).toBe(false);
+    expect(elements.artistHint.textContent).toBe(puzzle.artist);
+    expect(elements.attemptsCount.textContent).toBe('3 guesses left');
+    expect(
+      elements.attemptsCell.querySelector('.attempts-penalty')?.textContent,
+    ).toBe('−2');
+    expect(document.activeElement).toBe(elements.artistHint);
+  });
+
+  it('a commit lock prevents Escape from dropping a pending Accept during its tactile delay', async () => {
+    // This race only exists when runAfterTactileActivation actually defers
+    // (reduced motion, mocked true in beforeEach, takes the synchronous
+    // branch instead) — override it and use fake timers to reach the
+    // ~250ms fallback-timer window the race lives in.
+    vi.spyOn(window, 'matchMedia').mockReturnValue({
+      matches: false,
+    } as MediaQueryList);
+    vi.useFakeTimers();
+
+    const elements = createElements();
+    const artistRevealNoticeStore = createArtistRevealNoticeStore(false);
+    const dependencies = createDependencies({ artistRevealNoticeStore });
+
+    await initApp(elements, null, dependencies);
+    elements.revealArtistButton.click();
+    // Opening the popover is itself deferred behind the tactile delay now
+    // that reduced motion is off; run it to completion before interacting
+    // with the popover's own buttons.
+    vi.runAllTimers();
+
+    const acceptButton = document.querySelector<HTMLButtonElement>(
+      '.artist-reveal-notice-accept',
+    );
+    acceptButton?.click();
+
+    // The Accept action is still pending behind its own tactile delay.
+    const dialog = document.querySelector<HTMLDialogElement>(
+      'dialog.artist-reveal-notice',
+    );
+
+    expect(dialog).not.toBeNull();
+    expect(artistRevealNoticeStore.markSeen).not.toHaveBeenCalled();
+
+    // Escape lands inside the pending window — the commit lock (set
+    // synchronously on click, before the delay) must make this a no-op.
+    dialog?.dispatchEvent(new Event('cancel', { cancelable: true }));
+
+    expect(document.querySelector('dialog.artist-reveal-notice')).not.toBeNull();
+    expect(artistRevealNoticeStore.markSeen).not.toHaveBeenCalled();
+
+    vi.runAllTimers();
+
+    expect(document.querySelector('dialog.artist-reveal-notice')).toBeNull();
+    expect(artistRevealNoticeStore.markSeen).toHaveBeenCalledTimes(1);
+    expect(elements.artistHint.hidden).toBe(false);
+    expect(elements.artistHint.textContent).toBe(puzzle.artist);
+
+    vi.useRealTimers();
+  });
+
+  it('marks the notice seen without revealing when Decline is pressed', async () => {
+    const elements = createElements();
+    const artistRevealNoticeStore = createArtistRevealNoticeStore(false);
+    const dependencies = createDependencies({ artistRevealNoticeStore });
+
+    await initApp(elements, null, dependencies);
+    elements.revealArtistButton.click();
+    document
+      .querySelector<HTMLButtonElement>('.artist-reveal-notice-decline')
+      ?.click();
+
+    expect(document.querySelector('dialog.artist-reveal-notice')).toBeNull();
+    expect(artistRevealNoticeStore.markSeen).toHaveBeenCalledTimes(1);
+    expect(elements.artistHint.hidden).toBe(true);
+    expect(dependencies.gameStateStore.save).not.toHaveBeenCalled();
+  });
+
+  it('behaves as decline when the popover is dismissed via Escape', async () => {
+    const elements = createElements();
+    const artistRevealNoticeStore = createArtistRevealNoticeStore(false);
+    const dependencies = createDependencies({ artistRevealNoticeStore });
+
+    await initApp(elements, null, dependencies);
+    elements.revealArtistButton.click();
+
+    const dialog = document.querySelector<HTMLDialogElement>(
+      'dialog.artist-reveal-notice',
+    );
+    dialog?.dispatchEvent(new Event('cancel', { cancelable: true }));
+
+    expect(document.querySelector('dialog.artist-reveal-notice')).toBeNull();
+    expect(artistRevealNoticeStore.markSeen).toHaveBeenCalledTimes(1);
+    expect(elements.artistHint.hidden).toBe(true);
+  });
+
+  it('behaves as decline when the popover backdrop area is clicked', async () => {
+    const elements = createElements();
+    const artistRevealNoticeStore = createArtistRevealNoticeStore(false);
+    const dependencies = createDependencies({ artistRevealNoticeStore });
+
+    await initApp(elements, null, dependencies);
+    elements.revealArtistButton.click();
+
+    const dialog = document.querySelector<HTMLDialogElement>(
+      'dialog.artist-reveal-notice',
+    );
+    dialog?.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true }),
+    );
+
+    expect(document.querySelector('dialog.artist-reveal-notice')).toBeNull();
+    expect(artistRevealNoticeStore.markSeen).toHaveBeenCalledTimes(1);
+    expect(elements.artistHint.hidden).toBe(true);
+  });
+
+  it('reveals directly with no popover on the click after a decline', async () => {
+    const elements = createElements();
+    const artistRevealNoticeStore = createArtistRevealNoticeStore(false);
+    const dependencies = createDependencies({ artistRevealNoticeStore });
+
+    await initApp(elements, null, dependencies);
+    elements.revealArtistButton.click();
+    document
+      .querySelector<HTMLButtonElement>('.artist-reveal-notice-decline')
+      ?.click();
+
+    elements.revealArtistButton.click();
+
+    expect(document.querySelector('dialog.artist-reveal-notice')).toBeNull();
+    expect(elements.artistHint.hidden).toBe(false);
+    expect(elements.artistHint.textContent).toBe(puzzle.artist);
+  });
+
+  it('focuses the popover container itself, not a button inside it', async () => {
+    const elements = createElements();
+    const artistRevealNoticeStore = createArtistRevealNoticeStore(false);
+    const dependencies = createDependencies({ artistRevealNoticeStore });
+
+    await initApp(elements, null, dependencies);
+    elements.revealArtistButton.click();
+
+    const dialog = document.querySelector('dialog.artist-reveal-notice');
+
+    expect(document.activeElement).toBe(dialog);
+  });
+
+  it('returns focus to the Reveal Artist button after the popover closes', async () => {
+    const elements = createElements();
+    const artistRevealNoticeStore = createArtistRevealNoticeStore(false);
+    const dependencies = createDependencies({ artistRevealNoticeStore });
+
+    await initApp(elements, null, dependencies);
+    elements.revealArtistButton.click();
+    document
+      .querySelector<HTMLButtonElement>('.artist-reveal-notice-decline')
+      ?.click();
+
+    expect(document.activeElement).toBe(elements.revealArtistButton);
+  });
+
+  it('does not open the notice or mark it seen when the reveal is unaffordable', async () => {
+    const elements = createElements();
+    const artistRevealNoticeStore = createArtistRevealNoticeStore(false);
+    const dependencies = createDependencies({ artistRevealNoticeStore });
+
+    await initApp(elements, null, dependencies);
+
+    for (const guess of ['wrong one', 'wrong two', 'wrong three']) {
+      elements.guessInput.value = guess;
+      elements.form.dispatchEvent(new Event('submit', { cancelable: true }));
+    }
+
+    elements.revealArtistButton.click();
+
+    expect(document.querySelector('dialog.artist-reveal-notice')).toBeNull();
+    expect(artistRevealNoticeStore.hasSeen).not.toHaveBeenCalled();
+    expect(artistRevealNoticeStore.markSeen).not.toHaveBeenCalled();
   });
 });
 
@@ -309,6 +585,23 @@ describe('All Releases modal', () => {
   });
 });
 
+// Stateful (unlike createDependencies' default "already seen" fake) so
+// hasSeen reflects a real markSeen call — "the click after the popover
+// behaves differently" is the exact thing these tests exercise.
+function createArtistRevealNoticeStore(seen: boolean): {
+  hasSeen: ReturnType<typeof vi.fn<() => boolean>>;
+  markSeen: ReturnType<typeof vi.fn<() => void>>;
+} {
+  let hasSeenFlag = seen;
+
+  return {
+    hasSeen: vi.fn(() => hasSeenFlag),
+    markSeen: vi.fn(() => {
+      hasSeenFlag = true;
+    }),
+  };
+}
+
 function createElements(): ReturnType<typeof getGameElements> {
   loadAppShellIntoDocument();
   return getGameElements();
@@ -337,6 +630,14 @@ function createDependencies(
     completionSource: {
       loadCompletedPuzzleIds: vi.fn().mockResolvedValue(new Set()),
       loadSolvedPuzzleIds: vi.fn().mockResolvedValue(new Set()),
+    },
+    // Defaults to "already seen" so every existing reveal/attempts test
+    // keeps exercising today's direct-reveal path unchanged; the
+    // 'reveal-artist notice' describe block below overrides this with a
+    // stateful fake to exercise the once-ever popover itself.
+    artistRevealNoticeStore: {
+      hasSeen: vi.fn(() => true),
+      markSeen: vi.fn(),
     },
     buildPuzzleUrl: vi.fn(
       (puzzleId: string) => `https://example.test/?puzzle=${puzzleId}`,

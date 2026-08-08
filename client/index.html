@@ -120,12 +120,14 @@
                     type="button"
                     disabled
                   >
-                    <span>Reveal Artist</span>
+                    <span class="reveal-artist-label">Reveal Artist</span>
                   </button>
-                  <p class="artist-hint" id="artist-hint" aria-live="polite" hidden></p>
+                  <p class="artist-hint" id="artist-hint" aria-live="polite" tabindex="-1" hidden></p>
                 </div>
 
-                <p class="attempts" id="attempts-count" aria-live="polite">Guesses left</p>
+                <div class="attempts-cell" id="attempts-cell">
+                  <p class="attempts" id="attempts-count" aria-live="polite">Guesses left</p>
+                </div>
 
                 <button
                   class="comic-action tactile-button reveal-song-button"

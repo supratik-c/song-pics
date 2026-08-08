@@ -22,7 +22,23 @@ export function createInitialGameState(): GameState {
   return {
     guesses: [],
     status: 'playing',
+    artistRevealed: false,
   };
+}
+
+export function getAttemptsUsed(
+  state: Readonly<GameState>,
+  rules: GameRules,
+): number {
+  return state.guesses.length +
+    (state.artistRevealed ? rules.artistRevealCost : 0);
+}
+
+export function getAttemptsLeft(
+  state: Readonly<GameState>,
+  rules: GameRules,
+): number {
+  return rules.maxAttempts - getAttemptsUsed(state, rules);
 }
 
 export function submitGuess(
@@ -50,15 +66,16 @@ export function submitGuess(
   }
 
   const guesses = [...state.guesses, normalized];
+  const nextState = { ...state, guesses };
   const status = isAcceptedAnswer(normalized, solution.acceptedAnswers)
     ? 'solved'
-    : guesses.length >= rules.maxAttempts
+    : getAttemptsLeft(nextState, rules) <= 0
       ? 'failed'
       : 'playing';
 
   return {
     kind: 'recorded',
-    state: { guesses, status },
+    state: { ...nextState, status },
   };
 }
 
@@ -68,8 +85,28 @@ export function revealSong(state: GameState): GameState {
   }
 
   return {
+    ...state,
     guesses: [...state.guesses],
     status: 'revealed',
+  };
+}
+
+export function revealArtist(
+  state: Readonly<GameState>,
+  rules: GameRules,
+): GameState {
+  if (state.status !== 'playing' || state.artistRevealed) {
+    return state;
+  }
+
+  if (getAttemptsLeft(state, rules) <= rules.artistRevealCost) {
+    return state;
+  }
+
+  return {
+    ...state,
+    guesses: [...state.guesses],
+    artistRevealed: true,
   };
 }
 

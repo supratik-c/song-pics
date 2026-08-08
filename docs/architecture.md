@@ -126,6 +126,13 @@ carry the same build identifier; compiled assets use Vite's content hashes.
 - `client/src/platform/tactileAction.ts`: defers a button's action until its
   press animation ends (or a fallback timer, or immediately under reduced
   motion), shared by every tactile control.
+- `client/src/platform/anchoredDialog.ts` and `anchoredPlacement.ts`: generic
+  anchored-popover infrastructure — a small popover positioned relative to a
+  control, reused by any feature that needs one (the Reveal Artist
+  confirmation is its first caller, not its owner). `anchoredPlacement.ts` is
+  the pure above/below/clamped placement math; `anchoredDialog.ts` is the
+  `<dialog>`-based controller, a peer to `platform/modal.ts`'s centered
+  dialog system.
 - `client/src/views/`, `platform/modal.ts`, and `styles/`: focused DOM output,
   dialog lifecycle, and the visual system.
 - `client/src/legal.ts` and `fontLicenses.ts`: the legal page's font-license

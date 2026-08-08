@@ -1,4 +1,8 @@
-import { createInitialGameState, normalizeText } from '../domain/game.ts';
+import {
+  createInitialGameState,
+  getAttemptsUsed,
+  normalizeText,
+} from '../domain/game.ts';
 import { GAME_RULES, type GameRules } from '../domain/gameConfig.ts';
 import type { GameState, GameStatus } from '../domain/types.ts';
 import { isRecord } from '../content/validation.ts';
@@ -15,9 +19,15 @@ export type YouTubeConsentStore = {
   grant: () => void;
 };
 
+export type ArtistRevealNoticeStore = {
+  hasSeen: () => boolean;
+  markSeen: () => void;
+};
+
 export const YOUTUBE_CONSENT_STORAGE_KEY =
   'scribble-bops:youtube-consent:v1';
 const YOUTUBE_CONSENT_GRANTED_VALUE = 'granted';
+const ARTIST_REVEAL_NOTICE_SEEN_VALUE = 'seen';
 
 const DEFAULT_STORAGE_NAMESPACE = 'scribble-bops';
 
@@ -103,6 +113,57 @@ export function createSessionYouTubeConsentStore(
   };
 }
 
+export type LocalArtistRevealNoticeStoreOptions = {
+  getStorage?: () => StorageAdapter;
+  namespace?: string;
+};
+
+export function artistRevealNoticeStorageKey(
+  namespace: string = DEFAULT_STORAGE_NAMESPACE,
+): string {
+  return `${namespace}:artist-reveal-notice:v1`;
+}
+
+// Permanent (unlike the YouTube consent store's session scope) and
+// puzzle-independent (unlike game state) — the player answers this at most
+// once, ever, across every puzzle. Takes the { getStorage, namespace }
+// options shape createLocalGameStateStore uses, not the YouTube store's
+// bare positional getStorage, so main.ts can apply the same dev/prod
+// namespace split it already applies to game-state persistence.
+export function createLocalArtistRevealNoticeStore({
+  getStorage = () => localStorage,
+  namespace = DEFAULT_STORAGE_NAMESPACE,
+}: LocalArtistRevealNoticeStoreOptions = {}): ArtistRevealNoticeStore {
+  const key = artistRevealNoticeStorageKey(namespace);
+  let memorySeen = false;
+
+  return {
+    hasSeen: () => {
+      const stored = tryStorage(
+        getStorage,
+        (storage) => storage.getItem(key),
+      );
+
+      if (stored === ARTIST_REVEAL_NOTICE_SEEN_VALUE) {
+        memorySeen = true;
+        return true;
+      }
+
+      if (stored !== null && stored !== undefined) {
+        tryStorage(getStorage, (storage) => storage.removeItem(key));
+      }
+
+      return memorySeen;
+    },
+    markSeen: () => {
+      memorySeen = true;
+      tryStorage(getStorage, (storage) => {
+        storage.setItem(key, ARTIST_REVEAL_NOTICE_SEEN_VALUE);
+      });
+    },
+  };
+}
+
 export function storageKey(
   puzzleId: string,
   namespace: string = DEFAULT_STORAGE_NAMESPACE,
@@ -122,12 +183,19 @@ function parseStoredGameState(
     !Array.isArray(value.guesses) ||
     !value.guesses.every(isStoredGuess) ||
     new Set(value.guesses).size !== value.guesses.length ||
-    !isGameStatus(value.status)
+    !isGameStatus(value.status) ||
+    typeof value.artistRevealed !== 'boolean'
   ) {
     return null;
   }
 
-  const attemptsUsed = value.guesses.length;
+  const state: GameState = {
+    guesses: [...value.guesses],
+    status: value.status,
+    artistRevealed: value.artistRevealed,
+  };
+
+  const attemptsUsed = getAttemptsUsed(state, rules);
   const hasValidAttemptCount = value.status === 'failed'
     ? attemptsUsed === rules.maxAttempts
     : value.status === 'solved'
@@ -138,18 +206,16 @@ function parseStoredGameState(
     return null;
   }
 
-  return {
-    guesses: [...value.guesses],
-    status: value.status,
-  };
+  return state;
 }
 
 function hasExactGameStateKeys(value: Record<string, unknown>): boolean {
   const keys = Object.keys(value);
 
-  return keys.length === 2 &&
+  return keys.length === 3 &&
     Object.hasOwn(value, 'guesses') &&
-    Object.hasOwn(value, 'status');
+    Object.hasOwn(value, 'status') &&
+    Object.hasOwn(value, 'artistRevealed');
 }
 
 function isStoredGuess(value: unknown): value is string {

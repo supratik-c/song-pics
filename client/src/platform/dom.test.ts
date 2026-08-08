@@ -13,6 +13,7 @@ describe('game element contract', () => {
     const elements = getGameElements();
 
     expect(elements.artistHint.id).toBe('artist-hint');
+    expect(elements.attemptsCell.id).toBe('attempts-cell');
     expect(elements.attemptsCount.id).toBe('attempts-count');
     expect(elements.date.id).toBe('puzzle-date');
     expect(elements.doodleCredit.id).toBe('doodle-credit');

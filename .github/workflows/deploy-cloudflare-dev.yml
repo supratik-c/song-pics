@@ -4,10 +4,11 @@ name: Deploy Cloudflare (dev preview)
 # from pull requests so changes are checkable before they merge to main.
 # scribblebops.com production (deploy-cloudflare.yml) only deploys from main.
 on:
-  pull_request:
-    paths:
-    - 'client/**'
-    - '.github/workflows/deploy-cloudflare-dev.yml'
+  # push:
+  #   branches: [main]
+  #   paths:
+  #   - 'client/**'
+  #   - '.github/workflows/deploy-cloudflare-dev.yml'
   workflow_dispatch:
 
 permissions:

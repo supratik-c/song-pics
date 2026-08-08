@@ -1,4 +1,4 @@
-import type { InvalidGuessReason } from '../domain/game.ts';
+import { getAttemptsLeft, type InvalidGuessReason } from '../domain/game.ts';
 import type { GameRules } from '../domain/gameConfig.ts';
 import type {
   GameState,
@@ -198,7 +198,7 @@ export function renderState(
   rules: GameRules,
   lyricLines: PuzzleSolution['lyricLines'],
 ): void {
-  const attemptsLeft = rules.maxAttempts - state.guesses.length;
+  const attemptsLeft = getAttemptsLeft(state, rules);
 
   elements.shareRegion.hidden = state.status === 'playing';
   renderPanelLyrics(elements.panels, state.status, lyricLines);
@@ -310,6 +310,57 @@ export function renderArtistHint(
   elements.artistHint.textContent = `${artist}`;
   elements.artistHint.hidden = false;
   elements.revealArtistButton.hidden = true;
+}
+
+const revealArtistDefaultLabel = 'Reveal Artist';
+const revealArtistUnavailableLabel = 'Not enough guesses!';
+
+export function renderArtistReveal(
+  elements: GameElements,
+  state: GameState,
+  rules: GameRules,
+  artist: string,
+): void {
+  if (state.artistRevealed) {
+    renderArtistHint(elements, artist);
+    return;
+  }
+
+  elements.artistHint.hidden = true;
+  elements.revealArtistButton.hidden = false;
+
+  const canReveal = state.status === 'playing' &&
+    getAttemptsLeft(state, rules) > rules.artistRevealCost;
+
+  elements.revealArtistButton.disabled = !canReveal;
+
+  const label = elements.revealArtistButton
+    .querySelector<HTMLElement>('.reveal-artist-label');
+
+  if (label) {
+    label.textContent = canReveal
+      ? revealArtistDefaultLabel
+      : revealArtistUnavailableLabel;
+  }
+}
+
+export function flashAttemptsPenalty(
+  elements: GameElements,
+  cost: number,
+): void {
+  elements.attemptsCell
+    .querySelector('.attempts-penalty')
+    ?.remove();
+
+  const penalty = document.createElement('span');
+  penalty.className = 'attempts-penalty';
+  penalty.setAttribute('aria-hidden', 'true');
+  penalty.textContent = `−${cost}`;
+  elements.attemptsCell.append(penalty);
+
+  window.setTimeout(() => {
+    penalty.remove();
+  }, 600);
 }
 
 export function renderGuessValidation(

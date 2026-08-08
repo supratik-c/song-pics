@@ -2,6 +2,7 @@ import type { ModalElements } from './modal.ts';
 
 export type GameElements = {
   artistHint: HTMLElement;
+  attemptsCell: HTMLElement;
   attemptsCount: HTMLElement;
   date: HTMLElement;
   doodleCredit: HTMLElement;
@@ -26,6 +27,7 @@ export type GameElements = {
 export function getGameElements(): GameElements {
   return {
     artistHint: getElement<HTMLElement>('#artist-hint'),
+    attemptsCell: getElement<HTMLElement>('#attempts-cell'),
     attemptsCount: getElement<HTMLElement>('#attempts-count'),
     date: getElement<HTMLElement>('#puzzle-date'),
     doodleCredit: getElement<HTMLElement>('#doodle-credit'),

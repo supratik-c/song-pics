@@ -65,4 +65,5 @@ export type GameStatus =
 export type GameState = {
   guesses: string[];
   status: GameStatus;
+  artistRevealed: boolean;
 };

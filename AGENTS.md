@@ -34,7 +34,8 @@ changes. Do not copy transient implementation detail into documentation.
   access; `client/src/content/` holds fetch-and-validate boundaries
   (`puzzleLoader.ts`, `howToPlayLoader.ts`, `validation.ts`, `publicPath.ts`);
   `client/src/platform/` holds replaceable browser adapters (`storage.ts`,
-  `completion.ts`, `dom.ts`, `modal.ts`, `share.ts`, `browserShare.ts`,
+  `completion.ts`, `dom.ts`, `modal.ts`, `anchoredDialog.ts`,
+  `anchoredPlacement.ts`, `share.ts`, `browserShare.ts`,
   `deploymentVersion.ts`, `tactileAction.ts`); `client/src/views/` holds DOM output
   that never fetches or persists; orchestration lives in `app.ts` and concrete
   dependency composition in `main.ts`, both at `client/src/` root alongside

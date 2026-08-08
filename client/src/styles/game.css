@@ -395,7 +395,68 @@ input::placeholder {
 
 .reveal-artist-button {
   --action-fill: var(--yellow);
+
+  display: grid;
+  place-items: center;
   color: var(--ink);
+}
+
+.reveal-artist-label {
+  text-align: center;
+}
+
+/* Reveal Artist one-time confirmation popover content — the popover shell
+   itself (shape, tail, placement) is generic and lives in
+   anchoredPopover.css; only this feature's copy and button colors belong
+   here. */
+
+.artist-reveal-notice-body {
+  display: grid;
+  gap: 16px;
+  padding: 20px 20px 18px;
+}
+
+.artist-reveal-notice-message {
+  margin: 0;
+  font-size: 1.08rem;
+  /* Kalam only ships 400 and 700, and this line's own weight used to be
+     700 — the same as the <strong> cost phrase inside it, so the emphasis
+     was invisible. Regular weight here lets the bold phrase actually read
+     as bold. */
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.artist-reveal-notice-message strong {
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.artist-reveal-notice-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.artist-reveal-notice-accept,
+.artist-reveal-notice-decline {
+  flex: 1 1 0;
+  text-align: center;
+}
+
+/* Scoped under .artist-reveal-notice so these colors win on specificity
+   regardless of import order — dialog.css's .dialog-action-button (loaded
+   after game.css) would otherwise silently override an equal-specificity
+   rule written directly on the class. */
+.artist-reveal-notice .artist-reveal-notice-accept {
+  background: var(--green-light);
+  color: var(--ink);
+}
+
+.artist-reveal-notice .artist-reveal-notice-decline {
+  background: var(--tomato);
+  color: var(--cream);
 }
 
 .artist-hint {
@@ -419,6 +480,11 @@ input::placeholder {
   --comic-shape: polygon(0 12px, 100% 0, 100% 100%, 0 100%);
 }
 
+.attempts-cell {
+  position: relative;
+  min-width: 0;
+}
+
 .attempts {
   --action-fill: var(--peach);
 
@@ -429,6 +495,32 @@ input::placeholder {
   font-size: calc(clamp(1.02rem, 2.2vw, 1.6rem) + 4px);
   line-height: 1.2;
   text-align: center;
+}
+
+.attempts-penalty {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  color: var(--tomato);
+  font-size: calc(clamp(1.02rem, 2.2vw, 1.6rem) + 4px);
+  font-weight: 700;
+  text-shadow: var(--small-shadow);
+  pointer-events: none;
+  animation: attempts-penalty-drift 0.5s ease-out forwards;
+}
+
+@keyframes attempts-penalty-drift {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(26px);
+  }
 }
 
 .reveal-song-button {

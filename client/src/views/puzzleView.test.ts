@@ -3,6 +3,8 @@ import { GAME_RULES } from '../domain/gameConfig.ts';
 import type { GameStatus, PuzzleClue } from '../domain/types.ts';
 import type { GameElements } from '../platform/dom.ts';
 import {
+  flashAttemptsPenalty,
+  renderArtistReveal,
   renderDoodleCredit,
   renderFuturePuzzle,
   renderLoadError,
@@ -203,7 +205,7 @@ describe('playing and terminal form rendering', () => {
 
     renderState(
       elements,
-      { guesses: ['first guess'], status: 'playing' },
+      { guesses: ['first guess'], status: 'playing', artistRevealed: false },
       GAME_RULES,
       undefined,
     );
@@ -240,7 +242,7 @@ describe('playing and terminal form rendering', () => {
 
     renderState(
       elements,
-      { guesses: ['first guess'], status },
+      { guesses: ['first guess'], status, artistRevealed: false },
       GAME_RULES,
       undefined,
     );
@@ -486,6 +488,110 @@ describe('full-screen state coverage', () => {
   });
 });
 
+describe('artist reveal rendering', () => {
+  it('shows the cost badge and enables the button with attempts to spare', () => {
+    const elements = createGameElements();
+
+    renderArtistReveal(
+      elements,
+      { guesses: [], status: 'playing', artistRevealed: false },
+      GAME_RULES,
+      'An Artist',
+    );
+
+    expect(elements.revealArtistButton.hidden).toBe(false);
+    expect(elements.revealArtistButton.disabled).toBe(false);
+    expect(elements.artistHint.hidden).toBe(true);
+
+    const label = elements.revealArtistButton.querySelector(
+      '.reveal-artist-label',
+    );
+
+    expect(label?.textContent).toBe('Reveal Artist');
+  });
+
+  it('disables the button and swaps the label once fewer than 3 guesses remain', () => {
+    const elements = createGameElements();
+
+    renderArtistReveal(
+      elements,
+      {
+        guesses: ['one', 'two', 'three'],
+        status: 'playing',
+        artistRevealed: false,
+      },
+      GAME_RULES,
+      'An Artist',
+    );
+
+    expect(elements.revealArtistButton.disabled).toBe(true);
+
+    const label = elements.revealArtistButton.querySelector(
+      '.reveal-artist-label',
+    );
+
+    expect(label?.textContent).toBe('Not enough guesses!');
+  });
+
+  it('shows the hint and hides the button once the artist has been revealed', () => {
+    const elements = createGameElements();
+
+    renderArtistReveal(
+      elements,
+      { guesses: ['one'], status: 'playing', artistRevealed: true },
+      GAME_RULES,
+      'An Artist',
+    );
+
+    expect(elements.artistHint.hidden).toBe(false);
+    expect(elements.artistHint.textContent).toBe('An Artist');
+    expect(elements.revealArtistButton.hidden).toBe(true);
+  });
+
+  it.each<Exclude<GameStatus, 'playing'>>(['solved', 'revealed', 'failed'])(
+    'disables the button in every terminal state (%s)',
+    (status) => {
+      const elements = createGameElements();
+
+      renderArtistReveal(
+        elements,
+        { guesses: ['one'], status, artistRevealed: false },
+        GAME_RULES,
+        'An Artist',
+      );
+
+      expect(elements.revealArtistButton.disabled).toBe(true);
+    },
+  );
+});
+
+describe('attempts penalty flourish', () => {
+  it('inserts a single penalty marker as a sibling of the attempts counter', () => {
+    const elements = createGameElements();
+
+    flashAttemptsPenalty(elements, 2);
+
+    const penalties = elements.attemptsCell.querySelectorAll(
+      '.attempts-penalty',
+    );
+
+    expect(penalties).toHaveLength(1);
+    expect(penalties[0].textContent).toBe('−2');
+    expect(penalties[0].parentElement).toBe(elements.attemptsCell);
+  });
+
+  it('replaces a still-pending penalty marker instead of stacking them', () => {
+    const elements = createGameElements();
+
+    flashAttemptsPenalty(elements, 2);
+    flashAttemptsPenalty(elements, 2);
+
+    expect(
+      elements.attemptsCell.querySelectorAll('.attempts-penalty'),
+    ).toHaveLength(1);
+  });
+});
+
 function puzzleWithoutPanels(): PuzzleClue {
   return { ...puzzle, panels: [] };
 }
@@ -534,6 +640,7 @@ function createGameElements(): GameElements {
 
   return {
     artistHint: document.createElement('p'),
+    attemptsCell: document.createElement('div'),
     attemptsCount: document.createElement('p'),
     date: document.createElement('p'),
     doodleCredit: document.createElement('p'),
@@ -550,9 +657,7 @@ function createGameElements(): GameElements {
     },
     panels: document.createElement('div'),
     allReleasesButton: document.createElement('button') as HTMLButtonElement,
-    revealArtistButton: document.createElement(
-      'button',
-    ) as HTMLButtonElement,
+    revealArtistButton: createRevealArtistButton(),
     revealSongButton: document.createElement('button') as HTMLButtonElement,
     resultRegion: document.createElement('section'),
     shareRegion: document.createElement('div'),
@@ -561,6 +666,18 @@ function createGameElements(): GameElements {
     songClue: document.createElement('h2'),
     validationMessage: document.createElement('p'),
   };
+}
+
+// Mirrors the single inner span index.html gives the reveal-artist button
+// so renderArtistReveal has the label element it queries for.
+function createRevealArtistButton(): HTMLButtonElement {
+  const button = document.createElement('button') as HTMLButtonElement;
+  const label = document.createElement('span');
+
+  label.className = 'reveal-artist-label';
+  button.append(label);
+
+  return button;
 }
 
 function tokenIndexes(tokens: Element[]): string[] {

@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import normalizationFixtureData from '../../fixtures/answer-normalization.json';
 import {
   createInitialGameState,
+  getAttemptsLeft,
+  getAttemptsUsed,
   isAcceptedAnswer,
   normalizeAnswer,
+  revealArtist,
   revealSong,
   submitGuess,
 } from './game.ts';
@@ -51,7 +54,11 @@ describe('game transitions', () => {
     const first = createInitialGameState();
     const second = createInitialGameState();
 
-    expect(first).toEqual({ guesses: [], status: 'playing' });
+    expect(first).toEqual({
+      guesses: [],
+      status: 'playing',
+      artistRevealed: false,
+    });
     expect(second).toEqual(first);
     expect(second).not.toBe(first);
     expect(second.guesses).not.toBe(first.guesses);
@@ -77,13 +84,18 @@ describe('game transitions', () => {
       kind: 'invalid',
       reason: testCase.reason,
     });
-    expect(state).toEqual({ guesses: [], status: 'playing' });
+    expect(state).toEqual({
+      guesses: [],
+      status: 'playing',
+      artistRevealed: false,
+    });
   });
 
   it('rejects a normalized duplicate without consuming an attempt', () => {
     const state: GameState = {
       guesses: ['wrong answer'],
       status: 'playing',
+      artistRevealed: false,
     };
 
     expect(
@@ -109,6 +121,7 @@ describe('game transitions', () => {
       state: {
         guesses: ['let it be by the beatles'],
         status: 'playing',
+        artistRevealed: false,
       },
     });
   });
@@ -125,7 +138,11 @@ describe('game transitions', () => {
 
       expect(result).toEqual({
         kind: 'recorded',
-        state: { guesses: [normalizeAnswer(guess)], status: 'playing' },
+        state: {
+          guesses: [normalizeAnswer(guess)],
+          status: 'playing',
+          artistRevealed: false,
+        },
       });
     },
   );
@@ -143,6 +160,7 @@ describe('game transitions', () => {
       state: {
         guesses: ['mr brightside by the killers'],
         status: 'playing',
+        artistRevealed: false,
       },
     });
   });
@@ -165,10 +183,12 @@ describe('game transitions', () => {
     const rules: GameRules = {
       maxAttempts: 2,
       maxAnswerLength: GAME_RULES.maxAnswerLength,
+      artistRevealCost: GAME_RULES.artistRevealCost,
     };
     const state: GameState = {
       guesses: ['first wrong answer'],
       status: 'playing',
+      artistRevealed: false,
     };
 
     const result = submitGuess(state, 'second wrong answer', solution, rules);
@@ -178,6 +198,31 @@ describe('game transitions', () => {
       state: {
         guesses: ['first wrong answer', 'second wrong answer'],
         status: 'failed',
+        artistRevealed: false,
+      },
+    });
+  });
+
+  it('moves to failed once a reveal-inclusive attempt count is exhausted', () => {
+    const rules: GameRules = {
+      maxAttempts: 3,
+      maxAnswerLength: GAME_RULES.maxAnswerLength,
+      artistRevealCost: 2,
+    };
+    const state: GameState = {
+      guesses: [],
+      status: 'playing',
+      artistRevealed: true,
+    };
+
+    const result = submitGuess(state, 'wrong answer', solution, rules);
+
+    expect(result).toEqual({
+      kind: 'recorded',
+      state: {
+        guesses: ['wrong answer'],
+        status: 'failed',
+        artistRevealed: true,
       },
     });
   });
@@ -186,28 +231,59 @@ describe('game transitions', () => {
     const playing: GameState = {
       guesses: ['one'],
       status: 'playing',
+      artistRevealed: false,
     };
     const revealed = revealSong(playing);
 
-    expect(revealed).toEqual({ guesses: ['one'], status: 'revealed' });
+    expect(revealed).toEqual({
+      guesses: ['one'],
+      status: 'revealed',
+      artistRevealed: false,
+    });
     expect(revealed).not.toBe(playing);
     expect(revealed.guesses).not.toBe(playing.guesses);
 
     for (const status of ['solved', 'revealed', 'failed'] as const) {
-      const terminal: GameState = { guesses: ['one'], status };
+      const terminal: GameState = {
+        guesses: ['one'],
+        status,
+        artistRevealed: false,
+      };
       expect(revealSong(terminal)).toBe(terminal);
     }
   });
 
+  it('preserves an artist reveal through revealSong', () => {
+    const playing: GameState = {
+      guesses: ['one'],
+      status: 'playing',
+      artistRevealed: true,
+    };
+
+    expect(revealSong(playing)).toEqual({
+      guesses: ['one'],
+      status: 'revealed',
+      artistRevealed: true,
+    });
+  });
+
   it('treats submissions in terminal states as no-ops', () => {
     for (const status of ['solved', 'revealed', 'failed'] as const) {
-      const state: GameState = { guesses: ['hey jude'], status };
+      const state: GameState = {
+        guesses: ['hey jude'],
+        status,
+        artistRevealed: false,
+      };
 
       expect(submitGuess(state, 'anything', solution, GAME_RULES)).toEqual({
         kind: 'invalid',
         reason: 'not-playing',
       });
-      expect(state).toEqual({ guesses: ['hey jude'], status });
+      expect(state).toEqual({
+        guesses: ['hey jude'],
+        status,
+        artistRevealed: false,
+      });
     }
   });
 
@@ -215,6 +291,7 @@ describe('game transitions', () => {
     const state: GameState = {
       guesses: ['first wrong answer'],
       status: 'playing',
+      artistRevealed: false,
     };
     Object.freeze(state.guesses);
     Object.freeze(state);
@@ -229,11 +306,117 @@ describe('game transitions', () => {
     expect(state).toEqual({
       guesses: ['first wrong answer'],
       status: 'playing',
+      artistRevealed: false,
     });
     expect(result.kind).toBe('recorded');
     if (result.kind === 'recorded') {
       expect(result.state).not.toBe(state);
       expect(result.state.guesses).not.toBe(state.guesses);
+    }
+  });
+});
+
+describe('attempt accounting', () => {
+  it('counts a reveal toward attempts used and left', () => {
+    const state: GameState = {
+      guesses: ['one'],
+      status: 'playing',
+      artistRevealed: true,
+    };
+
+    expect(getAttemptsUsed(state, GAME_RULES)).toBe(
+      1 + GAME_RULES.artistRevealCost,
+    );
+    expect(getAttemptsLeft(state, GAME_RULES)).toBe(
+      GAME_RULES.maxAttempts - 1 - GAME_RULES.artistRevealCost,
+    );
+  });
+
+  it('ignores the reveal cost when the artist has not been revealed', () => {
+    const state: GameState = {
+      guesses: ['one', 'two'],
+      status: 'playing',
+      artistRevealed: false,
+    };
+
+    expect(getAttemptsUsed(state, GAME_RULES)).toBe(2);
+    expect(getAttemptsLeft(state, GAME_RULES)).toBe(
+      GAME_RULES.maxAttempts - 2,
+    );
+  });
+});
+
+describe('revealArtist', () => {
+  it('reveals the artist while playing with attempts to spare', () => {
+    const state = createInitialGameState();
+    const revealed = revealArtist(state, GAME_RULES);
+
+    expect(revealed).toEqual({
+      guesses: [],
+      status: 'playing',
+      artistRevealed: true,
+    });
+    expect(revealed).not.toBe(state);
+    expect(revealed.guesses).not.toBe(state.guesses);
+  });
+
+  it('reveals when exactly the reveal cost plus one attempt remains', () => {
+    const rules: GameRules = {
+      maxAttempts: 5,
+      maxAnswerLength: GAME_RULES.maxAnswerLength,
+      artistRevealCost: 2,
+    };
+    // 5 - 2 (guesses used) = 3 remaining, one more than the cost.
+    const state: GameState = {
+      guesses: ['a', 'b'],
+      status: 'playing',
+      artistRevealed: false,
+    };
+
+    expect(revealArtist(state, rules)).toEqual({
+      guesses: ['a', 'b'],
+      status: 'playing',
+      artistRevealed: true,
+    });
+  });
+
+  it.each([
+    { remaining: 2, guesses: ['a', 'b', 'c'] },
+    { remaining: 1, guesses: ['a', 'b', 'c', 'd'] },
+  ])(
+    'refuses to reveal when only $remaining attempts remain',
+    ({ guesses }) => {
+      const state: GameState = {
+        guesses,
+        status: 'playing',
+        artistRevealed: false,
+      };
+
+      const result = revealArtist(state, GAME_RULES);
+
+      expect(result).toBe(state);
+    },
+  );
+
+  it('is a no-op once the artist has already been revealed', () => {
+    const state: GameState = {
+      guesses: [],
+      status: 'playing',
+      artistRevealed: true,
+    };
+
+    expect(revealArtist(state, GAME_RULES)).toBe(state);
+  });
+
+  it('refuses to reveal in every terminal state', () => {
+    for (const status of ['solved', 'revealed', 'failed'] as const) {
+      const state: GameState = {
+        guesses: ['hey jude'],
+        status,
+        artistRevealed: false,
+      };
+
+      expect(revealArtist(state, GAME_RULES)).toBe(state);
     }
   });
 });

@@ -2,6 +2,7 @@
 @import './styles/loading.css';
 @import './styles/game.css';
 @import './styles/dialog.css';
+@import './styles/anchoredPopover.css';
 @import './styles/share.css';
 @import './styles/support.css';
 @import './styles/responsive.css';

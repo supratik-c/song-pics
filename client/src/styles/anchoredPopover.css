@@ -1,0 +1,107 @@
+/* Anchored popover shell — generic, reusable infrastructure (platform/
+   anchoredDialog.ts is its JS half). Owns shape, tail, placement, and the
+   transparent backdrop for ANY popover this controller opens; a caller
+   supplies its own modifier class for content-only styling (see
+   game.css's .artist-reveal-notice for the first, feature-specific
+   example) and must not need to write any of the rules below. */
+
+.anchored-popover {
+  position: absolute;
+  inset: auto;
+  top: var(--anchored-popover-top, 0px);
+  left: var(--anchored-popover-left, 0px);
+  z-index: 1;
+  width: min(300px, calc(100vw - 32px));
+  margin: 0;
+  padding: 0;
+  border: var(--line-heavy) solid var(--ink);
+  border-radius: 16px;
+  color: var(--ink);
+  background: var(--cream);
+  /* The dialog UA stylesheet sets overflow: auto, which silently clips the
+     ::after tail below (it protrudes past the border box by design, to read
+     as a speech-bubble pointer). Without this override only the two short
+     stubs that fall inside the box survive, and the rest of the tail
+     vanishes. */
+  overflow: visible;
+  /* box-shadow does not extend to a pseudo-element that pokes outside the
+     border box, so the hard shadow would stop at the bubble's edge and
+     leave the tail unshadowed. drop-shadow follows the whole rendered
+     silhouette (bubble + tail) instead. --hard-shadow must stay a spread-
+     free 4-value shadow (offset-x offset-y blur color) for this to keep
+     being valid drop-shadow() syntax. */
+  filter: drop-shadow(var(--hard-shadow));
+}
+
+.anchored-popover::backdrop {
+  background: transparent;
+}
+
+/* Keeps a real, measurable layout box (unlike `hidden`/`display: none`)
+   while producing no paint and dropping out of the a11y tree, so
+   anchoredDialog.ts can read true rendered dimensions before the popover
+   is shown positioned. The appear animation is scoped to :not(.is-measuring)
+   rather than living on the bare .anchored-popover rule — an animation
+   still progresses while visibility: hidden, so measuring during a
+   scale(0.9)-mid-animation frame would read a shrunk box and the popover
+   would end up positioned as if it were smaller than its real size,
+   overflowing the viewport once the animation reaches its full-size frame.
+   Starting the animation only once is-measuring is removed also gives it a
+   correct, un-truncated start rather than picking up mid-flight. */
+.anchored-popover.is-measuring {
+  visibility: hidden;
+}
+
+.anchored-popover:not(.is-measuring) {
+  animation: anchored-popover-appear 140ms ease-out;
+}
+
+.anchored-popover::after {
+  position: absolute;
+  z-index: 1;
+  left: var(--anchored-popover-tail-offset, 50%);
+  /* box-sizing here is the inherited content-box default: only one of the
+     two border pairs is set per [data-placement] variant below (e.g.
+     border-top + border-left for 'below'), so the rendered border box is
+     20px content + one 4px border = 24px square, not 20px. margin-left must
+     half-center that 24px box so the rotated tail's pivot (its own center)
+     lands exactly on tailOffset, not 2px off from it. */
+  width: 20px;
+  height: 20px;
+  margin-left: -12px;
+  background: var(--cream);
+  content: '';
+  transform: rotate(45deg);
+}
+
+.anchored-popover[data-placement='below'] {
+  transform-origin: var(--anchored-popover-tail-offset, 50%) 0;
+}
+
+.anchored-popover[data-placement='below']::after {
+  top: -11px;
+  border-top: var(--line-heavy) solid var(--ink);
+  border-left: var(--line-heavy) solid var(--ink);
+}
+
+.anchored-popover[data-placement='above'] {
+  transform-origin: var(--anchored-popover-tail-offset, 50%) 100%;
+}
+
+.anchored-popover[data-placement='above']::after {
+  bottom: -11px;
+  border-right: var(--line-heavy) solid var(--ink);
+  border-bottom: var(--line-heavy) solid var(--ink);
+}
+
+@keyframes anchored-popover-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

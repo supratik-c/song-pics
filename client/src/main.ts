@@ -18,6 +18,7 @@ import { createLocalCompletionSource } from './platform/completion.ts';
 import { ensureCurrentDeployment } from './platform/deploymentVersion.ts';
 import { getGameElements } from './platform/dom.ts';
 import {
+  createLocalArtistRevealNoticeStore,
   createLocalGameStateStore,
   createSessionYouTubeConsentStore,
 } from './platform/storage.ts';
@@ -50,14 +51,18 @@ async function start(): Promise<void> {
 
   // Dev keeps progress for the tab session so archive badges and the support
   // prompt are reachable, namespaced per dev-server run so a restart starts
-  // clean and dev can never collide with production keys on localhost.
-  const gameStateStore = createLocalGameStateStore(
-    import.meta.env.DEV
-      ? {
-          getStorage: () => sessionStorage,
-          namespace: `scribble-bops:dev:${import.meta.env.VITE_DEV_RUN_ID}`,
-        }
-      : {},
+  // clean and dev can never collide with production keys on localhost. The
+  // artist-reveal notice shares this split — without it, the one-time
+  // popover would fire exactly once ever on localhost too.
+  const browserStorageOptions = import.meta.env.DEV
+    ? {
+        getStorage: () => sessionStorage,
+        namespace: `scribble-bops:dev:${import.meta.env.VITE_DEV_RUN_ID}`,
+      }
+    : {};
+  const gameStateStore = createLocalGameStateStore(browserStorageOptions);
+  const artistRevealNoticeStore = createLocalArtistRevealNoticeStore(
+    browserStorageOptions,
   );
 
   // Swap this composition to change what triggers the Ko-fi prompt. It is
@@ -77,6 +82,7 @@ async function start(): Promise<void> {
     loadPuzzle,
     loadHowToPlay: loadHowToPlayManifest,
     gameStateStore,
+    artistRevealNoticeStore,
     youtubeConsentStore: createSessionYouTubeConsentStore(),
     completionSource: createLocalCompletionSource(gameStateStore),
     shareGateway: createBrowserShareGateway(),

@@ -11,19 +11,24 @@ describe('puzzle performance', () => {
     expect(getPuzzlePerformance(puzzleId, {
       guesses: ['first try'],
       status: 'playing',
-    })).toBeNull();
+      artistRevealed: false,
+    }, GAME_RULES)).toBeNull();
   });
 
   it.each([
-    ['solved', ['first try', 'correct'], 2],
-    ['failed', ['one', 'two', 'three', 'four', 'five'], 5],
-    ['revealed', [], 0],
+    ['solved', ['first try', 'correct'], false, 2],
+    ['failed', ['one', 'two', 'three', 'four', 'five'], false, 5],
+    ['revealed', [], false, 0],
   ] as const)(
     'derives %s performance from recorded attempts',
-    (outcome, guesses, attemptsUsed) => {
-      const state: GameState = { guesses: [...guesses], status: outcome };
+    (outcome, guesses, artistRevealed, attemptsUsed) => {
+      const state: GameState = {
+        guesses: [...guesses],
+        status: outcome,
+        artistRevealed,
+      };
 
-      expect(getPuzzlePerformance(puzzleId, state)).toEqual({
+      expect(getPuzzlePerformance(puzzleId, state, GAME_RULES)).toEqual({
         puzzleId,
         outcome,
         attemptsUsed,
@@ -31,8 +36,26 @@ describe('puzzle performance', () => {
     },
   );
 
+  it('counts a spent artist reveal toward attempts used', () => {
+    const state: GameState = {
+      guesses: ['one', 'two', 'three'],
+      status: 'failed',
+      artistRevealed: true,
+    };
+
+    expect(getPuzzlePerformance(puzzleId, state, GAME_RULES)).toEqual({
+      puzzleId,
+      outcome: 'failed',
+      attemptsUsed: 3 + GAME_RULES.artistRevealCost,
+    });
+  });
+
   it('does not count an invalid submission as an attempt', () => {
-    const state: GameState = { guesses: [], status: 'playing' };
+    const state: GameState = {
+      guesses: [],
+      status: 'playing',
+      artistRevealed: false,
+    };
     const submission = submitGuess(
       state,
       '',
@@ -41,7 +64,9 @@ describe('puzzle performance', () => {
     );
 
     expect(submission.kind).toBe('invalid');
-    expect(getPuzzlePerformance(puzzleId, revealSong(state))).toEqual({
+    expect(
+      getPuzzlePerformance(puzzleId, revealSong(state), GAME_RULES),
+    ).toEqual({
       puzzleId,
       outcome: 'revealed',
       attemptsUsed: 0,

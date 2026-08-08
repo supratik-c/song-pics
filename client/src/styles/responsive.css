@@ -114,6 +114,14 @@
     font-size: calc(clamp(0.9rem, 4vw, 1.3rem) + 4px);
   }
 
+  .attempts-penalty {
+    font-size: calc(clamp(0.9rem, 4vw, 1.3rem) + 4px);
+  }
+
+  .reveal-artist-label {
+    overflow-wrap: anywhere;
+  }
+
   .validation-message {
     margin-right: 15px;
     margin-left: 15px;
@@ -188,6 +196,19 @@
   .dialog-action-button {
     padding-right: 8px;
     padding-left: 8px;
+  }
+
+  .anchored-popover {
+    width: min(280px, calc(100vw - 24px));
+  }
+
+  .artist-reveal-notice-body {
+    gap: 13px;
+    padding: 17px 16px 15px;
+  }
+
+  .artist-reveal-notice-actions {
+    gap: 8px;
   }
 
   .future-puzzle .panels {
@@ -346,6 +367,18 @@
     animation: none;
     transform: none;
   }
+
+  .attempts-penalty {
+    animation: none;
+  }
+
+  /* Matches anchoredPopover.css's :not(.is-measuring) selector so this
+     override wins on specificity, not just cascade order — a bare
+     .anchored-popover rule here would lose to the more specific rule that
+     actually declares the animation. */
+  .anchored-popover:not(.is-measuring) {
+    animation: none;
+  }
 }
 
 @media (forced-colors: active) {
@@ -362,6 +395,24 @@
 
   .share-button::after {
     background: Canvas;
+  }
+
+  /* The popover's own box is covered by the generic `dialog` selector
+     below (forced-color-adjust: auto), but a decorative content: ''
+     pseudo-element is not automatically remapped by forced-colors mode and
+     needs the same explicit treatment .share-button's pseudo-elements
+     already get above. */
+  .anchored-popover::after {
+    background: Canvas;
+    border-color: CanvasText;
+  }
+
+  /* forced-colors mode does not suppress filter (unlike box-shadow on a
+     forced-color-adjust: auto element) and does not remap its color, so the
+     hard drop-shadow from anchoredPopover.css would otherwise render as a
+     literal dark shadow that high-contrast users never asked for. */
+  .anchored-popover {
+    filter: none;
   }
 
   button,

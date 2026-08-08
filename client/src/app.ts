@@ -1,4 +1,5 @@
 import {
+  revealArtist,
   revealSong,
   submitGuess,
 } from './domain/game.ts';
@@ -14,6 +15,9 @@ import {
   type PuzzleArchive,
 } from './domain/types.ts';
 import type { HowToPlayManifest } from './content/howToPlayLoader.ts';
+import {
+  createAnchoredDialogController,
+} from './platform/anchoredDialog.ts';
 import type { CompletionSource } from './platform/completion.ts';
 import type { GameElements } from './platform/dom.ts';
 import {
@@ -27,6 +31,7 @@ import {
   type ShareGateway,
 } from './platform/share.ts';
 import type {
+  ArtistRevealNoticeStore,
   GameStateStore,
   YouTubeConsentStore,
 } from './platform/storage.ts';
@@ -34,11 +39,16 @@ import { runAfterTactileActivation } from './platform/tactileAction.ts';
 import {
   renderArchiveContent,
 } from './views/archiveView.ts';
+import {
+  ARTIST_REVEAL_NOTICE_MESSAGE_ID,
+  renderArtistRevealNoticeContent,
+} from './views/artistRevealNoticeView.ts';
 import { renderHowToPlayContent } from './views/howToPlayView.ts';
 import { renderLoadingIndicator } from './views/loadingView.ts';
 import {
   clearGuessValidation,
-  renderArtistHint,
+  flashAttemptsPenalty,
+  renderArtistReveal,
   renderFuturePuzzle,
   renderGuessValidation,
   renderPuzzle,
@@ -56,6 +66,7 @@ export type AppDependencies = {
   loadPuzzle: (requestedPuzzleId: string | null) => Promise<LoadedPuzzle>;
   loadHowToPlay: () => Promise<HowToPlayManifest>;
   gameStateStore: GameStateStore;
+  artistRevealNoticeStore: ArtistRevealNoticeStore;
   youtubeConsentStore: YouTubeConsentStore;
   completionSource: CompletionSource;
   buildPuzzleUrl: BuildPuzzleUrl;
@@ -74,6 +85,7 @@ export async function initApp(
   let puzzle: Puzzle;
   let archive: PuzzleArchive;
   const modal = createModalController(elements.modal);
+  const artistRevealNotice = createAnchoredDialogController();
 
   elements.howToPlayButton.addEventListener('click', () => {
     runAfterTactileActivation(elements.howToPlayButton, () => {
@@ -119,7 +131,7 @@ export async function initApp(
   };
   const shareUrl = dependencies.buildPuzzleShareUrl(puzzle.id);
   const getShareRequest: PuzzleShareRequestFactory = () => {
-    const performance = getPuzzlePerformance(puzzle.id, state);
+    const performance = getPuzzlePerformance(puzzle.id, state, GAME_RULES);
 
     if (!performance) {
       throw new Error('Puzzle performance is unavailable during play.');
@@ -176,11 +188,73 @@ export async function initApp(
     }
   });
 
+  const performArtistReveal = (): void => {
+    const next = revealArtist(state, GAME_RULES);
+
+    if (next === state) {
+      return;
+    }
+
+    state = next;
+    dependencies.gameStateStore.save(puzzle.id, state);
+    updateGameState();
+    flashAttemptsPenalty(elements, GAME_RULES.artistRevealCost);
+
+    // updateGameState() hides the (possibly still-focused) reveal button in
+    // favor of the artist hint, which can otherwise drop focus to <body>.
+    // Explicit last-call-wins focus here covers both entry points that call
+    // performArtistReveal: the direct click once the notice has been seen,
+    // and Accept from the popover.
+    elements.artistHint.focus({ preventScroll: true });
+  };
+
   elements.revealArtistButton.addEventListener('click', () => {
     runAfterTactileActivation(elements.revealArtistButton, () => {
-      if (state.status === 'playing') {
-        renderArtistHint(elements, puzzle.artist);
+      // Probe the domain rule before anything user-visible happens, so a
+      // click that shouldn't be reachable (e.g. the disabled-button edge
+      // case) can never open the notice or burn the once-ever flag.
+      if (revealArtist(state, GAME_RULES) === state) {
+        return;
       }
+
+      if (dependencies.artistRevealNoticeStore.hasSeen()) {
+        performArtistReveal();
+        return;
+      }
+
+      // The controller never learns why it closed — Accept/Decline meaning
+      // lives entirely here, in this closure, via revealAccepted.
+      let revealAccepted = false;
+
+      artistRevealNotice.open({
+        anchor: elements.revealArtistButton,
+        returnFocus: elements.revealArtistButton,
+        className: 'artist-reveal-notice',
+        labelledBy: ARTIST_REVEAL_NOTICE_MESSAGE_ID,
+        content: renderArtistRevealNoticeContent({
+          cost: GAME_RULES.artistRevealCost,
+          onAccept: () => {
+            revealAccepted = true;
+            artistRevealNotice.close();
+          },
+          onDecline: () => artistRevealNotice.close(),
+          // Locks out Escape/backdrop-tap dismissal the instant either
+          // button is pressed, before runAfterTactileActivation's ~250ms
+          // delay defers the actual close() call — otherwise a dismissal
+          // landing in that window would race ahead of a pressed Accept,
+          // marking the notice seen with no reveal and silently dropping
+          // the user's choice (the deferred close() call becomes a no-op
+          // against an already-closed controller).
+          onCommit: () => artistRevealNotice.setDismissible(false),
+        }),
+        onClose: () => {
+          dependencies.artistRevealNoticeStore.markSeen();
+
+          if (revealAccepted) {
+            performArtistReveal();
+          }
+        },
+      });
     });
   });
 
@@ -206,6 +280,7 @@ function renderGameState(
   youtubeConsentStore: YouTubeConsentStore,
 ): void {
   renderState(elements, state, GAME_RULES, puzzle.lyricLines);
+  renderArtistReveal(elements, state, GAME_RULES, puzzle.artist);
 
   if (state.status === 'playing') {
     clearResult(elements.resultRegion);
